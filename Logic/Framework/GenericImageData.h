@@ -227,6 +227,13 @@ public:
   RegionType GetFullExtentImageRegion();
 
   /**
+   * Get the bounding box of a layer's voxel grid in the voxel coordinates of
+   * the reference space (i.e., after mapping all eight corners of the layer's
+   * extent through the physical and registration transforms).
+   */
+  RegionType GetLayerRegionInReferenceSpace(ImageWrapperBase *layer);
+
+  /**
    * Set the main image. The main image is the anatomical image that defines
    * the coordinate space of all other images in a SNAP session. It is the
    * image in which structures are traced. The main image can have multiple
@@ -261,9 +268,10 @@ public:
 
   /**
    * Set which segmentation layer is active. The layer should already
-   * have been added to the list of segmentation layers.
+   * have been added to the list of segmentation layers. If there is no
+   * segmentation layer with this id, the active segmentation is unchanged.
    */
-  void SetActiveSegmentationLayer(unsigned int unique_id);
+  void SetActiveSegmentationLayer(unsigned long unique_id);
 
   /**
    * Add a secondary segmentation image without overriding the main one
@@ -309,8 +317,9 @@ public:
   void UnloadOverlayLast();
   void UnloadOverlay(ImageWrapperBase *overlay);
 
-  /** React when an image is reloaded from disk */
-  void OnActiveSegmentationReload();
+  /** React when a segmentation is reloaded from disk: point all layers at the
+   *  current reference space (the reloaded image may have replaced it) */
+  void OnSegmentationReload();
 
   /**
    * Unload a specific mesh layer
@@ -358,9 +367,10 @@ public:
 
   /**
    * Set the cursor (crosshairs) position, in pixel coordinates relative to the
-   * active segmentation layer.
+   * active segmentation layer. All layers not yet at this position are updated.
+   * CursorUpdateEvent is fired if any layer changed, or always if force is set.
    */
-  virtual void SetCursorPosition(const Vector3i &crosshairs);
+  virtual void SetCursorPosition(const Vector3i &crosshairs, bool force = false);
 
   /**
    * Get the time point selected
@@ -502,6 +512,16 @@ protected:
 
   // Compare geometry between two wrappers
   static bool IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2);
+
+  // Flag used for caching full extent region
+  bool m_FullExtentRegionCacheValid = false;
+
+  // Cached full extent region
+  RegionType m_FullExtentRegionCache;
+
+  // Callback used for flagging full extent geometry as dirty
+  using RebroadcastCallbackType = std::function<void(const itk::Object *, const itk::EventObject &)>;
+  RebroadcastCallbackType m_FullExtentCacheCallback;
 
   // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;

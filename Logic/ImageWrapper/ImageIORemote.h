@@ -32,6 +32,31 @@ inline std::string UrlDecode(const std::string &s)
   return out;
 }
 
+/** Percent-encode text for use as one URL path segment: everything except
+ *  the unreserved characters (letters, digits, '-', '.', '_', '~') is
+ *  encoded, including '/', so the text cannot add path components. */
+inline std::string UrlEncodePathSegment(const std::string &s)
+{
+  static const char *hex = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(s.size());
+  for (unsigned char c : s)
+    {
+    // ASCII ranges, not isalnum(), which depends on the locale
+    bool unreserved = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                      (c >= '0' && c <= '9') || c == '-' || c == '.' || c == '_' || c == '~';
+    if (unreserved)
+      out += static_cast<char>(c);
+    else
+      {
+      out += '%';
+      out += hex[c >> 4];
+      out += hex[c & 15];
+      }
+    }
+  return out;
+}
+
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;
@@ -68,6 +93,38 @@ using DownloadProgressCallback =
     std::function<bool(std::size_t bytes_done,
                        std::size_t bytes_total)>;
 
+/**
+ * HTTP downloads that receive no data for this many seconds are aborted, so
+ * that a stalled connection does not hang the load forever.
+ */
+constexpr long DOWNLOAD_STALL_TIMEOUT_SEC = 60;
+
+
+/**
+ * A new, unique temp directory for one download. Unless Keep() is called, it
+ * is deleted with its contents when this object goes out of scope, so that a
+ * download that fails or is cancelled leaves no partial file behind.
+ */
+class DownloadTempDir
+{
+public:
+  /** Create the directory under the system temp directory. Throws on failure. */
+  explicit DownloadTempDir(const char *prefix);
+  ~DownloadTempDir();
+
+  DownloadTempDir(const DownloadTempDir &) = delete;
+  DownloadTempDir &operator=(const DownloadTempDir &) = delete;
+
+  const std::string &GetPath() const { return m_Path; }
+
+  /** Do not delete the directory; returns its path. */
+  const std::string &Keep() { m_Keep = true; return m_Path; }
+
+private:
+  std::string m_Path;
+  bool        m_Keep = false;
+};
+
 
 /**
  * Abstract base class for remote image source handlers. Each subclass
@@ -87,10 +144,19 @@ public:
    * inside the temp directory preserves the original remote basename so
    * that ITK format-detection by extension continues to work.
    *
-   * Cleanup of the temp directory is left to the OS for now.
-   * Throws IRISException on failure.
+   * When a file cache is attached, the returned file may instead be in the
+   * cache. Otherwise GetTemporaryDirectory() names the temp directory, which
+   * the caller must delete once it is done with the file. On failure or
+   * cancellation nothing is left behind. Throws IRISException on failure.
    */
   virtual std::string Download(const std::string &url) = 0;
+
+  /**
+   * After Download(): the temp directory holding the returned file, or ""
+   * when the file is in the cache. The caller owns this directory.
+   */
+  const std::string &GetTemporaryDirectory() const
+    { return m_TemporaryDirectory; }
 
   /** Attach an optional progress callback invoked during Download().
    *  Pass an empty std::function to clear an existing callback. */
@@ -137,6 +203,7 @@ protected:
   SSHConnectionPool        *m_ConnectionPool = nullptr;
   AbstractSSHAuthDelegate  *m_AuthDelegate   = nullptr;
   RemoteFileCache          *m_FileCache      = nullptr;
+  std::string               m_TemporaryDirectory;
 };
 
 
@@ -193,22 +260,88 @@ bool IsRemoteImageURL(const std::string &path);
 std::string ResolveITKSnapURL(const std::string &url);
 
 /**
+ * Whether a file name or URL has the workspace extension (.itksnap, any case).
+ * For remote URLs the query and fragment are ignored, so that
+ * https://host/study.itksnap?token=abc counts as a workspace.
+ */
+bool HasWorkspaceExtension(const std::string &path_or_url);
+
+/**
+ * The absolute form of a file name, as CollapseFullPath gives it. Remote URLs
+ * are returned unchanged, since CollapseFullPath would turn them into bogus
+ * local paths (e.g. "https://h/a" into "<cwd>/https:/h/a").
+ */
+std::string CollapseFullPathOrURL(const std::string &path_or_url);
+
+/** The parts of an scp:// or sftp:// URL */
+struct SCPURL
+{
+  std::string username;   // decoded; empty if the URL has no user@
+  std::string host;
+  int         port = 0;   // 0 if the URL has no :port
+  std::string path;       // decoded absolute path on the server
+};
+
+/**
+ * Parse scp://[user@]host[:port]/path or sftp://..., throwing IRISException
+ * if the URL is malformed (wrong scheme, no path, invalid port).
+ */
+SCPURL ParseSCPURL(const std::string &url);
+
+/**
+ * The local filename for a downloaded URL: the decoded last path component,
+ * without any ?query or #fragment. Throws IRISException if there is none
+ * (e.g., the URL ends in "/" or "..").
+ */
+std::string RemoteFilenameFromURL(const std::string &url);
+
+/**
  * Factory: create the RemoteImageSource appropriate for the scheme in @p url.
  * Throws IRISException for unrecognised schemes.
  */
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url);
 
 /**
- * Download a remote file to a local temp directory and return the local path.
+ * A local copy of a remote file, returned by DownloadRemoteFile(). A file in
+ * the persistent cache is kept. A file in a temp directory (no cache,
+ * DeleteAfterDownload set, or the cache could not store it) is deleted with
+ * its directory when this object is destroyed, so keep the object alive
+ * until the file has been read.
+ */
+class RemoteDownload
+{
+public:
+  RemoteDownload() = default;
+  RemoteDownload(std::string path, std::string temp_dir);
+  ~RemoteDownload();
+
+  RemoteDownload(RemoteDownload &&other) noexcept;
+  RemoteDownload &operator=(RemoteDownload &&other) noexcept;
+  RemoteDownload(const RemoteDownload &) = delete;
+  RemoteDownload &operator=(const RemoteDownload &) = delete;
+
+  /** Local path of the file. */
+  const std::string &GetPath() const { return m_Path; }
+
+private:
+  void DeleteTemporaryFile();
+
+  std::string m_Path;
+  std::string m_TempDir;
+};
+
+/**
+ * Download a remote file and return its local copy.
  * This is the one-stop helper: it creates the appropriate RemoteImageSource,
  * applies all fields from @p ctx (connection pool, auth delegate, file cache,
  * and a ProgressTaskGuard wrapping ctx.progressDelegate), and calls Download().
  *
- * @p title  Label shown in the progress bar; defaults to the URL basename.
+ * @p title  Label shown in the progress bar, marked with SNAP_TRANSLATE_NOOP;
+ *           "%1" in it is replaced by the filename. Defaults to "Downloading %1".
  */
-std::string DownloadRemoteFile(const std::string &url,
-                               const RemoteIOContext &ctx,
-                               const char *title = nullptr);
+RemoteDownload DownloadRemoteFile(const std::string &url,
+                                  const RemoteIOContext &ctx,
+                                  const char *title = nullptr);
 
 
 

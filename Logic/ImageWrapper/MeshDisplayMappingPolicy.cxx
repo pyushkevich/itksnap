@@ -64,7 +64,7 @@ MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
   if (m_ColorMap)
   {
-    m_ColorMap->RemoveObserver(m_ColorMapObserverTag);
+    Rebroadcaster::StopRebroadcasting(m_ColorMap, m_ColorMapObserverTag);
   }
 
   m_ColorMap = map;
@@ -81,7 +81,7 @@ MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
 {
   if (m_IntensityCurve)
   {
-    m_IntensityCurve->RemoveObserver(m_IntensityCurveObserverTag);
+    Rebroadcaster::StopRebroadcasting(m_IntensityCurve, m_IntensityCurveObserverTag);
   }
 
   m_IntensityCurve = curve;

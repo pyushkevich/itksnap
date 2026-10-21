@@ -65,6 +65,16 @@ font-weight:bold;</string>
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="chkHideFileExtensions">
+             <property name="toolTip">
+              <string>When this option is checked, extensions will be stripped from image and mesh filenames in most inspectors</string>
+             </property>
+             <property name="text">
+              <string>Hide image and mesh file extensions</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QCheckBox" name="chkLinkedZoom">
              <property name="text">
               <string>Maintain same zoom factor in all slices (&quot;linked zoom&quot;)</string>

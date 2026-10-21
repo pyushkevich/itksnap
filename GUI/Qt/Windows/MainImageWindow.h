@@ -32,6 +32,7 @@
 #include "SNAPCommon.h"
 
 class SliceViewPanel;
+class WindowTitleElider;
 class GlobalUIModel;
 class QDockWidget;
 class SnakeWizardPanel;
@@ -95,8 +96,9 @@ public:
    * Load a drag-n-dropped file or file opened through the OS URL mechanism.
    * @p dragged_to_window specifies whether the file was actually dragged to
    * this window or opened via MacOS open command or Windows URL
+   * (invokable so that GUI tests can call it)
    */
-  void LoadDroppedFile(QString file, bool dragged_to_window);
+  Q_INVOKABLE void LoadDroppedFile(QString file, bool dragged_to_window);
 
   // Export a screenshot from one of the panels
   void ExportScreenshot(int panelIndex);
@@ -141,7 +143,9 @@ public:
   /** Save the project (interactively or not) */
   bool SaveWorkspace(bool interactive);
 
-  // TODO: remove this, meant to be temporary for testing
+  /** The progress widget shown over the main window, for reporting the
+   * progress of operations that do not block the user interface (such as
+   * deep learning interactions) */
   ProgressReportWidget *GetProgressWidget() const { return m_ProgressFader; }
 
 public slots:
@@ -173,6 +177,9 @@ public slots:
 private slots:
 
   void onActiveChanged();
+
+  // A link on the Getting Started page was clicked
+  void on_brsGettingStarted_anchorClicked(const QUrl &url);
 
   void on_actionQuit_triggered();
 
@@ -451,6 +458,9 @@ private:
   ReorientImageDialog *m_ReorientImageDialog;
 
   DropActionDialog *m_DropDialog;
+
+  // Sets the window title, with long filenames elided to fit
+  WindowTitleElider *m_TitleElider;
 
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 

@@ -198,13 +198,32 @@ public:
   /** Version of Post that takes a va_list */
   bool PostVA(const char *rel_url, const char *post_string, std::va_list args);
 
-  // Progress callback signature
-  typedef  void ( *ProgressCallbackFunction )(void *, size_t, size_t);
+  /**
+   * Progress callback signature: (data, bytes done, bytes total). Returns
+   * false to cancel the transfer, in which case the request throws
+   * IRISUserCancelException.
+   */
+  typedef  bool ( *ProgressCallbackFunction )(void *, size_t, size_t);
+
+  /** The progress callback, and the last progress reported by CURL */
+  struct ProgressCallbackInfo
+  {
+    void                    *data = nullptr;
+    ProgressCallbackFunction fn = nullptr;
+    size_t                   done = 0, total = 0;
+  };
 
   /**
    * Set the callback command for uploads and downloads
    */
   void SetProgressCallback(void *cb_data, ProgressCallbackFunction fn);
+
+  /**
+   * Abort a transfer that receives or sends nothing for this many seconds
+   * (0 disables, the default). This only catches stalled transfers: waiting
+   * for a server that is computing a response also counts as a stall.
+   */
+  void SetStallTimeout(long seconds);
 
   /**
    * Unset the callback command
@@ -299,7 +318,7 @@ protected:
   bool m_FollowRedirects = false;
 
   /** Callback stuff */
-  std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
+  ProgressCallbackInfo m_CallbackInfo;
 
   static std::string GetCookieFile(const char *server_url);
 

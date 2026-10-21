@@ -287,4 +287,10 @@ void
 GlobalState::SetSelectedSegmentationLayerIdValue(unsigned long value)
 {
   m_Driver->GetCurrentImageData()->SetActiveSegmentationLayer(value);
+
+  // The property wraps a getter/setter pair, so unlike a stored property it
+  // does not fire ValueChangedEvent by itself. Fire it here so that listeners
+  // (3D renderer, mesh updates, inspectors) learn about the switch even when
+  // both segmentations have the same geometry.
+  m_SelectedSegmentationLayerIdModel->InvokeEvent(ValueChangedEvent());
 }

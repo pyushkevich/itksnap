@@ -32,7 +32,7 @@ void SynchronizationInspector::SetModel(SynchronizationModel *model)
   makeCoupling(ui->chkCamera, model->GetSyncCameraModel());
 
   // Hook up a warp model
-  makeCoupling(ui->inWarpLayer, m_Model->GetWarpLayerModel());
+  makeCoupling((QComboBox *)ui->inWarpLayer,m_Model->GetWarpLayerModel());
 
   // The checkboxes should be deactivated when the sync model is off
   makeBooleanNamedPropertyCoupling(ui->panelProperties, "enabled",

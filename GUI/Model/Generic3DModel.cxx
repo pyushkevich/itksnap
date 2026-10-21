@@ -78,6 +78,10 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   // Listen to the layer change events
   Rebroadcast(m_Driver, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
+  // The reference space (the active segmentation) may change without the main
+  // image changing, e.g. when switching to a segmentation on a different grid
+  Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
+
   // Listen to segmentation change events
   Rebroadcast(m_Driver, SegmentationChangeEvent(), StateMachineChangeEvent());
   Rebroadcast(m_Driver, LevelSetImageChangeEvent(), StateMachineChangeEvent());
@@ -245,6 +249,13 @@ void Generic3DModel::OnUpdate()
     // The geometry has changed
     this->OnImageGeometryUpdate();
     }
+
+  // The reference space changed: the voxel-to-world matrix must follow it,
+  // since cursor positions and picking are in reference space voxel units
+  else if(m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()))
+    {
+    this->OnImageGeometryUpdate();
+    }
 }
 
 void Generic3DModel::OnImageGeometryUpdate()
@@ -268,31 +279,32 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
   // Prevent concurrent access to this method
   std::lock_guard<std::mutex> guard(m_Mutex);
 
+  // The flag is cleared however this method exits. A flag left set by an
+  // exception would stall mesh updates (e.g., 4D replay) for good
+  struct MeshUpdatingGuard
+  {
+    std::atomic<bool> &flag;
+    MeshUpdatingGuard(std::atomic<bool> &f) : flag(f) { flag = true; }
+    ~MeshUpdatingGuard() { flag = false; }
+  };
+
   try
   {
     // Generate all the mesh objects
-    m_MeshUpdating = true;
+    MeshUpdatingGuard updating(m_MeshUpdating);
 
     // Check if snake mode is active and get mode specific image data
     GenericImageData *imgData = m_Driver->GetCurrentImageData();
 
     // Update Mesh Layer
     imgData->GetMeshLayers()->UpdateActiveMeshLayer(progressCmd);
-
-    m_MeshUpdating = false;
-
-    InvokeEvent(ModelUpdateEvent());
   }
   catch(std::bad_alloc &)
   {
-    m_MeshUpdating = false;
     throw IRISException("Out of memory during mesh computation");
   }
-  catch(IRISException & IRISexc)
-  {
-    m_MeshUpdating = false;
-    throw IRISexc;
-  }
+
+  InvokeEvent(ModelUpdateEvent());
 }
 
 bool Generic3DModel::IsMeshUpdating()

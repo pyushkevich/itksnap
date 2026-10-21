@@ -48,7 +48,7 @@ RecentHistoryItemsView::RecentHistoryItemsView(QWidget *parent) :
   // Set up the popup for the recent list
   m_RecentListPopup = new QMenu(this);
   m_RecentListPopupAction = m_RecentListPopup->addAction(
-        "Remove from recent image list", this,
+        tr("Remove from recent image list"), this,
         SLOT(OnRemoveRecentImageListItem()));
 }
 

@@ -57,6 +57,9 @@ inline char axisToLetter(unsigned axis)
         return '?';
 }
 
+// Number of comparisons that found differences
+static int nFailures = 0;
+
 //invokes IRISSlicer<itk> and IRISSlicer<rle> and compares results
 void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itkImage,
     unsigned sliceIndex, unsigned sliceAxis, unsigned lineAxis, unsigned pixelAxis,
@@ -102,8 +105,10 @@ void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itk
     diff->SetValidInput(sliceITK);
     diff->SetTestInput(sliceRLE);
     diff->UpdateLargestPossibleRegion();
-    std::cout << "Number of pixels with difference: " << 
+    std::cout << "Number of pixels with difference: " <<
         diff->GetNumberOfPixelsWithDifferences() << std::endl << std::endl;
+    if (diff->GetNumberOfPixelsWithDifferences() > 0)
+        nFailures++;
 }
 
 //test all 4 combinations of bool parameters (lineForward and pixelForward)
@@ -116,8 +121,74 @@ void test4bools(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itkImag
     testIRISSlicer(rleImage, itkImage, sliceIndex, sliceAxis, lineAxis, pixelAxis, false, false);
 }
 
+// Total number of runs in all lines of an RLE image
+itk::SizeValueType countRuns(shortRLEImage *image)
+{
+    itk::SizeValueType n = 0;
+    shortRLEImage::RLLine *lines = image->GetBuffer()->GetBufferPointer();
+    for (itk::SizeValueType i = 0; i < image->GetBuffer()->GetPixelContainer()->Size(); i++)
+        n += lines[i].size();
+    return n;
+}
+
+// Paint a block of voxels one at a time. With on-the-fly cleanup off, this
+// leaves runs of the same value next to each other; turning cleanup on must
+// merge them (RLEImage::CleanUp) without changing any voxel.
+int testCleanUp(shortRLEImage *source)
+{
+    shortRLEImage::Pointer copy[2];
+    for (int k = 0; k < 2; k++)
+    {
+        roiType::Pointer roi = roiType::New();
+        roi->SetInput(source);
+        roi->SetRegionOfInterest(source->GetLargestPossibleRegion());
+        roi->Update();
+        copy[k] = roi->GetOutput();
+        copy[k]->DisconnectPipeline();
+    }
+    copy[1]->SetOnTheFlyCleanup(false);
+
+    shortRLEImage::RegionType block = source->GetLargestPossibleRegion();
+    for (unsigned int d = 0; d < 3; d++)
+    {
+        block.SetIndex(d, block.GetIndex(d) + block.GetSize(d) / 4);
+        block.SetSize(d, std::max<itk::SizeValueType>(1, block.GetSize(d) / 2));
+    }
+    for (int k = 0; k < 2; k++)
+        for (itk::ImageRegionIterator<shortRLEImage> it(copy[k], block); !it.IsAtEnd(); ++it)
+            it.Set(7);
+
+    itk::SizeValueType runsMerged = countRuns(copy[0]), runsSplit = countRuns(copy[1]);
+    copy[1]->SetOnTheFlyCleanup(true);
+    itk::SizeValueType runsCleaned = countRuns(copy[1]);
+    std::cout << "CleanUp: runs with on-the-fly merging " << runsMerged << ", without "
+              << runsSplit << ", after CleanUp " << runsCleaned << std::endl;
+
+    int failures = 0;
+    if (runsSplit <= runsMerged || runsCleaned != runsMerged)
+        failures++;
+
+    itk::ImageRegionConstIterator<shortRLEImage> i0(copy[0], copy[0]->GetLargestPossibleRegion());
+    itk::ImageRegionConstIterator<shortRLEImage> i1(copy[1], copy[1]->GetLargestPossibleRegion());
+    itk::SizeValueType nDiff = 0;
+    for (; !i0.IsAtEnd(); ++i0, ++i1)
+        if (i0.Get() != i1.Get())
+            nDiff++;
+    std::cout << "CleanUp: voxels that differ " << nDiff << std::endl;
+    if (nDiff > 0)
+        failures++;
+
+    return failures;
+}
+
 int main(int argc, char* argv[])
 {
+    if (argc < 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " segmentation_image" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     itk::TimeProbe tp;
     std::cout << "Loading image: "; tp.Start();
     Seg3DImageType::Pointer inImage = loadImage(argv[1]);
@@ -140,6 +211,27 @@ int main(int argc, char* argv[])
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(1) / 2, 1, 0, 2);
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(0) / 2, 0, 2, 1);
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(0) / 2, 0, 1, 2);
-    std::cout << "All tests finished!";
-    getchar();
+
+    // Convert back from RLE and compare the whole volume
+    typedef itk::RegionOfInterestImageFilter<shortRLEImage, Seg3DImageType> outConverterType;
+    outConverterType::Pointer outConv = outConverterType::New();
+    outConv->SetInput(test);
+    outConv->SetRegionOfInterest(test->GetLargestPossibleRegion());
+    outConv->Update();
+
+    typedef itk::Testing::ComparisonImageFilter< Seg3DImageType, Seg3DImageType > Diff3DType;
+    Diff3DType::Pointer diff3D = Diff3DType::New();
+    diff3D->SetValidInput(inImage);
+    diff3D->SetTestInput(outConv->GetOutput());
+    diff3D->UpdateLargestPossibleRegion();
+    std::cout << "RLE->itk round trip, pixels with difference: "
+        << diff3D->GetNumberOfPixelsWithDifferences() << std::endl;
+    if (diff3D->GetNumberOfPixelsWithDifferences() > 0)
+        nFailures++;
+
+    // Merging of adjacent runs
+    nFailures += testCleanUp(test);
+
+    std::cout << "All tests finished, " << nFailures << " comparison(s) with differences" << std::endl;
+    return nFailures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

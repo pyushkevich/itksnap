@@ -635,6 +635,18 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
 {
   assert(m_State == EDITING_STATE);
 
+  // The current slice may be outside of the segmentation image, in which case
+  // there is nothing to draw into. Keep the polygon so that the user can move
+  // to a slice inside the segmentation and accept it there.
+  if (!m_Parent->IsSliceInReferenceSpace(m_Parent->GetDriver()->GetCursorPosition()))
+  {
+    warnings.push_back(IRISWarning("Warning: Cannot draw here."
+                                   "The current slice is outside the bounds of the "
+                                   "segmentation image, so the polygon cannot be "
+                                   "applied to it."));
+    return;
+  }
+
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
   itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[0],
@@ -690,14 +702,17 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
     }
 
     auto *ps = this->m_Parent->GetParentUI()->GetPolygonSettingsModel();
-    if (ps->GetDeepLearningMode())
+    // The lasso sent to the server is the set of voxels the polygon changed, so
+    // there is nothing to send if it changed none. In that case no undo point
+    // is created either, and calling Undo() would revert the previous edit
+    IRISApplication   *driver = m_Parent->GetDriver();
+    LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
+    if (ps->GetDeepLearningMode() && nUpdates > 0 &&
+        seg->StoreUndoPoint("Temporary undo point"))
     {
-      IRISApplication   *driver = m_Parent->GetDriver();
-      GlobalState       *gs = driver->GetGlobalState();
-      LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
+      GlobalState *gs = driver->GetGlobalState();
 
       // Undo the drawing we just did
-      seg->StoreUndoPoint("Temporary undo point");
       seg->Undo();
       auto &commit =
         seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
@@ -713,16 +728,27 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
       auto *dlm = this->GetParent()->GetParentUI()->GetDeepLearningSegmentationModel();
       auto *img = driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
 
+      // The pipeline selected in the polygon tool panel
+      std::string model_id = ps->GetEffectiveDeepLearningPipeline();
+
       // Catch exceptions from the deep learning model
       try
       {
-        // TODO: set up the model dropdown!
-        dlm->PerformLassoInteraction("nnInteractive", img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
+        if (model_id.empty())
+          throw IRISException("Deep learning lasso not available. "
+                              "None of the models on the deep learning server supports "
+                              "lasso interactions.");
+
+        dlm->PerformLassoInteraction(model_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
 
         // Store the correct undo point
-        driver->GetSelectedSegmentationLayer()->StoreUndoPoint("nnInteractive Lasso operation");
+        driver->GetSelectedSegmentationLayer()->StoreUndoPoint("Deep learning lasso operation");
         driver->RecordCurrentLabelUse();
         driver->InvokeEvent(SegmentationChangeEvent());
+      }
+      catch(IRISUserCancelException &)
+      {
+        // The user cancelled the request; the polygon is not applied
       }
       catch(IRISException &exc)
       {

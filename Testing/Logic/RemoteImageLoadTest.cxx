@@ -2,6 +2,7 @@
 #include "GenericImageData.h"
 #include "ImageIODelegates.h"
 #include "ImageIORemote.h"
+#include "FlywheelRemoteImageSource.h"
 #include "GlobalState.h"
 #include "ImageMeshLayers.h"
 #include "RemoteFileCache.h"
@@ -9,6 +10,9 @@
 #include "UIReporterDelegates.h"
 #include "LayerIterator.h"
 #include "TDigestImageFilter.h"
+#include "WorkspaceAPI.h"
+#include "HistoryManager.h"
+#include "SystemInterface.h"
 #include <itksys/SystemTools.hxx>
 #include <iostream>
 #include <cstdlib>
@@ -118,6 +122,10 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --regression-test -g <remote-url> <local-ref>  compare remote/local image" << std::endl;
   std::cerr << "  " << prog << " --regression-test -w <remote-url> <local-ref>  compare remote/local workspace" << std::endl;
   std::cerr << "  " << prog << " --test-cache <remote-url>  verify cache fill and conditional-GET hit" << std::endl;
+  std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
+  std::cerr << "  " << prog << " --test-cancel <remote-url>  cancel an HTTP download from the progress callback" << std::endl;
+  std::cerr << "  " << prog << " --test-url-keys <remote-url>  history and per-image settings use the URL" << std::endl;
+  std::cerr << "  " << prog << " --test-fw-url-forms  check the fw:// URL grammar offline" << std::endl;
 }
 
 
@@ -182,10 +190,14 @@ static bool CompareSnapshots(const LayerSnapshot &a, const LayerSnapshot &b,
     return false;
     }
 
+  // Quantiles come from a T-Digest, which is approximate and not fully
+  // deterministic (results vary slightly between runs on the same image), so
+  // compare them to within a fraction of the reference intensity range rather
+  // than exactly. This still catches a wrong or corrupted image.
+  double range = std::abs(b.quantiles[kNRanks - 1] - b.quantiles[0]);
+  double tol = std::max(0.01 * range, 1e-6);
   for (int i = 0; i < kNRanks; ++i)
     {
-    double ref = std::abs(b.quantiles[i]);
-    double tol = (ref > 1e-6) ? 1e-4 * ref : 1e-6;
     if (std::abs(a.quantiles[i] - b.quantiles[i]) > tol)
       {
       msg = "quantile p" + std::to_string(static_cast<int>(kRanks[i] * 100))
@@ -329,8 +341,11 @@ static int RegressionTest(const std::string &flag,
 
 static int TestCache(const std::string &url)
 {
-  // Derive the cache paths from the same data directory the app would use.
-  std::string data_dir  = ".itksnap_test";
+  // Derive the cache paths from the same data directory the app uses. CMake
+  // gives this test a directory of its own: on macOS the delegate's location
+  // in the working directory, on Windows APPDATA and on Linux HOME
+  auto app1 = MakeApp();
+  std::string data_dir  = app1->GetSystemInterface()->GetApplicationDataDirectory();
   std::string cache_dir = data_dir + "/Cache";
   std::string meta_path = data_dir + "/CacheMetadata.xml";
 
@@ -349,8 +364,6 @@ static int TestCache(const std::string &url)
   std::cout << "First download: " << url << std::endl;
 
   IRISWarningList warnings;
-  auto app1 = MakeApp();
-
   try
     {
     app1->OpenImage(url.c_str(), MAIN_ROLE, warnings);
@@ -474,6 +487,367 @@ static int TestCache(const std::string &url)
 
 
 // -----------------------------------------------------------------------
+//  --test-cancel
+//
+//  Download a file over HTTP(S) without the cache, cancelling from the
+//  progress callback. The download must stop with IRISUserCancelException,
+//  both when cancelled right away and once data has started to arrive. A
+//  download that is not cancelled must still succeed.
+// -----------------------------------------------------------------------
+
+static int TestCancel(const std::string &url)
+{
+  // Download with a callback that cancels once at least min_bytes arrived.
+  // Returns 0 if cancelled, 1 if it completed, 2 on another error.
+  auto download = [&url](std::size_t min_bytes, bool cancel, int &n_calls) -> int
+  {
+    n_calls = 0;
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+    src->SetProgressCallback([&](std::size_t done, std::size_t) {
+      n_calls++;
+      return !(cancel && done >= min_bytes);
+    });
+    try
+      {
+      // Delete the downloaded file again
+      std::string path = src->Download(url);
+      RemoteDownload dl(path, src->GetTemporaryDirectory());
+      return 1;
+      }
+    catch (IRISUserCancelException &)
+      {
+      return 0;
+      }
+    catch (std::exception &e)
+      {
+      std::cerr << "  error: " << e.what() << std::endl;
+      return 2;
+      }
+  };
+
+  int n_calls = 0;
+  int rc = download(0, true, n_calls);
+  if (rc != 0)
+    {
+    std::cerr << "FAIL: download cancelled at the first callback was not cancelled (rc="
+              << rc << ")" << std::endl;
+    return 1;
+    }
+  if (n_calls != 1)
+    {
+    std::cerr << "FAIL: callback was called " << n_calls << " times after cancelling" << std::endl;
+    return 1;
+    }
+  std::cout << "PASS: download cancelled at the first progress callback" << std::endl;
+
+  rc = download(1, true, n_calls);
+  if (rc == 0)
+    std::cout << "PASS: download cancelled after data started to arrive" << std::endl;
+  else if (rc == 1)
+    std::cout << "SKIP: download finished before any partial progress was reported" << std::endl;
+  else
+    {
+    std::cerr << "FAIL: unexpected error when cancelling mid-download" << std::endl;
+    return 1;
+    }
+
+  rc = download(0, false, n_calls);
+  if (rc != 1)
+    {
+    std::cerr << "FAIL: download without cancelling did not complete" << std::endl;
+    return 1;
+    }
+  std::cout << "PASS: download without cancelling completed (" << n_calls
+            << " progress callbacks)" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-save-workspace
+//
+//  Load an image from a remote URL, save a local workspace, and check that
+//  the workspace refers to the image by its URL (not by a mangled local
+//  path or the cache/temp file), that it can be reopened with the same data,
+//  that it can be exported (as for an upload to the distributed segmentation
+//  service), and that saving a workspace to a remote URL is refused.
+// -----------------------------------------------------------------------
+
+static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
+{
+  std::string ws_file = tempdir + "/RemoteImageLoadTest_SaveWorkspace.itksnap";
+  itksys::SystemTools::MakeDirectory(tempdir);
+  IRISWarningList warnings;
+
+  // Load the remote image and save a workspace
+  std::vector<LayerSnapshot> snaps1;
+  try
+    {
+    IRISApplication::Pointer app1 = MakeApp();
+    app1->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    snaps1 = SnapshotAllLayers(app1);
+    app1->SaveProject(ws_file);
+
+    // Saving to a remote location must fail cleanly
+    bool threw = false;
+    try
+      {
+      app1->SaveProject(url + ".itksnap");
+      }
+    catch (IRISException &)
+      {
+      threw = true;
+      }
+    if (!threw)
+      {
+      std::cerr << "FAIL: saving a workspace to a remote URL did not throw" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not load image / save workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  // The main layer must be stored by its URL
+  Registry reg;
+  reg.ReadFromXMLFile(ws_file.c_str());
+  std::string stored = reg["Layers.Layer[000].AbsolutePath"][""];
+  if (stored != url)
+    {
+    std::cerr << "FAIL: workspace stores '" << stored << "', expected '" << url << "'" << std::endl;
+    return 1;
+    }
+
+  // Reopen the workspace and compare the data
+  std::vector<LayerSnapshot> snaps2;
+  try
+    {
+    IRISApplication::Pointer app2 = MakeApp();
+    app2->OpenWorkspace(ws_file, warnings);
+    snaps2 = SnapshotAllLayers(app2);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not reopen saved workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  if (snaps1.size() != snaps2.size())
+    {
+    std::cerr << "FAIL: reopened workspace has " << snaps2.size() << " layers, expected "
+              << snaps1.size() << std::endl;
+    return 1;
+    }
+  for (size_t i = 0; i < snaps1.size(); ++i)
+    {
+    std::string msg;
+    if (!CompareSnapshots(snaps1[i], snaps2[i], msg))
+      {
+      std::cerr << "FAIL: layer " << i << " differs after reopening: " << msg << std::endl;
+      return 1;
+      }
+    }
+
+  // Export the workspace, as the distributed segmentation service does
+  // before uploading it: the remote layer must be downloaded and saved as a
+  // local file, and the export must open with the same data
+  std::string export_dir = tempdir + "/RemoteImageLoadTest_Export";
+  std::string export_file = export_dir + "/exported.itksnap";
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  itksys::SystemTools::MakeDirectory(export_dir);
+  std::vector<LayerSnapshot> snaps3;
+  try
+    {
+    WorkspaceAPI ws;
+    ws.ReadFromXMLFile(ws_file.c_str());
+    ws.ExportWorkspace(export_file.c_str());
+
+    WorkspaceAPI exported;
+    exported.ReadFromXMLFile(export_file.c_str());
+    for (int i = 0; i < exported.GetNumberOfLayers(); i++)
+      {
+      std::string path = exported.GetLayerActualPath(exported.GetLayerFolder(i));
+      if (IsRemoteImageURL(path) || !itksys::SystemTools::FileExists(path))
+        {
+        std::cerr << "FAIL: exported layer " << i << " is not a local file: " << path << std::endl;
+        return 1;
+        }
+      }
+
+    IRISApplication::Pointer app3 = MakeApp();
+    app3->OpenWorkspace(export_file, warnings);
+    snaps3 = SnapshotAllLayers(app3);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not export the workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  for (size_t i = 0; i < snaps1.size() && i < snaps3.size(); ++i)
+    {
+    std::string msg;
+    if (!CompareSnapshots(snaps1[i], snaps3[i], msg))
+      {
+      std::cerr << "FAIL: layer " << i << " differs after exporting: " << msg << std::endl;
+      return 1;
+      }
+    }
+  if (snaps1.size() != snaps3.size())
+    {
+    std::cerr << "FAIL: exported workspace has " << snaps3.size() << " layers, expected "
+              << snaps1.size() << std::endl;
+    return 1;
+    }
+
+  itksys::SystemTools::RemoveFile(ws_file);
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  std::cout << "PASS: workspace with a remote layer saved, reopened and exported" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-url-keys
+// -----------------------------------------------------------------------
+
+// A remote image is known by its URL, not by the path of the downloaded copy:
+// the layer name, the recent-image history and the per-image settings
+// (display settings, tags, IO hints) all use the URL. The settings saved when
+// the image is closed must come back when it is opened again.
+static int TestURLKeys(const std::string &url)
+{
+  IRISWarningList warnings;
+  try
+    {
+    IRISApplication::Pointer app = MakeApp();
+    HistoryManager *hm = app->GetHistoryManager();
+
+    // Open the image and tag it
+    app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    ImageWrapperBase *layer = app->GetCurrentImageData()->GetMain();
+    std::cout << "Layer file name: " << layer->GetFileName() << std::endl;
+    if (url != layer->GetFileName())
+      {
+      std::cerr << "FAIL: the layer file name is not the URL" << std::endl;
+      return 1;
+      }
+
+    // The history holds the URL, not the downloaded copy
+    for (const char *cat : { "MainImage", "AnatomicImage" })
+      {
+      HistoryManager::HistoryListType hist = hm->GetGlobalHistory(cat);
+      std::string last = hist.size() ? hist.back() : std::string();
+      std::cout << "Last " << cat << " history entry: " << last << std::endl;
+      if (last != url)
+        {
+        std::cerr << "FAIL: the " << cat << " history does not end with the URL" << std::endl;
+        return 1;
+        }
+      }
+
+    TagList tags;
+    tags.push_back("url-keys-test");
+    layer->SetTags(tags);
+
+    // Closing the image saves its settings, under the URL
+    app->UnloadMainImage();
+    Registry assoc;
+    if (!app->GetSystemInterface()->FindRegistryAssociatedWithFile(url.c_str(), assoc))
+      {
+      std::cerr << "FAIL: no settings associated with the URL" << std::endl;
+      return 1;
+      }
+
+    // Opening it again restores them
+    app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    TagList restored = app->GetCurrentImageData()->GetMain()->GetTags();
+    std::cout << "Tags after reopening: " << restored.size() << std::endl;
+    if (restored.size() != 1 || restored.front() != "url-keys-test")
+      {
+      std::cerr << "FAIL: the image's settings were not restored when it was reopened" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  std::cout << "PASS: history and per-image settings use the URL" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-fw-url-forms
+//
+//  Offline check of the fw:// URL grammar in FlywheelRemoteImageSource. No
+//  network and no API key. With no auth delegate set and HOME pointed at an
+//  empty directory, a syntactically valid form passes validation and reaches
+//  the key step, where it throws IRISUserCancelException because nothing can
+//  supply a key; a bad form is rejected earlier with IRISException. The
+//  exception thrown thus reveals which branch the parser took.
+// -----------------------------------------------------------------------
+
+static int TestFlywheelURLForms()
+{
+  struct Case { const char *url; const char *expect; };
+  const Case cases[] = {
+    { "fw://h/sessions/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/subjects/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/projects/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/acquisitions/abc/files/x.nii.gz",   "cancel" },
+    { "fw://h/analyses/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/groups/abc/files/x.nii.gz",         "unrecognised" },
+    { "fw://h/sessions/abc/x.nii.gz",             "unrecognised" },
+    { "fw://h/find/g/p/s/ses/sessions/l/files/x", "unrecognised" },
+    { "fw://h",                                   "malformed" },
+  };
+
+  int failures = 0;
+  for (const auto &c : cases)
+    {
+    std::string got;
+    std::string message;
+    try
+      {
+      FlywheelRemoteImageSource::New()->Download(c.url);
+      got = "none";
+      }
+    catch (IRISUserCancelException &)
+      {
+      got = "cancel";
+      }
+    catch (IRISException &e)
+      {
+      message = e.what();
+      if (message.find("unrecognised URL format") != std::string::npos)
+        got = "unrecognised";
+      else if (message.find("malformed URL") != std::string::npos)
+        got = "malformed";
+      else
+        got = "other";
+      }
+
+    bool ok = (got == c.expect);
+    std::cout << (ok ? "PASS" : "FAIL") << ": " << c.url
+              << "  expected " << c.expect << ", got " << got;
+    if (!ok && !message.empty())
+      std::cout << " (" << message << ")";
+    std::cout << std::endl;
+    if (!ok)
+      failures++;
+    }
+
+  return failures == 0 ? 0 : 1;
+}
+
+
+// -----------------------------------------------------------------------
 //  main
 // -----------------------------------------------------------------------
 
@@ -525,6 +899,46 @@ int main(int argc, char *argv[])
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestCache(url);
     }
+
+  // ── --test-cancel ────────────────────────────────────────────────────
+  if (cmd == "--test-cancel")
+    {
+    if (argc < 3)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestCancel(url);
+    }
+
+  // ── --test-save-workspace ────────────────────────────────────────────
+  if (cmd == "--test-save-workspace")
+    {
+    if (argc < 4)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestSaveWorkspace(url, argv[3]);
+    }
+
+  // ── --test-url-keys ──────────────────────────────────────────────────
+  if (cmd == "--test-url-keys")
+    {
+    if (argc < 3)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestURLKeys(url);
+    }
+
+  // ── --test-fw-url-forms ──────────────────────────────────────────────
+  if (cmd == "--test-fw-url-forms")
+    return TestFlywheelURLForms();
 
   // ── Legacy: -g / -w ─────────────────────────────────────────────────
   if (argc < 3)

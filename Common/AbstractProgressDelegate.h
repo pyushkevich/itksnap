@@ -12,7 +12,16 @@
  *
  * Usage: wrap each operation in a ProgressTaskGuard, which calls StartTask on
  * construction and CompleteTask on destruction (RAII).
+ *
+ * Task titles are untranslated English; GUI implementations translate them
+ * in the "ProgressTask" context. Mark each title with SNAP_TRANSLATE_NOOP so
+ * that lupdate finds it. A title may contain "%1", which is replaced by the
+ * title argument after translation (e.g. "Downloading %1" and a filename).
  */
+
+/** Marks a string for translation without translating it (lupdate treats it
+ *  as QT_TRANSLATE_NOOP). Logic and Model code cannot use the Qt macro. */
+#define SNAP_TRANSLATE_NOOP(context, text) text
 class AbstractProgressDelegate
 {
 public:
@@ -27,9 +36,12 @@ public:
    * Set it to false for tasks managed by ProgressTaskGuard, which guarantees
    * CompleteTask is always called; leave it true only for fire-and-forget tasks
    * where a crash might otherwise leave a zombie entry in the overlay.
+   *
+   * titleArg replaces "%1" in the title.
    */
   virtual std::string StartTask(const char *title, bool trackProgress,
-                                bool useTimeout = false) = 0;
+                                bool useTimeout = false,
+                                const std::string &titleArg = std::string()) = 0;
 
   /**
    * Update task progress. percent is in [0, 1]; NaN means indeterminate.
@@ -53,11 +65,12 @@ class ProgressTaskGuard
 {
 public:
   ProgressTaskGuard(AbstractProgressDelegate *delegate, const char *title,
-                    bool trackProgress = false)
+                    bool trackProgress = false,
+                    const std::string &titleArg = std::string())
     : m_Delegate(delegate)
   {
     if (m_Delegate)
-      m_TaskId = m_Delegate->StartTask(title, trackProgress);
+      m_TaskId = m_Delegate->StartTask(title, trackProgress, false, titleArg);
   }
 
   ~ProgressTaskGuard()
@@ -72,13 +85,17 @@ public:
       guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(guard->m_TaskId, progress);
   }
 
-  static void ProgressCallback(void *source, std::size_t done, std::size_t total)
+  /** Callback for REST transfers. Returns false once the user has cancelled. */
+  static bool ProgressCallback(void *source, std::size_t done, std::size_t total)
   {
     auto *guard = static_cast<ProgressTaskGuard *>(source);
-    if (guard && guard->m_Delegate)
+    if (!guard)
+      return true;
+    if (guard->m_Delegate)
       guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(
         guard->m_TaskId,
         total > 0 ? static_cast<double>(done) / total : std::numeric_limits<double>::quiet_NaN());
+    return !guard->m_Cancelled;
   }
 
   bool UpdateProgress(double percent)

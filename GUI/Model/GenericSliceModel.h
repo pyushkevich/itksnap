@@ -31,6 +31,8 @@
 #include <ImageCoordinateTransform.h>
 #include <SNAPEvents.h>
 #include <string>
+#include <array>
+#include <vector>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
 #include "UIReporterDelegates.h"
@@ -73,6 +75,43 @@ public:
 
   // List of subviewports
   std::vector<SubViewport> vpList;
+};
+
+/**
+ * What "zoom to fit" frames in a slice view. The main image, the active
+ * segmentation (which defines the reference space) and the overlays may live
+ * on different voxel grids, so each gives a different fit.
+ */
+enum ZoomFitTarget
+{
+  FIT_SCENE = 0,     // union of all loaded layers (full extent)
+  FIT_MAIN_IMAGE,    // the main image
+  FIT_SEGMENTATION,  // the active segmentation, i.e., the reference space
+  FIT_TARGET_COUNT
+};
+
+/**
+ * Zoom and view position at which a region fits snugly into a slice view
+ */
+struct OptimalViewParameters
+{
+  // The region being fitted, in slice coordinates
+  itk::ImageRegion<3> region;
+
+  // Number of screen pixels per mm at which the region fits
+  double zoom = 0.0;
+
+  // View center (in slice coordinates scaled by spacing) at which it fits
+  Vector2d position = Vector2d(0.0);
+
+  // Whether two fits frame the same in-plane rectangle (and thus look the same)
+  bool SameInPlane(const OptimalViewParameters &o) const
+  {
+    for (unsigned int i = 0; i < 2; i++)
+      if (region.GetIndex(i) != o.region.GetIndex(i) || region.GetSize(i) != o.region.GetSize(i))
+        return false;
+    return true;
+  }
 };
 
 /**
@@ -160,10 +199,37 @@ public:
   void RefreshFullExtentRegion();
 
   /**
-   * Reset the view parameters of the window (zoom, view position) to
-   * defaults
+   * Reset the view parameters of the window (zoom, view position) so that
+   * the given target fits in the window, and remember it as the fit target
    */
-  virtual void ResetViewToFit();
+  virtual void ResetViewToFit(ZoomFitTarget target);
+
+  /** Re-apply the fit for the current fit target */
+  virtual void ResetViewToFit() { this->ResetViewToFit(m_FitTarget); }
+
+  /** Whether the view still shows the last fit, i.e., it has not been zoomed
+   * or panned since the last ResetViewToFit() */
+  irisGetMacro(ViewIsFit, bool)
+
+  /** Mark the view as showing the fit for its fit target. Used by the slice
+   * coordinator after it applies a common (linked) zoom to a fitted view */
+  void MarkViewAsFit() { m_ViewIsFit = true; }
+
+  /**
+   * The targets that give distinct fits in this view, in cycling order. A
+   * target whose in-plane region equals that of an earlier one is skipped.
+   */
+  std::vector<ZoomFitTarget> GetDistinctFitTargets() const;
+
+  /**
+   * The target that the next "zoom to fit" should apply: the one after the
+   * current fit target if the view is still exactly at that fit, otherwise
+   * the current fit target again (re-fit after the user zoomed or panned)
+   */
+  ZoomFitTarget GetNextFitTarget() const;
+
+  /** The last fit target applied */
+  irisGetSetMacro(FitTarget, ZoomFitTarget)
 
   /**
    * Map a point in window coordinates to a point in slice coordinates
@@ -219,15 +285,29 @@ public:
   Vector3d MapImageToSlice(const Vector3d &xImage);
 
   /**
+   * Map a point in the voxel coordinates of the main image to slice
+   * coordinates, and back. "Image coordinates" in MapImageToSlice are the
+   * voxel coordinates of the reference space (the active segmentation),
+   * which may be a different grid. These methods are used for annotations,
+   * which are stored in main image voxel coordinates. Both use the same
+   * convention as MapImageToSlice, i.e., voxel k spans [k, k+1).
+   */
+  Vector3d MapMainImageToSlice(const Vector3d &xMain);
+  Vector3d MapSliceToMainImage(const Vector3d &xSlice);
+
+  /**
    * Get the cursor position in slice coordinates, shifted to the center
    * of the voxel
    */
   Vector3d GetCursorPositionInSliceCoordinates();
 
   /**
-   * Get the slice index for this window
+   * Get the slice index for this window. This is the cursor position along
+   * the slice axis, in reference space voxels. It can be negative, or not
+   * less than GetNumberOfSlices(), when the cursor is in a part of the scene
+   * that lies outside of the reference space.
    */
-  unsigned int GetSliceIndex();
+  int GetSliceIndex();
 
   /**
    * Get the model that handles slice index information
@@ -249,7 +329,7 @@ public:
    * Set the index of the slice in the current view. This method will
    * update the cursor in the IRISApplication object
    */
-  void UpdateSliceIndex(unsigned int newIndex);
+  void UpdateSliceIndex(int newIndex);
 
   /**
    * Get the number of slices available in this view
@@ -259,6 +339,14 @@ public:
   /** Return the image axis along which this window shows slices */
   size_t GetSliceDirectionInImageSpace()
     { return m_ImageAxes[2]; }
+
+  /**
+   * Whether a given image-space position lies on a slice (along this view's
+   * slice direction) that falls within the reference space's bounds. The
+   * cursor may be outside of the reference space (i.e. the active
+   * segmentation), and drawing tools can only be applied when this holds.
+   */
+  bool IsSliceInReferenceSpace(const Vector3i &xImage);
 
   /** Return the offset from the center of the viewport to the cursor position
    * in slice units (#voxels * spacing). This is used to synchronize panning
@@ -294,11 +382,14 @@ public:
   /** Computes the zoom that gives the best fit for the window */
   void ComputeOptimalZoom();
 
-  /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoom, double)
+  /** Optimal zoom/position (best fit) for a given target */
+  const OptimalViewParameters &GetOptimalView(ZoomFitTarget target) const
+  {
+    return m_OptimalViews[target];
+  }
 
-  /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoomFullExtent, double)
+  /** Optimal zoom (best fit) of the reference space, i.e., active segmentation */
+  double GetOptimalZoom() const { return m_OptimalViews[FIT_SEGMENTATION].zoom; }
 
   /** Set the zoom management flag */
   irisSetMacro(ManagedZoom,bool)
@@ -345,8 +436,13 @@ public:
    */
   bool IsTiling() const;
 
-  /** Has the slice model been initialized with image data? */
-  irisIsMacro(SliceInitialized)
+  /**
+   * Has the slice model been initialized with image data? This is false as
+   * soon as the main image is unloaded: the model only processes the events
+   * about it later, and until then the slice views can still get mouse and
+   * paint events, which must not read the cursor of the unloaded data.
+   */
+  bool IsSliceInitialized() const;
 
   irisGetMacro(ParentUI, GlobalUIModel *)
   irisGetMacro(Driver, IRISApplication *)
@@ -472,6 +568,9 @@ protected:
   // Full scene extent region in the display coordinate orientation
   itk::ImageRegion<3> m_FullExtentRegion;
 
+  // Main image region in the display coordinate orientation
+  itk::ImageRegion<3> m_MainImageRegion;
+
   // Pixel dimensions for the slice.  (the third component is the pixel
   // width in the slice direction)
   Vector3d m_RefSpaceSpacing;
@@ -489,14 +588,22 @@ protected:
   // Set view position based on currently stored world space position
   void RestoreViewPositionInWorldSpace();
 
-  // The view position where the slice wants to be
-  Vector2d m_OptimalViewPosition, m_OptimalViewPositionFullExtent;
-
   // The number of screen pixels per mm of image
   double m_ViewZoom;
 
-  // The zoom level at which the slice fits snugly into the window
-  double m_OptimalZoom, m_OptimalZoomFullExtent;
+  // Zoom and view position at which each fit target fits snugly in the window
+  std::array<OptimalViewParameters, FIT_TARGET_COUNT> m_OptimalViews;
+
+  // The last fit target applied by "zoom to fit"
+  ZoomFitTarget m_FitTarget = FIT_SCENE;
+
+  // Whether the view has not been zoomed or panned since the last fit. This
+  // is tracked explicitly rather than by comparing zoom levels, because the
+  // optimal zoom levels get recomputed (e.g. on resize) after a fit
+  bool m_ViewIsFit = false;
+
+  // Compute the main image region in slice coordinates
+  void UpdateMainImageRegion();
 
   // Flag indicating whether the window's zooming is managed externally
   // by the SliceWindowCoordinator

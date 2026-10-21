@@ -46,7 +46,8 @@ protected:
   // Acceleration factor
   double m_Acceleration;
 
-  void readScript(QString script_url, QString &script);
+  // Read a script and the scripts it includes; false if one cannot be read
+  bool readScript(QString script_url, QString &script);
 
 };
 
@@ -74,6 +75,10 @@ public slots:
 
   // Find a child of an object visible to the script
   QObject *findChild(QObject *parent, QString child);
+
+  // Find a visible child widget by name. Use this for dialogs that are kept
+  // after being closed, so that a hidden earlier instance is not returned.
+  QObject *findVisibleChild(QObject *parent, QString child);
 
   // Find a widget by name globally
   QWidget *findWidget(QString widgetName);
@@ -121,6 +126,15 @@ public slots:
   // Find the index of an item in a widget (combo, list)
   QVariant findItemColumn(QObject *container, QVariant text);
 
+  // Save an image of the current window to filename: the active modal dialog
+  // if there is one, else the active window, else the main window. Relative
+  // filenames are resolved against the current directory and missing
+  // directories are created. Returns the absolute path of the saved file.
+  QString screenshot(QString filename);
+
+  // Same, but of a specific widget (a whole window or any child widget)
+  QString screenshot(QString filename, QObject *widget);
+
   void print(QString text);
 
   void printChildren(QObject *parent);
@@ -167,7 +181,10 @@ protected:
   MainImageWindow *m_Parent;
 
   // Helper functions
+  bool checkObject(QObject *obj, QString what);
+  QObject *findRequiredChild(QObject *parent, QString child);
   QModelIndex findItem(QObject *container, QVariant text);
+  QString screenshotInternal(QString filename, QObject *target, bool explicit_target);
   void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);
 };
 

@@ -106,7 +106,7 @@ SNAPImageData
   if(m_SpeedWrapper.IsNull())
     {
     m_SpeedWrapper = SpeedImageWrapper::New();
-    m_SpeedWrapper->SetDefaultNickname("Speed Image");
+    m_SpeedWrapper->SetDefaultNickname(SNAPTranslate("DefaultNickname", "Speed Image"));
     PushBackImageWrapper(SNAP_ROLE, m_SpeedWrapper.GetPointer());
     }
 
@@ -172,7 +172,7 @@ SNAPImageData
   if(!m_SnakeWrapper)
     {
     m_SnakeWrapper = LevelSetImageWrapper::New();
-    m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
+    m_SnakeWrapper->SetDefaultNickname(SNAPTranslate("DefaultNickname", "Evolving Contour"));
     m_SnakeWrapper->SetAlpha(0.5);
     m_SnakeWrapper->SetSlicingInterpolationMode(m_InterpolationMode);
     PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());

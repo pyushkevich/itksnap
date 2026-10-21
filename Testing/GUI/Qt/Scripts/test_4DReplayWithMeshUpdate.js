@@ -55,6 +55,28 @@ var btnReplay   = engine.findChild(grp4D, "btn4DReplay");
 var inInterval  = engine.findChild(grp4D, "in4DReplayInterval");
 var tpWidget    = engine.findChild(mainwin, "inCursorT_4D");
 
+// Watch the time point while replay runs for duration_ms, reading it every
+// 250 ms, and return how many readings differed from the one before. Replay
+// cycles through the 11 frames, so comparing only the first and last frame
+// can fail by chance when replay ends on the frame it started from. 250 ms
+// is not a multiple of the replay intervals used below (50 and 100 ms), so
+// the readings cannot keep landing on the same frame either.
+function countFrameChanges(duration_ms)
+{
+    var step = 250;
+    var prev = engine.getProperty(tpWidget, "value");
+    var changes = 0;
+    for (var t = 0; t < duration_ms; t += step)
+    {
+        engine.sleep(step);
+        var tp = engine.getProperty(tpWidget, "value");
+        if (tp !== prev)
+            changes++;
+        prev = tp;
+    }
+    return changes;
+}
+
 // ---------------------------------------------------------------------------
 //  Phase A: cold-start replay (meshes not yet built for most frames)
 //  Use a generous interval (500 ms) and a long sleep (8 s).
@@ -70,21 +92,21 @@ var tpBefore = engine.getProperty(tpWidget, "value");
 engine.print("Phase A: time point before replay = " + tpBefore);
 
 engine.click(btnReplay);   // START replay
-engine.sleep(8000);                      // let it run — crash would abort test here
+var changesA = countFrameChanges(8000);  // let it run — crash would abort test here
 engine.click(btnReplay);   // STOP replay
 
 var tpAfter = engine.getProperty(tpWidget, "value");
-engine.print("Phase A: time point after replay  = " + tpAfter);
+engine.print("Phase A: time point after replay  = " + tpAfter +
+             ", frame changes seen in 8 s = " + changesA);
 
-if (tpAfter === tpBefore)
+if (changesA < 1)
     engine.testFailed(
         "Phase A FAILED: 4D replay did not advance any time points during " +
         "cold-start with continuous mesh update active. " +
         "Regression: IsMeshUpdating guard may be blocking the replay timer " +
         "indefinitely, or the background mesh thread never completes.");
 
-engine.print("Phase A PASSED: replay advanced from frame " + tpBefore +
-             " to frame " + tpAfter);
+engine.print("Phase A PASSED: replay advanced " + changesA + " times");
 
 // ---------------------------------------------------------------------------
 //  Phase B: pre-warm all 11 frame mesh caches, then verify replay runs
@@ -112,33 +134,26 @@ tpBefore = engine.getProperty(tpWidget, "value");
 engine.print("Phase B: time point before replay = " + tpBefore);
 
 engine.click(btnReplay);   // START replay
-engine.sleep(1500);       // 1.5 s: at 100 ms/frame expect ~15 ticks — must have moved
-                          // with the regression (~1.5 s/frame) we'd see 0-1 ticks
-var tpMid = engine.getProperty(tpWidget, "value");
-engine.print("Phase B: time point at 1.5 s = " + tpMid);
-engine.sleep(1500);       // another 1.5 s
+// At 100 ms/frame, each 250 ms reading sees the frame change, so about 6 of
+// the 6 readings in 1.5 s differ. With the regression (~1.5 s/frame) at most
+// 1-2 would. Two windows: replay must start fast and keep going.
+var changesB1 = countFrameChanges(1500);
+engine.print("Phase B: frame changes seen in the first 1.5 s = " + changesB1);
+var changesB2 = countFrameChanges(1500);
+engine.print("Phase B: frame changes seen in the next 1.5 s  = " + changesB2);
 engine.click(btnReplay);   // STOP replay
 
-tpAfter = engine.getProperty(tpWidget, "value");
-engine.print("Phase B: time point after replay  = " + tpAfter);
-
-// Primary check: the mid-point must differ from the start.
-// With correct caching at 100 ms, ~15 ticks happen in 1.5 s — guaranteed movement.
-// With the regression (mesh rebuilt every frame at ~1-2 s each), fewer than
-// 2 frames would advance in 1.5 s and the sample is likely unchanged.
-if (tpMid === tpBefore)
+if (changesB1 < 3)
     engine.testFailed(
-        "Phase B FAILED: time point did not change in the first 1.5 s " +
+        "Phase B FAILED: only " + changesB1 + " frame changes in the first 1.5 s " +
         "of replay at 100 ms interval with pre-warmed caches. " +
         "Regression: IsMeshDirty() may be returning true for cached frames " +
         "causing redundant mesh recomputation and stalling the replay timer.");
 
-// Secondary check: replay kept advancing into the second window too.
-if (tpAfter === tpMid)
+if (changesB2 < 3)
     engine.testFailed(
-        "Phase B FAILED: time point stalled between 1.5 s and 3 s of replay. " +
-        "Regression: continuous mesh update may be blocking the replay timer.");
+        "Phase B FAILED: only " + changesB2 + " frame changes between 1.5 s and 3 s " +
+        "of replay. Regression: continuous mesh update may be blocking the replay timer.");
 
-engine.print("Phase B PASSED: replay advanced (start=" + tpBefore +
-             " mid=" + tpMid + " end=" + tpAfter +
-             "). Mesh dirty-flag caching is working correctly.");
+engine.print("Phase B PASSED: replay advanced " + changesB1 + " + " + changesB2 +
+             " times. Mesh dirty-flag caching is working correctly.");

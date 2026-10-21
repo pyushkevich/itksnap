@@ -19,6 +19,7 @@
 #include <SNAPQApplication.h>
 #include <QDeadlineTimer>
 #include <QMetaMethod>
+#include <QPixmap>
 
 
 #include "SNAPQtCommon.h"
@@ -57,6 +58,10 @@ SNAPTestQt::SNAPTestQt(MainImageWindow *win,
 
   // Assign the data directory to the script engine
   m_ScriptEngine->globalObject().setProperty("datadir", from_utf8(datadir));
+
+  // A writable directory for files that tests save (the data directory may
+  // be read-only, e.g. a source checkout)
+  m_ScriptEngine->globalObject().setProperty("tempdir", QDir::tempPath());
 }
 
 SNAPTestQt::~SNAPTestQt()
@@ -86,55 +91,112 @@ SNAPTestQt::LaunchTest(std::string test)
   m_Worker->start();
 }
 
+// The script runs on a worker thread, but widgets and item models may only
+// be accessed on the GUI thread (while the GUI thread changes the widget
+// tree, a lookup from the worker thread can crash). Run f on the GUI thread
+// and wait for its result.
+template <class F>
+static auto RunOnGuiThread(F f) -> decltype(f())
+{
+  if(QThread::currentThread() == qApp->thread())
+    return f();
+
+  decltype(f()) result{};
+  QMetaObject::invokeMethod(qApp, [&]() { result = f(); }, Qt::BlockingQueuedConnection);
+  return result;
+}
+
+// Engine calls on a null object (e.g., a widget that was not found because
+// its name is misspelled or a dialog did not open) fail the test with a
+// script error, instead of crashing the application
+bool SNAPTestQt::checkObject(QObject *obj, QString what)
+{
+  if(obj)
+    return true;
+
+  m_ScriptEngine->throwError(QJSValue::ReferenceError, what);
+  return false;
+}
+
+QObject *SNAPTestQt::findRequiredChild(QObject *parent, QString child)
+{
+  if(!checkObject(parent, QString("Parent of child %1 is null").arg(child)))
+    return nullptr;
+
+  QObject *obj = RunOnGuiThread([&]() { return parent->findChild<QObject *>(child); });
+  checkObject(obj, QString("Child %1 not found").arg(child));
+  return obj;
+}
+
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
 {
-  return parent->findChild<QObject *>(child);
+  if(!checkObject(parent, QString("findChild(%1) called on a null parent").arg(child)))
+    return nullptr;
+
+  return RunOnGuiThread([&]() { return parent->findChild<QObject *>(child); });
+}
+
+QObject *SNAPTestQt::findVisibleChild(QObject *parent, QString child)
+{
+  if(!checkObject(parent, QString("findVisibleChild(%1) called on a null parent").arg(child)))
+    return nullptr;
+
+  return RunOnGuiThread([&]() -> QObject * {
+    foreach(QWidget *w, parent->findChildren<QWidget *>(child))
+      if(w->isVisible())
+        return w;
+    return nullptr;
+  });
 }
 
 QWidget *SNAPTestQt::findWidget(QString widgetName)
 {
-  foreach(QWidget *w, QApplication::allWidgets())
-    if(w->objectName() == widgetName)
-      return w;
-
-  return NULL;
+  return RunOnGuiThread([&]() -> QWidget * {
+    foreach(QWidget *w, QApplication::allWidgets())
+      if(w->objectName() == widgetName)
+        return w;
+    return nullptr;
+  });
 }
 
 
 QVariant SNAPTestQt::tableItemText(QObject *table, int row, int col)
 {
-  QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(table);
-  if(view)
-    {
-    QAbstractItemModel *model = view->model();
-    return model->data(model->index(row, col));
-    }
-
-  return QVariant();
+  return RunOnGuiThread([&]() -> QVariant {
+    QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(table);
+    if(view)
+      {
+      QAbstractItemModel *model = view->model();
+      return model->data(model->index(row, col));
+      }
+    return QVariant();
+  });
 }
 
 
 QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
 {
-  QAbstractItemModel *model = NULL;
+  return RunOnGuiThread([&]() -> QModelIndex {
+    QAbstractItemModel *model = NULL;
 
-  // Is it a combo box?
-  if(QComboBox *combo = dynamic_cast<QComboBox *>(container))
-    model = combo->model();
+    // Is it a combo box?
+    if(QComboBox *combo = dynamic_cast<QComboBox *>(container))
+      model = combo->model();
 
-  // Is it an item view?
-  else if(QAbstractItemView *itemview = dynamic_cast<QAbstractItemView *>(container))
-    model = itemview->model();
+    // Is it an item view?
+    else if(QAbstractItemView *itemview = dynamic_cast<QAbstractItemView *>(container))
+      model = itemview->model();
 
-  // Find the item
-  if(model)
-    {
-    QModelIndexList found = model->match(model->index(0,0),Qt::DisplayRole,text);
-    if(found.size())
-      return found.at(0);
-    }
+    // Find the item
+    if(model)
+      {
+      QModelIndexList found = model->match(model->index(0,0),Qt::DisplayRole,text);
+      if(found.size())
+        return found.at(0);
+      }
 
-  return QModelIndex();
+    return QModelIndex();
+  });
 }
 
 void SNAPTestQt::invoke(QObject *object, QString slot)
@@ -156,8 +218,11 @@ void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
 {
   auto *combo = dynamic_cast<QComboBox *>(widget);
   if(!combo)
+    {
     m_ScriptEngine->throwError(QJSValue::ReferenceError,
                                QString("comboBoxSelect target not a combo box"));
+    return;
+    }
 
   int row = findItemRow(widget, itemText).toInt();
   setProperty(widget, "currentIndex", row);
@@ -168,6 +233,9 @@ void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
 QVariant SNAPTestQt::getProperty(QObject *obj, QString name)
 {
   QVariant result;
+  if(!checkObject(obj, QString("getProperty(%1) called on a null object").arg(name)))
+    return result;
+
   QByteArray prop = name.toUtf8();
   QMetaObject::invokeMethod(obj, [obj, prop, &result]() {
       result = obj->property(prop.constData());
@@ -177,6 +245,9 @@ QVariant SNAPTestQt::getProperty(QObject *obj, QString name)
 
 void SNAPTestQt::setProperty(QObject *obj, QString name, QVariant value)
 {
+  if(!checkObject(obj, QString("setProperty(%1) called on a null object").arg(name)))
+    return;
+
   QByteArray prop = name.toUtf8();
   QMetaObject::invokeMethod(obj, [obj, prop, value]() {
       obj->setProperty(prop.constData(), value);
@@ -190,6 +261,9 @@ void SNAPTestQt::setProperty(QObject *obj, QString name, QVariant value)
 // the target actually declares works, not just a hardcoded set.
 void SNAPTestQt::callMethod(QObject *obj, QString method, QVariantList args, bool block)
 {
+  if(!checkObject(obj, QString("Method %1 called on a null object").arg(method)))
+    return;
+
   Qt::ConnectionType ct = block ? Qt::BlockingQueuedConnection : Qt::QueuedConnection;
   const QMetaObject *mo = obj->metaObject();
   QByteArray name = method.toUtf8();
@@ -219,17 +293,26 @@ void SNAPTestQt::callMethod(QObject *obj, QString method, QVariantList args, boo
 
 QVariant SNAPTestQt::getChildProperty(QObject *parent, QString childName, QString propName)
 {
-  return getProperty(findChild(parent, childName), propName);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return QVariant();
+  return getProperty(child, propName);
 }
 
 void SNAPTestQt::setChildProperty(QObject *parent, QString childName, QString propName, QVariant value)
 {
-  setProperty(findChild(parent, childName), propName, value);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  setProperty(child, propName, value);
 }
 
 void SNAPTestQt::callChildMethod(QObject *parent, QString childName, QString method, QVariantList args, bool block)
 {
-  callMethod(findChild(parent, childName), method, args, block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  callMethod(child, method, args, block);
 }
 
 void SNAPTestQt::click(QObject *obj, bool block)
@@ -239,7 +322,10 @@ void SNAPTestQt::click(QObject *obj, bool block)
 
 void SNAPTestQt::clickChild(QObject *parent, QString childName, bool block)
 {
-  click(findChild(parent, childName), block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  click(child, block);
 }
 
 void SNAPTestQt::toggle(QObject *obj, bool block)
@@ -254,7 +340,10 @@ void SNAPTestQt::close(QObject *obj, bool block)
 
 void SNAPTestQt::closeChild(QObject *parent, QString childName, bool block)
 {
-  close(findChild(parent, childName), block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  close(child, block);
 }
 
 void SNAPTestQt::validateProperty(QObject *obj, QString name, QVariant expected, double precision)
@@ -265,7 +354,10 @@ void SNAPTestQt::validateProperty(QObject *obj, QString name, QVariant expected,
 void SNAPTestQt::validateChildProperty(QObject *parent, QString childName, QString propName,
                                         QVariant expected, double precision)
 {
-  validateValue(getChildProperty(parent, childName, propName), expected, precision);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  validateValue(getProperty(child, propName), expected, precision);
 }
 
 
@@ -287,6 +379,65 @@ QVariant SNAPTestQt::findItemColumn(QObject *container, QVariant text)
   return QVariant();
 }
 
+
+QString SNAPTestQt::screenshot(QString filename)
+{
+  return screenshotInternal(filename, nullptr, false);
+}
+
+QString SNAPTestQt::screenshot(QString filename, QObject *widget)
+{
+  return screenshotInternal(filename, widget, true);
+}
+
+QString SNAPTestQt::screenshotInternal(QString filename, QObject *target, bool explicit_target)
+{
+  QString path = QFileInfo(filename).absoluteFilePath();
+  QString error;
+
+  // Widgets may only be touched on the GUI thread; the script runs on a worker
+  QMetaObject::invokeMethod(m_Parent, [&]() {
+      QWidget *w = nullptr;
+      if(explicit_target)
+        {
+        w = qobject_cast<QWidget *>(target);
+        if(!w)
+          {
+          error = QString("screenshot target is %1").arg(target ? "not a widget" : "null");
+          return;
+          }
+        }
+      else
+        {
+        w = QApplication::activeModalWidget();
+        if(!w)
+          w = QApplication::activeWindow();
+        if(!w)
+          w = m_Parent;
+        }
+
+      if(!w->isVisible())
+        {
+        error = QString("screenshot target %1 is not visible").arg(w->objectName());
+        return;
+        }
+
+      // grab() renders the widget (OpenGL/VTK children included) offscreen,
+      // so overlapping windows and screen capture permissions do not matter
+      QDir().mkpath(QFileInfo(path).absolutePath());
+      if(!w->grab().save(path))
+        error = QString("unable to save screenshot to %1").arg(path);
+    }, Qt::BlockingQueuedConnection);
+
+  if(error.size())
+    {
+    qWarning() << error;
+    m_ScriptEngine->throwError(QJSValue::GenericError, error);
+    return QString();
+    }
+
+  return path;
+}
 
 void SNAPTestQt::print(QString text)
 {
@@ -404,6 +555,9 @@ void SNAPTestQt::testFailed(QString reason)
 
 void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QString eventType, QString button)
 {
+  if(!checkObject(object, QString("postMouseEvent called on a null object")))
+    return;
+
   // Special case handlers
   if(eventType == "click")
     {
@@ -440,6 +594,9 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
 
 void SNAPTestQt::postKeyEvent(QObject *object, QString key)
 {
+  if(!checkObject(object, QString("postKeyEvent(%1) called on a null object").arg(key)))
+    return;
+
   // We need the code to run in the main thread
   QMetaObject::invokeMethod(
     this, "postKeyEventInternal", Qt::QueuedConnection, Q_ARG(QObject *, object), Q_ARG(QString, key));
@@ -499,14 +656,16 @@ void TestWorker::wait(unsigned int msec)
   msleep(msec);
 }
 
-void TestWorker::readScript(QString script_url, QString &script)
+bool TestWorker::readScript(QString script_url, QString &script)
 {
-  // Find the script file corresponding to the test
+  // Find the script file corresponding to the test. A missing script must fail
+  // the test: otherwise a test whose script is misnamed or not in
+  // TestingScripts.qrc runs nothing and passes.
   QFile file(script_url);
   if(!file.open(QIODevice::ReadOnly))
     {
     qWarning() << QString("Unable to read test script %1").arg(script_url);
-    SNAPTestQt::application_exit(SNAPTestQt::NO_SUCH_TEST);
+    return false;
     }
 
   // Read the script
@@ -537,7 +696,8 @@ void TestWorker::readScript(QString script_url, QString &script)
 
       qDebug() << "Including : " << child_url;
 
-      this->readScript(child_url, script);
+      if(!this->readScript(child_url, script))
+        return false;
       line = "";
       }
 
@@ -547,6 +707,7 @@ void TestWorker::readScript(QString script_url, QString &script)
 
   // Close the file
   file.close();
+  return true;
 }
 
 void TestWorker::source(QString script_url)
@@ -559,7 +720,11 @@ void TestWorker::source(QString script_url)
   qDebug() << "Running test: " << script_url;
 
   QString script;
-  this->readScript(script_url, script);
+  if(!this->readScript(script_url, script))
+    {
+    SNAPTestQt::application_exit(SNAPTestQt::NO_SUCH_TEST);
+    return;
+    }
 
   // Execute it
   QJSValue rc = m_Engine->evaluate(script);

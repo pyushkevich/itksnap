@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <vector>
 #include <cstdio>
@@ -54,32 +55,6 @@ void ClearCachedAPIKey(const std::string &server)
   g_APIKeyCache.erase(server);
 }
 
-std::string MakeFWTempDir()
-{
-  std::string base = SystemInterface::GetSystemInfoDelegate()->GetTempDirectory();
-  if (base.empty())
-    throw IRISException("SystemInfoDelegate::GetTempDirectory() returned an empty path");
-
-#ifdef _WIN32
-  char name[MAX_PATH + 1] = "";
-  if (!GetTempFileNameA(base.c_str(), "itksnap_fw", 0, name))
-    throw IRISException("Cannot generate temp filename for Flywheel download in: %s", base.c_str());
-  std::string dir = std::string(name) + "_d";
-  DeleteFileA(name);
-  if (!CreateDirectoryA(dir.c_str(), nullptr))
-    throw IRISException("Cannot create temp directory: %s", dir.c_str());
-  return dir;
-#else
-  std::string tmpl = base + "/itksnap_fw_XXXXXX";
-  std::vector<char> buf(tmpl.begin(), tmpl.end());
-  buf.push_back('\0');
-  char *dir = mkdtemp(buf.data());
-  if (!dir)
-    throw IRISException("Cannot create temp directory under: %s", base.c_str());
-  return dir;
-#endif
-}
-
 // Flywheel API keys are displayed as "host:secret" in the UI and by the Python
 // SDK, but only the secret portion is sent, prefixed with "Bearer ".
 std::string MakeBearerHeader(const std::string &api_key)
@@ -91,11 +66,12 @@ std::string MakeBearerHeader(const std::string &api_key)
   return "Bearer " + secret;
 }
 
-// Read the Flywheel API key for @p server from ~/.fw/config.yml.
-// Lookup order:
-//   1. First profile whose api_key starts with "server:" (multi-instance match).
-//   2. Profile named by default_profile (single-instance fallback).
-// Returns "" when the file is absent or no matching key is found.
+// Read the Flywheel API key for @p server from ~/.fw/config.yml. Only a key
+// whose "host:" prefix matches @p server is returned. The default profile is
+// deliberately not used as a fallback: the server name comes from the URL,
+// which may arrive from a web link, and a key must never be sent to a host it
+// was not issued for. Returns "" when the file is absent or no key matches,
+// in which case the caller prompts for a key.
 std::string LoadAPIKeyFromFWConfig(const std::string &server)
 {
   const char *home = getenv("HOME");
@@ -123,61 +99,43 @@ std::string LoadAPIKeyFromFWConfig(const std::string &server)
     return (end == std::string::npos) ? std::string() : v.substr(0, end + 1);
   };
 
-  std::string default_profile;
-  std::string current_name, current_key;
-  std::string server_match_key;
-  std::vector<std::pair<std::string, std::string>> profiles;
   std::string prefix = server + ":";
-
-  auto commit = [&]() {
-    if (server_match_key.empty() && !current_key.empty()
-        && current_key.size() >= prefix.size()
-        && current_key.substr(0, prefix.size()) == prefix)
-      server_match_key = current_key;
-    if (!current_name.empty() && !current_key.empty())
-      profiles.push_back({current_name, current_key});
-    current_name.clear();
-    current_key.clear();
-  };
 
   std::string line;
   while (std::getline(f, line))
     {
     std::string t = trim(line);
-    std::string v;
-
-    if ((v = value_of(t, "default_profile:")) != "")
-      { default_profile = v; continue; }
-
     if (t.size() >= 2 && t.substr(0, 2) == "- ")
-      {
-      commit();
       t = trim(t.substr(2));
-      }
 
-    if ((v = value_of(t, "name:")) != "")    current_name = v;
-    if ((v = value_of(t, "api_key:")) != "") current_key  = v;
+    std::string v = value_of(t, "api_key:");
+    if (v.size() > prefix.size() && v.substr(0, prefix.size()) == prefix)
+      return v;
     }
-  commit();
-
-  if (!server_match_key.empty())
-    return server_match_key;
-
-  if (!default_profile.empty())
-    for (auto &p : profiles)
-      if (p.first == default_profile)
-        return p.second;
 
   return "";
 }
 
 // Execute a GET against the Flywheel REST API with the given API key.
 // Returns the response body; sets http_code.
-std::string APIGet(const std::string &url, const std::string &api_key, long &http_code)
+// @p progress_cb  The download's progress callback, if any. It is called with
+//                 an unknown size while the request runs, so that the GUI
+//                 stays responsive and the user can cancel; the size of the
+//                 API response itself is not the file's progress.
+std::string APIGet(const std::string &url, const std::string &api_key, long &http_code,
+                   DownloadProgressCallback *progress_cb)
 {
   RESTClient<> client;
   client.SetRequestHeader("Authorization", MakeBearerHeader(api_key).c_str());
-  client.Get(url.c_str());
+  if (progress_cb && *progress_cb)
+    client.SetProgressCallback(
+      progress_cb,
+      [](void *data, size_t, size_t) -> bool
+      {
+      auto *cb = static_cast<DownloadProgressCallback *>(data);
+      return (*cb)(0, 0);
+      });
+  client.Get("%s", url.c_str());
   http_code = client.GetHTTPCode();
   const char *out = client.GetOutput();
   return out ? std::string(out) : std::string();
@@ -223,7 +181,8 @@ std::string ResolveLevel(const std::string &list_url,
                          const std::string &label,
                          const std::string &item_type,
                          const std::string &parent_name,
-                         const std::string &server)
+                         const std::string &server,
+                         DownloadProgressCallback *progress_cb)
 {
   std::string cache_key = list_url + "|" + label;
   {
@@ -234,7 +193,7 @@ std::string ResolveLevel(const std::string &list_url,
   }
 
   long code = 0;
-  std::string body = APIGet(list_url, api_key, code);
+  std::string body = APIGet(list_url, api_key, code, progress_cb);
 
   if (code == 401)
     {
@@ -256,9 +215,19 @@ std::string ResolveLevel(const std::string &list_url,
   return id;
 }
 
+// Container types that expose /api/<type>/<id>/files/<name>.
+bool IsDirectContainerType(const std::string &t)
+{
+  return t == "acquisitions" || t == "analyses"
+      || t == "sessions"     || t == "subjects" || t == "projects";
+}
+
 // Ticket-based download from /api/{container_type}/{container_id}/files/{filename}.
-// Works for both "acquisitions" and "analyses".
+// Works for any container that exposes /files: acquisitions, analyses,
+// sessions, subjects, projects.
 // @p cache_url  The original fw:// URL used as the cache key.
+// @p temp_dir   Set to the temp directory holding the returned file when it
+//               is not in the cache; the caller owns that directory.
 std::string DownloadDirect(const std::string         &server,
                            const std::string         &container_type,
                            const std::string         &container_id,
@@ -266,7 +235,8 @@ std::string DownloadDirect(const std::string         &server,
                            const std::string         &api_key,
                            const std::string         &cache_url,
                            RemoteFileCache           *file_cache,
-                           DownloadProgressCallback  *progress_cb)
+                           DownloadProgressCallback  *progress_cb,
+                           std::string               &temp_dir)
 {
   std::string base         = "https://" + server;
   std::string download_url = base + "/api/" + container_type + "/"
@@ -280,7 +250,7 @@ std::string DownloadDirect(const std::string         &server,
   // Request a short-lived download ticket so the Authorization header is never
   // forwarded when Flywheel redirects to its pre-signed S3 URL.
   long ticket_code = 0;
-  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code);
+  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code, progress_cb);
 
   if (ticket_code == 401)
     {
@@ -304,17 +274,26 @@ std::string DownloadDirect(const std::string         &server,
 
   std::string ticketed_url = download_url + "?ticket=" + ticket;
 
-  // Stream to a local temp file, following the S3 redirect transparently.
-  std::string tmpdir = MakeFWTempDir();
-  std::string dest   = tmpdir + "/" + UrlDecode(filename);
+  // The filename comes from the URL, so after decoding it may contain path
+  // separators (e.g. "..%2F..%2Fx"). Keep only the last path component so the
+  // download cannot be written outside of the temporary directory.
+  std::string local_name = itksys::SystemTools::GetFilenameName(UrlDecode(filename));
+  if (local_name.empty() || local_name == "." || local_name == "..")
+    throw IRISException("Flywheel: invalid file name '%s' in URL", filename.c_str());
 
-  FILE *outfile = fopen(dest.c_str(), "wb");
+  // Stream to a local temp file, following the S3 redirect transparently.
+  // The temp directory, with any partial file, is removed if the download
+  // fails or is cancelled. The file is closed first.
+  DownloadTempDir tmpdir("itksnap_fw");
+  std::string dest = tmpdir.GetPath() + "/" + local_name;
+
+  std::unique_ptr<FILE, int (*)(FILE *)> outfile(fopen(dest.c_str(), "wb"), fclose);
   if (!outfile)
     throw IRISException("Flywheel: cannot create local file '%s'", dest.c_str());
 
   RESTClient<> dl_client;
   dl_client.SetFollowRedirects(true);
-  dl_client.SetOutputFile(outfile);
+  dl_client.SetOutputFile(outfile.get());
 
   if (!cached.local_path.empty())
     {
@@ -324,33 +303,35 @@ std::string DownloadDirect(const std::string         &server,
       dl_client.SetRequestHeader("If-Modified-Since", cached.last_modified.c_str());
     }
 
+  dl_client.SetStallTimeout(DOWNLOAD_STALL_TIMEOUT_SEC);
   if (progress_cb && *progress_cb)
     dl_client.SetProgressCallback(
       progress_cb,
-      [](void *data, size_t done, size_t total)
+      [](void *data, size_t done, size_t total) -> bool
       {
       auto *cb = static_cast<DownloadProgressCallback *>(data);
-      (*cb)(done, total);
+      return (*cb)(done, total);
       });
 
-  dl_client.Get(ticketed_url.c_str());
-  fclose(outfile);
+  dl_client.Get("%s", ticketed_url.c_str());
+  if (fclose(outfile.release()) != 0)
+    throw IRISException("Flywheel: write error to '%s'", dest.c_str());
 
   long code = dl_client.GetHTTPCode();
 
   if (code == 304)
-    {
-    itksys::SystemTools::RemoveADirectory(tmpdir);
     return cached.local_path;
-    }
   if (code != 200)
-    throw IRISException("Flywheel: HTTP %ld downloading %s", code, ticketed_url.c_str());
+    throw IRISException("Flywheel: HTTP %ld downloading %s", code, download_url.c_str());
 
-  if (file_cache)
-    return file_cache->StoreHTTP(cache_url, dest,
-                                 dl_client.GetResponseHeader("etag"),
-                                 dl_client.GetResponseHeader("last-modified"));
-  return dest;
+  std::string path = file_cache
+    ? file_cache->StoreHTTP(cache_url, dest,
+                            dl_client.GetResponseHeader("etag"),
+                            dl_client.GetResponseHeader("last-modified"))
+    : dest;
+  if (path == dest)
+    temp_dir = tmpdir.Keep();
+  return path;
 }
 
 // Label-based discovery: resolve group/project/subject/session/container by
@@ -364,7 +345,8 @@ std::string DownloadByFind(const std::string               &server,
                            const std::string               &api_key,
                            const std::string               &cache_url,
                            RemoteFileCache                 *file_cache,
-                           DownloadProgressCallback        *progress_cb)
+                           DownloadProgressCallback        *progress_cb,
+                           std::string                     &temp_dir)
 {
   std::string base             = "https://" + server;
   std::string group            = UrlDecode(parts[1]);
@@ -379,23 +361,23 @@ std::string DownloadByFind(const std::string               &server,
   std::string ctype_singular = (ctype == "analyses") ? "analysis" : "acquisition";
 
   std::string project_id =
-    ResolveLevel(base + "/api/groups/" + group + "/projects",
-                 api_key, project, "project", group, server);
+    ResolveLevel(base + "/api/groups/" + UrlEncodePathSegment(group) + "/projects",
+                 api_key, project, "project", group, server, progress_cb);
 
   std::string subject_id =
     ResolveLevel(base + "/api/projects/" + project_id + "/subjects",
-                 api_key, subject, "subject", project, server);
+                 api_key, subject, "subject", project, server, progress_cb);
 
   std::string session_id =
     ResolveLevel(base + "/api/subjects/" + subject_id + "/sessions",
-                 api_key, session, "session", subject, server);
+                 api_key, session, "session", subject, server, progress_cb);
 
   std::string container_id =
     ResolveLevel(base + "/api/sessions/" + session_id + "/" + ctype,
-                 api_key, label, ctype_singular, session, server);
+                 api_key, label, ctype_singular, session, server, progress_cb);
 
   return DownloadDirect(server, ctype, container_id, filename,
-                        api_key, cache_url, file_cache, progress_cb);
+                        api_key, cache_url, file_cache, progress_cb, temp_dir);
 }
 
 } // anonymous namespace
@@ -408,6 +390,8 @@ std::string DownloadByFind(const std::string               &server,
 std::string
 FlywheelRemoteImageSource::Download(const std::string &url)
 {
+  m_TemporaryDirectory.clear();
+
   // ---- 1. Parse: strip fw:// and split into server + path segments ----
   if (url.substr(0, 5) != "fw://")
     throw IRISException("FlywheelRemoteImageSource: URL must start with fw://: %s",
@@ -430,7 +414,40 @@ FlywheelRemoteImageSource::Download(const std::string &url)
       parts.push_back(seg);
   }
 
-  // ---- 2. Get or prompt for API key ----
+  // ---- 2. Dispatch on URL form ----
+  //
+  //  Direct:  fw://server/<type>/<id>/files/<file>          (parts.size()==4)
+  //           <type> is acquisitions, analyses, sessions, subjects or projects
+  //
+  //  Find:    fw://server/find/<group>/<project>/<subject>/<session>/
+  //                       acquisitions|analyses/<label>/files/<file>
+  //                                                         (parts.size()==9)
+
+  bool is_direct = parts.size() == 4
+                   && parts[2] == "files"
+                   && IsDirectContainerType(parts[0]);
+
+  bool is_find   = parts.size() == 9
+                   && parts[0] == "find"
+                   && (parts[5] == "acquisitions" || parts[5] == "analyses")
+                   && parts[7] == "files";
+
+  // Validate the URL form before authenticating so a bad link fails fast and
+  // never opens the API key dialog.
+  if (!is_direct && !is_find)
+    throw IRISException(
+      "Flywheel: unrecognised URL format: %s\n"
+      "Valid forms:\n"
+      "  fw://server/acquisitions/<id>/files/<file>\n"
+      "  fw://server/analyses/<id>/files/<file>\n"
+      "  fw://server/sessions/<id>/files/<file>\n"
+      "  fw://server/subjects/<id>/files/<file>\n"
+      "  fw://server/projects/<id>/files/<file>\n"
+      "  fw://server/find/<group>/<project>/<subject>/<session>/acquisitions/<label>/files/<file>\n"
+      "  fw://server/find/<group>/<project>/<subject>/<session>/analyses/<label>/files/<file>",
+      url.c_str());
+
+  // ---- 3. Get or prompt for API key ----
   std::string api_key = GetCachedAPIKey(server);
   if (api_key.empty())
     {
@@ -444,38 +461,11 @@ FlywheelRemoteImageSource::Download(const std::string &url)
     SetCachedAPIKey(server, api_key);
     }
 
-  // ---- 3. Dispatch on URL form ----
-  //
-  //  Direct:  fw://server/acquisitions/<id>/files/<file>   (parts.size()==4)
-  //           fw://server/analyses/<id>/files/<file>        (parts.size()==4)
-  //
-  //  Find:    fw://server/find/<group>/<project>/<subject>/<session>/
-  //                       acquisitions|analyses/<label>/files/<file>
-  //                                                         (parts.size()==9)
-
-  bool is_direct = parts.size() == 4
-                   && parts[2] == "files"
-                   && (parts[0] == "acquisitions" || parts[0] == "analyses");
-
-  bool is_find   = parts.size() == 9
-                   && parts[0] == "find"
-                   && (parts[5] == "acquisitions" || parts[5] == "analyses")
-                   && parts[7] == "files";
-
   if (is_direct)
     return DownloadDirect(server, parts[0], parts[1], parts[3],
-                          api_key, url, m_FileCache, &m_ProgressCallback);
+                          api_key, url, m_FileCache, &m_ProgressCallback,
+                          m_TemporaryDirectory);
 
-  if (is_find)
-    return DownloadByFind(server, parts, api_key, url,
-                          m_FileCache, &m_ProgressCallback);
-
-  throw IRISException(
-    "Flywheel: unrecognised URL format: %s\n"
-    "Valid forms:\n"
-    "  fw://server/acquisitions/<id>/files/<file>\n"
-    "  fw://server/analyses/<id>/files/<file>\n"
-    "  fw://server/find/<group>/<project>/<subject>/<session>/acquisitions/<label>/files/<file>\n"
-    "  fw://server/find/<group>/<project>/<subject>/<session>/analyses/<label>/files/<file>",
-    url.c_str());
+  return DownloadByFind(server, parts, api_key, url,
+                        m_FileCache, &m_ProgressCallback, m_TemporaryDirectory);
 }

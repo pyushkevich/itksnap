@@ -27,6 +27,7 @@
 #include "ImageIOWizard.h"
 #include "GuidedMeshIO.h"
 #include "ImageIORemote.h"
+#include "IRISException.h"
 #include <itkImageIOBase.h>
 #include <QFileInfo>
 
@@ -116,6 +117,14 @@ void DropActionDialog::UpdateSendToWindowMenu()
   for (auto &p : instances)
     if (p.first != myPid)
       peers.push_back(p);
+
+  // Remove the menu made for the last dropped file. The button does not own
+  // its menu, and the dialog is kept, so each drop would add another one
+  if (QMenu *old = ui->btnSendToWindow->menu())
+  {
+    ui->btnSendToWindow->setMenu(nullptr);
+    old->deleteLater();
+  }
 
   if (peers.empty())
   {
@@ -231,6 +240,7 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
       auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
       if (fmt != GuidedMeshIO::FORMAT_COUNT)
         {
+          HideWhileLoading();
           auto model = m_Model->GetMeshImportModel();
           model->Load(fn_list, fmt, displayTP);
         }
@@ -260,6 +270,7 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
     {
     case QMessageBox::Ok:
       {
+      HideWhileLoading();
       auto model = m_Model->GetMeshImportModel();
       model->LoadToTP(fn.c_str(), GuidedMeshIO::GetFormatByFilename((fn.c_str())));
       this->accept();
@@ -281,10 +292,28 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
 
   auto io = GuidedNativeImageIO::New();
 
-  // if incoming load can overwrite unsaved changes, prompt user for saving
-  if (del->CanLoadOverwriteUnsavedChanges(io, to_utf8(ui->outFilename->text())) &&
-      !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+  // if incoming load can overwrite unsaved changes, prompt user for saving.
+  // The check may read the header of a local image.
+  HideWhileLoading();
+  try
+    {
+    if (del->CanLoadOverwriteUnsavedChanges(io, to_utf8(ui->outFilename->text())) &&
+        !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+      {
+      this->show();
+      return;
+      }
+    }
+  catch(IRISUserCancelException &)
+    {
+    this->reject();
     return;
+    }
+  catch(exception &exc)
+    {
+    ShowLoadError(tr("Failed to load image %1").arg(ui->outFilename->text()), exc);
+    return;
+    }
 
   this->LoadCommon(del);
 }
@@ -375,35 +404,23 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
     {
     // Load without the wizard
     QtCursorOverride c(Qt::WaitCursor);
+    SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+        ImageReadingProgressAccumulator::New();
 
-		// Show a progress dialog
-    /*
-		auto parentWidget = static_cast<QWidget*>(this->parent());
-		using namespace imageiowiz;
-		ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(parentWidget));
-		this->hide();
-		progress->display();
-    */
-		SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
-				ImageReadingProgressAccumulator::New();
-    /*
-		irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
-    */
-
+    HideWhileLoading();
     try
       {
       IRISWarningList warnings;
-			m_Model->GetDriver()->OpenImageViaDelegate(file.c_str(), delegate, warnings, &ioHints, irProgAccum);
+      m_Model->GetDriver()->OpenImageViaDelegate(file.c_str(), delegate, warnings, &ioHints, irProgAccum);
       this->accept();
+      }
+    catch(IRISUserCancelException &)
+      {
+      this->reject();
       }
     catch(exception &exc)
       {
-      // progress->close();
-      QMessageBox b(this);
-      b.setText(tr("Failed to load image %1").arg(ui->outFilename->text()));
-      b.setDetailedText(exc.what());
-      b.setIcon(QMessageBox::Critical);
-      b.exec();
+      ShowLoadError(tr("Failed to load image %1").arg(ui->outFilename->text()), exc);
       }
     }
 
@@ -413,5 +430,23 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
       lr->Initialize(m_Model);
       lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
     }
+}
+
+void DropActionDialog::HideWhileLoading()
+{
+  // The progress widget waits for other modal windows to close before it
+  // shows (so that it does not block an SSH password prompt), and this dialog
+  // stays modal for as long as it is visible
+  this->hide();
+}
+
+void DropActionDialog::ShowLoadError(const QString &text, const std::exception &exc)
+{
+  QMessageBox b(parentWidget());
+  b.setText(text);
+  b.setDetailedText(exc.what());
+  b.setIcon(QMessageBox::Critical);
+  b.exec();
+  this->show();
 }
 

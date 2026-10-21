@@ -4,8 +4,16 @@
         <file>Scripts/test_ProbeIntensity.js</file>
         <file>Scripts/test_RegionCompetition.js</file>
         <file>Scripts/test_RandomForest.js</file>
+        <file>Scripts/test_RandomForestBailOut.js</file>
+        <file>Scripts/test_SnakeClassificationNavigation.js</file>
         <file>Scripts/test_Workspace.js</file>
         <file>Scripts/test_DiffSpace.js</file>
+        <file>Scripts/test_DropRemoteProgress.js</file>
+        <file>Scripts/test_OpenURLEventImage.js</file>
+        <file>Scripts/test_OpenURLEventWorkspace.js</file>
+        <file>Scripts/test_URLWorkspaceProgress.js</file>
+        <file>Scripts/test_GettingStartedLinks.js</file>
+        <file>Scripts/test_CloseWithMouseEvent.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
         <file>Scripts/test_4DContinuousRendering.js</file>
         <file>Scripts/test_4DReplayWithMeshUpdate.js</file>
@@ -19,9 +27,21 @@
         <file>Scripts/test_NaNs.js</file>
         <file>Scripts/test_Reloading.js</file>
         <file>Scripts/test_SegmentationSwitching.js</file>
+        <file>Scripts/test_SegmentationAutosave.js</file>
+        <file>Scripts/test_WorkspaceActiveSegmentation.js</file>
+        <file>Scripts/test_AnnotationReferenceSpace.js</file>
+        <file>Scripts/test_SliceIndexRange.js</file>
+        <file>Scripts/test_ZoomToFitCycle.js</file>
         <file>Scripts/test_4DToMC.js</file>
         <file>Scripts/test_MCTo4D.js</file>
         <file>Scripts/test_DeformationGrid.js</file>
+        <file>Scripts/test_RemoteSaveLayer.js</file>
+        <file>Scripts/test_RemoteSaveWorkspace.js</file>
+        <file>Scripts/test_SnakeROIPanel.js</file>
+        <file>Scripts/test_ReloadSegmentation.js</file>
+        <file>Scripts/test_AdaptiveBrush.js</file>
+        <file>Scripts/test_RegistrationReslice.js</file>
+        <file>Scripts/test_Large2DImages.js</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

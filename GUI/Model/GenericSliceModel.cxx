@@ -108,6 +108,17 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   // Listen to cursor update events and rebroadcast them for the child model
   m_SliceIndexModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
 
+  // The range of the slice index is the extent of the scene, which changes
+  // with the reference space (active segmentation) and with the layers. The
+  // slice text depends on the same things.
+  m_SliceIndexModel->Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
+  m_SliceIndexModel->Rebroadcast(m_Driver, LayerChangeEvent(), DomainChangedEvent());
+  m_SliceIndexModel->Rebroadcast(m_Driver, WrapperPhysicalExtentsChangeEvent(), DomainChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, LayerChangeEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, WrapperPhysicalExtentsChangeEvent(), ValueChangedEvent());
+
   // Also rebroadcast the cursor change events as a model update event
   Rebroadcast(m_Driver, CursorUpdateEvent(), ModelUpdateEvent());
 
@@ -177,19 +188,19 @@ GenericSliceModel::OnUpdate()
     if (this->IsSliceInitialized() && !m_ManagedZoom)
     {
       // Check if the zoom should be changed in response to this operation. This
-      // is so if the zoom is currently equal to the optimal zoom, and there is
-      // no linked zoom
-      bool rezoom_ref = (m_ViewZoom == m_OptimalZoom);
-      bool rezoom_full = (m_ViewZoom == m_OptimalZoomFullExtent);
+      // is so if the zoom is currently equal to the optimal zoom for the current
+      // fit target, and there is no linked zoom
+      bool rezoom = m_ViewIsFit;
 
       // Just recompute the optimal zoom factor
       this->ComputeOptimalZoom();
 
       // Keep zoom optimal if before it was optimal
-      if (rezoom_ref)
-        this->SetViewZoom(m_OptimalZoom);
-      else if(rezoom_full)
-        this->SetViewZoom(m_OptimalZoomFullExtent);
+      if (rezoom)
+      {
+        this->SetViewZoom(m_OptimalViews[m_FitTarget].zoom);
+        m_ViewIsFit = true;
+      }
     }
   }
 
@@ -236,9 +247,48 @@ std::tuple<double, Vector2d> GenericSliceModel::ComputeOptimalZoomInternal(const
 
 void GenericSliceModel::ComputeOptimalZoom()
 {
-  std::tie(m_OptimalZoom, m_OptimalViewPosition) = ComputeOptimalZoomInternal(m_ReferenceSpaceRegion);
-  std::tie(m_OptimalZoomFullExtent, m_OptimalViewPositionFullExtent) =
-    ComputeOptimalZoomInternal(m_FullExtentRegion);
+  m_OptimalViews[FIT_SCENE].region = m_FullExtentRegion;
+  m_OptimalViews[FIT_MAIN_IMAGE].region = m_MainImageRegion;
+  m_OptimalViews[FIT_SEGMENTATION].region = m_ReferenceSpaceRegion;
+
+  for (auto &ov : m_OptimalViews)
+    std::tie(ov.zoom, ov.position) = ComputeOptimalZoomInternal(ov.region);
+}
+
+void GenericSliceModel::UpdateMainImageRegion()
+{
+  auto main_region_orig = m_ImageData->GetLayerRegionInReferenceSpace(m_ImageData->GetMain());
+  m_MainImageRegion = m_ImageToDisplayTransform->TransformRegion(main_region_orig);
+}
+
+std::vector<ZoomFitTarget> GenericSliceModel::GetDistinctFitTargets() const
+{
+  std::vector<ZoomFitTarget> targets;
+  for (int t = 0; t < FIT_TARGET_COUNT; t++)
+  {
+    bool distinct = true;
+    for (auto u : targets)
+      if (m_OptimalViews[t].SameInPlane(m_OptimalViews[u]))
+        distinct = false;
+    if (distinct)
+      targets.push_back((ZoomFitTarget)t);
+  }
+  return targets;
+}
+
+ZoomFitTarget GenericSliceModel::GetNextFitTarget() const
+{
+  // The current target may duplicate an earlier one in this view; work with
+  // the earlier one (the one that represents it in the cycle)
+  auto targets = GetDistinctFitTargets();
+  unsigned int k = 0;
+  while (k < targets.size() && !m_OptimalViews[targets[k]].SameInPlane(m_OptimalViews[m_FitTarget]))
+    k++;
+  if (k == targets.size())
+    return m_FitTarget;
+
+  // Advance only if the view still shows the current fit; otherwise re-fit
+  return m_ViewIsFit ? targets[(k + 1) % targets.size()] : targets[k];
 }
 
 
@@ -266,6 +316,12 @@ GenericSliceModel::RestoreViewPositionInWorldSpace()
   m_ViewPosition[1] = xVPSlice[1] * m_RefSpaceSpacing[1];
 }
 
+bool
+GenericSliceModel::IsSliceInitialized() const
+{
+  return m_SliceInitialized && m_Driver && m_Driver->IsMainImageLoaded();
+}
+
 void
 GenericSliceModel
 ::InitializeSlice(GenericImageData *imageData)
@@ -281,10 +337,9 @@ GenericSliceModel
     }
 
   // Preserve a custom zoom across reinit (e.g. switching segmentations);
-  // only snap to fit on first load or if already at a fit zoom level
+  // only snap to fit on first load or if already at the fit zoom level
   bool first_init = !m_SliceInitialized;
-  bool rezoom_ref = m_SliceInitialized && (m_ViewZoom == m_OptimalZoom);
-  bool rezoom_full = m_SliceInitialized && (m_ViewZoom == m_OptimalZoomFullExtent);
+  bool rezoom = m_SliceInitialized && m_ViewIsFit;
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform->SetTransform(
@@ -320,6 +375,7 @@ GenericSliceModel
     // Compute the reference region and the full extent region in slice coordinates
     m_ReferenceSpaceRegion = m_ImageToDisplayTransform->TransformRegion(ref_region_orig);
     m_FullExtentRegion = m_ImageToDisplayTransform->TransformRegion(full_region_orig);
+    UpdateMainImageRegion();
 
     // We have been initialized
     m_SliceInitialized = true;
@@ -331,14 +387,19 @@ GenericSliceModel
     ComputeOptimalZoom();
 
     // Snap to fit only on first load, or if the view wasn't customized
-    if (first_init || rezoom_full)
-      m_ViewZoom = m_OptimalZoomFullExtent;
-    else if (rezoom_ref)
-      m_ViewZoom = m_OptimalZoom;
+    if (first_init)
+      m_FitTarget = FIT_SCENE;
+    if (first_init || rezoom)
+      m_ViewZoom = m_OptimalViews[m_FitTarget].zoom;
 
-    // Restore the view position to match the previous world position
-    if(!first_init)
+    // If the view was fit to its target, keep it fit (e.g. when an overlay
+    // extends the scene); otherwise restore the view position to match the
+    // previous world position
+    if (rezoom)
+      m_ViewPosition = m_OptimalViews[m_FitTarget].position;
+    else if(!first_init)
       RestoreViewPositionInWorldSpace();
+    m_ViewIsFit = first_init || rezoom;
 
     // Fire a modified event, forcing a repaint of the window
     InvokeEvent(ModelUpdateEvent());
@@ -353,20 +414,21 @@ void GenericSliceModel::RefreshFullExtentRegion()
   // don't yank the view around during interactive registration
   auto full_region_orig = m_ImageData->GetFullExtentImageRegion();
   m_FullExtentRegion = m_ImageToDisplayTransform->TransformRegion(full_region_orig);
+  UpdateMainImageRegion();
   ComputeOptimalZoom();
 }
 
 void
 GenericSliceModel
-::ResetViewToFit()
+::ResetViewToFit(ZoomFitTarget target)
 {
   // Should be fully initialized
   assert(IsSliceInitialized());
 
-  // The zoom factor is the bigger of these ratios, the number of pixels
-  // on the screen per millimeter in world space
-  SetViewZoom(m_OptimalZoomFullExtent);
-  SetViewPosition(m_OptimalViewPositionFullExtent);
+  m_FitTarget = target;
+  SetViewZoom(m_OptimalViews[target].zoom);
+  SetViewPosition(m_OptimalViews[target].position);
+  m_ViewIsFit = true;
 }
 
 Vector3d GenericSliceModel::MapSliceToImage(const Vector3d &xSlice)
@@ -400,6 +462,35 @@ Vector3d GenericSliceModel::MapImageToSlice(const Vector3d &xImage)
 
   // Get corresponding position in display space
   return  m_ImageToDisplayTransform->TransformPoint(xImage);
+}
+
+Vector3d GenericSliceModel::MapMainImageToSlice(const Vector3d &xMain)
+{
+  // Map main image voxel coordinates to reference space voxel coordinates.
+  // The continuous index has voxel centers at integers, hence the shift.
+  itk::ContinuousIndex<double, 3> ci_main, ci_ref;
+  for(unsigned int i = 0; i < 3; i++)
+    ci_main[i] = xMain[i] - 0.5;
+  m_Driver->GetCurrentImageData()->GetMain()->TransformWrappedImageCIndexToReferenceCIndex(ci_main, ci_ref);
+
+  Vector3d xRef;
+  for(unsigned int i = 0; i < 3; i++)
+    xRef[i] = ci_ref[i] + 0.5;
+  return this->MapImageToSlice(xRef);
+}
+
+Vector3d GenericSliceModel::MapSliceToMainImage(const Vector3d &xSlice)
+{
+  Vector3d xRef = this->MapSliceToImage(xSlice);
+  itk::ContinuousIndex<double, 3> ci_main, ci_ref;
+  for(unsigned int i = 0; i < 3; i++)
+    ci_ref[i] = xRef[i] - 0.5;
+  m_Driver->GetCurrentImageData()->GetMain()->TransformReferenceCIndexToWrappedImageCIndex(ci_ref, ci_main);
+
+  Vector3d xMain;
+  for(unsigned int i = 0; i < 3; i++)
+    xMain[i] = ci_main[i] + 0.5;
+  return xMain;
 }
 
 Vector2d GenericSliceModel::MapSliceToWindow(const Vector3d &xSlice)
@@ -546,6 +637,8 @@ void GenericSliceModel::CenterViewOnCursor()
 void GenericSliceModel::SetViewZoom(double zoom)
 {
   assert(zoom > 0);
+  if (zoom != m_ViewZoom)
+    m_ViewIsFit = false;
   m_ViewZoom = zoom;
   this->Modified();
   this->InvokeEvent(SliceModelGeometryChangeEvent());
@@ -561,10 +654,11 @@ void GenericSliceModel::ZoomInOrOut(double factor)
   double oldzoom = m_ViewZoom;
   double newzoom = oldzoom * factor;
 
-  if( (oldzoom < m_OptimalZoom && newzoom > m_OptimalZoom) ||
-      (oldzoom > m_OptimalZoom && newzoom < m_OptimalZoom) )
+  double optzoom = GetOptimalZoom();
+  if( (oldzoom < optzoom && newzoom > optzoom) ||
+      (oldzoom > optzoom && newzoom < optzoom) )
     {
-    newzoom = m_OptimalZoom;
+    newzoom = optzoom;
     }
 
   SetViewZoom(newzoom);
@@ -591,7 +685,7 @@ GenericSliceModel
 ::IsThumbnailOn()
 {
   const GlobalDisplaySettings *gds = m_ParentUI->GetGlobalDisplaySettings();
-  return gds->GetFlagDisplayZoomThumbnail() && (m_ViewZoom > m_OptimalZoom);
+  return gds->GetFlagDisplayZoomThumbnail() && (m_ViewZoom > GetOptimalZoom());
 }
 
 const SliceViewportLayout::SubViewport *GenericSliceModel::GetHoveredViewport()
@@ -616,14 +710,14 @@ Vector3d GenericSliceModel::GetCursorPositionInSliceCoordinates()
   return cursorDisplaySpace;
 }
 
-unsigned int GenericSliceModel::GetSliceIndex()
+int GenericSliceModel::GetSliceIndex()
 {
   Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   return cursorImageSpace[m_ImageAxes[2]];
 }
 
 
-void GenericSliceModel::UpdateSliceIndex(unsigned int newIndex)
+void GenericSliceModel::UpdateSliceIndex(int newIndex)
 {
   Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   cursorImageSpace[m_ImageAxes[2]] = newIndex;
@@ -650,7 +744,7 @@ void GenericSliceModel::ComputeThumbnailProperties()
     xNewFraction = xThumbMax * 1.0 / size[1];
 
   // Set the position and size of the thumbnail, in pixels
-  m_ThumbnailZoom = xNewFraction * m_OptimalZoom;
+  m_ThumbnailZoom = xNewFraction * GetOptimalZoom();
   m_ZoomThumbnailPosition.fill(5);
   m_ZoomThumbnailSize[0] =
     std::max(1, (int)(m_ReferenceSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0] * m_ThumbnailZoom));
@@ -677,6 +771,7 @@ GenericSliceModel::SetViewPosition(Vector2d pos)
   {
     // Set view position in slice*spacing coordinates (fragile, depends on ref space)
     m_ViewPosition = pos;
+    m_ViewIsFit = false;
 
     // Update the view position in world space (more robust)
     UpdateViewPositionInWorldSpace();
@@ -696,6 +791,19 @@ Vector3i
 GenericSliceModel::GetReferenceSpaceSize() const
 {
   return Vector3i(m_ReferenceSpaceRegion.GetSize());
+}
+
+bool
+GenericSliceModel::IsSliceInReferenceSpace(const Vector3i &xImage)
+{
+  // A position is on a valid slice iff clamping it to the reference space
+  // does not move it along the slice-normal axis (reuses the same clamp()
+  // call already trusted for in-plane bounds, instead of a separate
+  // hand-rolled range check).
+  auto seg_region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+  auto clamped = xImage.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
+  int  axis = (int) this->GetSliceDirectionInImageSpace();
+  return clamped[axis] == xImage[axis];
 }
 
 std::pair<Vector2d, Vector2d> GenericSliceModel::GetReferenceSpaceCorners() const
@@ -844,7 +952,14 @@ bool GenericSliceModel
   value = this->GetSliceIndex();
   if(domain)
     {
-    domain->Set(this->m_FullExtentRegion.GetIndex(2), this->m_FullExtentRegion.GetIndex(2) + this->m_FullExtentRegion.GetSize(2) - 1, 1);
+    // The slice index is a reference space voxel index, so its range is
+    // taken from the full extent region in reference space voxels. The
+    // display space region m_FullExtentRegion cannot be used here, because
+    // it is flipped along the slice axis in some views.
+    auto fe_region = m_ImageData->GetFullExtentImageRegion();
+    int axis = m_ImageAxes[2];
+    int lo = fe_region.GetIndex(axis);
+    domain->Set(lo, lo + (int) fe_region.GetSize(axis) - 1, 1);
     }
   return true;
 }
@@ -915,6 +1030,9 @@ bool GenericSliceModel::GetSliceIndexTextValue(std::string &value)
   if(!m_Driver->IsMainImageLoaded())
     return false;
 
+  // The slice number and number of slices are relative to the reference
+  // space (active segmentation). When the scene extends beyond it, the slice
+  // number can be outside of 1..n (e.g., "-19 of 50").
   int pos = this->GetSliceIndex(), n = this->GetNumberOfSlices();
   std::ostringstream oss;
   oss << (pos + 1) << " of " << n;
@@ -1254,7 +1372,7 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     Vector3d xSlice;
     xSlice[0] = slice_index[0] + 0.5;
     xSlice[1] = slice_index[1] + 0.5;
-    xSlice[2] = this->GetSliceIndex();
+    xSlice[2] = this->GetCursorPositionInSliceCoordinates()[2];
 
     // For orthogonal slicing, the input coordinates are in units of image voxels
     xPhys = this->MapSliceToImagePhysical(xSlice);

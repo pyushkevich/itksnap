@@ -7,6 +7,15 @@ openWorkspace("tensor.itksnap");
 // Enter snake mode
 enterSnakeModeFullROI();
 
+//=== Press the 3D view's Update button before the level set is initialized
+//=== (there is nothing to mesh yet; this used to fail an assertion), then
+//=== turn on continuous update, which stays on through the evolution below
+engine.clickChild(mainwin, "btnUpdateMesh");
+engine.sleep(1000);
+engine.trigger("actionContinuous_Update");
+engine.sleep(500);
+engine.validateChildProperty(mainwin, "actionContinuous_Update", "checked", true);
+
 //=== Entering classification mode
 var snakepanel = engine.findChild(mainwin,"SnakeWizardPanel");
 var combo = engine.findChild(snakepanel,"inPreprocessMode");
@@ -65,9 +74,6 @@ engine.sleep(1000);
 
 //=== Set step size
 engine.setChildProperty(snakepanel, "inStepSize", "value", 10);
-
-//=== Turn on continuous rendering
-engine.trigger("actionContinuous_Update");
 
 //=== Run snake 100 iter
 for(var i = 0; i < 10; i++)

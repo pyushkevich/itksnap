@@ -72,6 +72,9 @@ void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
 
   Rebroadcast(m_ParentModel->GetDriver(), WrapperDisplayMappingChangeEvent(), StateMachineChangeEvent());
 
+  // Whether the adaptive brush is available depends on the reference space
+  Rebroadcast(m_ParentModel->GetDriver(), ReferenceSpaceGeometryChangeEvent(), StateMachineChangeEvent());
+
   // For the maximum size, we just need the size model to be updated, no custom code
   m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
 
@@ -109,14 +112,17 @@ PaintbrushSettingsModel
   if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
     return false;
 
-  bool free_rotation = m_ParentModel->GetDriver()->GetCurrentImageData()->IsFreeRotation();
+  GenericImageData *gid = m_ParentModel->GetDriver()->GetCurrentImageData();
+  bool free_rotation = gid->IsFreeRotation();
 
   switch(state)
     {
     case UIF_VOLUMETRIC_OK:
       return !free_rotation;
     case UIF_ADAPTIVE_OK:
-      return !free_rotation;
+      // The adaptive brush works on the voxels of the image, so it needs the
+      // image to be on the same grid as the active segmentation
+      return !free_rotation && gid->GetMain()->ImageGridMatchesReferenceSpace();
     case UIF_DEEPLEARNING_OK:
       return !free_rotation;
     default:
@@ -214,40 +220,51 @@ PaintbrushSettingsModel::GetDeepLearningModeValue(bool &value)
   return true;
 }
 
+// Get the deep learning models usable with the paintbrush, in the order listed
+// by the server (the first one is the default). Uses the list cached by the
+// deep learning model, so there is no network access here.
+static PaintbrushSettingsModel::DeepLearningPipelineDomain
+GetUsablePaintbrushPipelines(DeepLearningSegmentationModel *dlm)
+{
+  PaintbrushSettingsModel::DeepLearningPipelineDomain usable_pipelines;
+  if(!dlm->GetIsActive())
+    return usable_pipelines;
+
+  auto pipelines = dlm->GetRemotePipelines();
+  for(auto &id : dlm->GetRemotePipelineIdsInServerOrder())
+    if(pipelines[id].supports_point || pipelines[id].supports_scribble)
+      usable_pipelines.push_back(id, id);
+
+  return usable_pipelines;
+}
+
+std::string
+PaintbrushSettingsModel::GetEffectiveDeepLearningPipeline()
+{
+  auto usable_pipelines =
+    GetUsablePaintbrushPipelines(m_ParentModel->GetDeepLearningSegmentationModel());
+  if(usable_pipelines.size() == 0)
+    return std::string();
+
+  // The selected pipeline is kept even when the server does not offer it, so
+  // that it is used again when connecting to a server that does
+  std::string selected = GetPaintbrushSettings().dl_pipeline_id;
+  if(usable_pipelines.find(selected) != usable_pipelines.end())
+    return selected;
+
+  return usable_pipelines.begin()->first;
+}
+
 bool
 PaintbrushSettingsModel::GetDeepLearningPipelineValueAndRange(std::string                &value,
                                                               DeepLearningPipelineDomain *range)
 {
-  // The deep learning model must be active
-  auto *dlm = m_ParentModel->GetDeepLearningSegmentationModel();
-  if(!dlm->GetIsActive())
-    return false;
-
-  // Get the list of available deep learning models that we can use
-  DeepLearningPipelineDomain usable_pipelines;
-  auto pipelines = dlm->GetRemotePipelines();
-  for(auto it : pipelines)
-  {
-    if(it.second.supports_point || it.second.supports_scribble)
-    {
-      usable_pipelines[it.first] = it.first;
-    }
-  }
-
-  // If none found, bail
+  auto usable_pipelines =
+    GetUsablePaintbrushPipelines(m_ParentModel->GetDeepLearningSegmentationModel());
   if(usable_pipelines.size() == 0)
     return false;
 
-  // Check if the currently set pipeline is in the list
-  PaintbrushSettings pbs = GetPaintbrushSettings();
-  if(usable_pipelines.find(pbs.dl_pipeline_id) == usable_pipelines.end())
-  {
-    pbs.dl_pipeline_id = usable_pipelines.begin()->first;
-    SetPaintbrushSettings(pbs);
-  }
-
-  // Return the pipeline and its domain
-  value = pbs.dl_pipeline_id;
+  value = GetEffectiveDeepLearningPipeline();
   if(range)
     *range = usable_pipelines;
 

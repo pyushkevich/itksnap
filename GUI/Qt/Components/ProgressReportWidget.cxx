@@ -146,7 +146,6 @@ ProgressReportWidget::fadeIn()
     return;
   }
 
-  qDebug() << QDateTime::currentDateTime() << ": showing progress report widget";
   setVisible(true);
   double op = eff->opacity();
   eff->setEnabled(true);
@@ -204,8 +203,8 @@ ProgressReportWidget::startTask(const QString &id, const QString &label,
     connect(&task->autoRemoveTimer, &QTimer::timeout, this, [=] { removeTask(id); });
   }
 
-  // Spinner delay if no progress
-  if (!reportsProgress)
+  // Show a spinner until the task reports a percentage. A task that reports
+  // progress may not know it yet (e.g. a download waiting for the server).
   {
     task->spinnerDelayTimer.stop();
     task->spinnerDelayTimer.setSingleShot(true);
@@ -235,7 +234,7 @@ ProgressReportWidget::recomputeSizeAndReposition()
 void
 ProgressReportWidget::createTaskUI(ProgressTask &task)
 {
-  task.widget = new ProgressTaskWidget(task.label, task.reportsProgress, this);
+  task.widget = new ProgressTaskWidget(task.label, this);
   connect(task.widget, &ProgressTaskWidget::cancelRequested, this, [&task] {
     task.cancelled = true;
   });
@@ -374,16 +373,18 @@ ProgressReportWidget::removeTaskUI(ProgressTask &task)
   recomputeSizeAndReposition();
 }
 
-ProgressTaskWidget::ProgressTaskWidget(const QString &label, bool reportsProgress, QWidget *parent)
+ProgressTaskWidget::ProgressTaskWidget(const QString &label, QWidget *parent)
   : QWidget(parent)
 {
   auto *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0,0,0,0);
-  textLabel = new QLabel(label, this);
+  textLabel = new QLabel(this);
+  setLabel(label);
 
+  // The bar is shown with the first percentage, the spinner until then
   progressBar = new QProgressBar(this);
   progressBar->setRange(0, 100);
-  progressBar->setVisible(reportsProgress);
+  progressBar->setVisible(false);
 
   progressBar->setFixedWidth(100);
   progressBar->setFixedHeight(16);
@@ -420,7 +421,11 @@ ProgressTaskWidget::ProgressTaskWidget(const QString &label, bool reportsProgres
 void
 ProgressTaskWidget::setLabel(const QString &txt)
 {
-  textLabel->setText(txt);
+  // Long labels (e.g. file names) are shortened in the middle so that the
+  // progress indicator stays in view; the full text is in the tooltip
+  QString elided = textLabel->fontMetrics().elidedText(txt, Qt::ElideMiddle, MAX_LABEL_WIDTH);
+  textLabel->setText(elided);
+  textLabel->setToolTip(elided != txt ? txt : QString());
 }
 
 void

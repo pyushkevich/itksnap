@@ -20,14 +20,11 @@ protected:
   PaintbrushRenderer() {}
   virtual ~PaintbrushRenderer() {}
 
-  void InsertWithCollinearCheck(const Vector2d &head);
   void BuildBrush(AbstractRenderContext *context);
 
-  // Paintbrush settings corresponding to the current walk
-  PaintbrushSettings m_CachedBrushSettings;
-
+  // The path for the brush outline, and the outline it was built from
   AbstractRenderContext::Path2DPtr m_BrushOutlinePath;
-  AbstractRenderContext::VertexVector m_BrushOutline;
+  AbstractRenderContext::VertexVector m_PathOutline;
   PaintbrushModel *m_Model;
 };
 

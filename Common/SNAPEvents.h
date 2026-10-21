@@ -84,6 +84,9 @@ itkEventMacro(ActiveLayerChangeEvent, IRISEvent)
 /** Mesh contents have changed */
 itkEventMacro(MeshContentChangeEvent, IRISEvent)
 
+/** The set of annotations has been replaced (e.g., loaded from a file) */
+itkEventMacro(AnnotationChangeEvent, IRISEvent)
+
 /** Change to the speed image */
 itkEventMacro(SpeedImageChangedEvent, LayerChangeEvent)
 

@@ -5,6 +5,7 @@
 #include "SNAPComponent.h"
 #include <QWidget>
 #include <QThread>
+#include <QFutureWatcher>
 #include "SSHTunnel.h"
 
 namespace Ui
@@ -48,8 +49,6 @@ private slots:
 
   void onSSHTunnelDestroyed(QObject *obj);
 
-  void onSSHTunnelPasswordPrompt(SSHTunnel::PromptPasswordInfo pinfo);
-
   void onServerEditorFinished(int accepted);
 
   void on_btnNew_clicked();
@@ -64,8 +63,6 @@ signals:
 
   void launchSSHTunnel();
 
-  void sshPasswordEntered(QString password, bool abort);
-
 private:
   Ui::DeepLearningServerPanel *ui;
   DeepLearningSegmentationModel *m_Model;
@@ -78,6 +75,11 @@ private:
   // How often to perform a status check
   constexpr static unsigned int STATUS_CHECK_INIT_DELAY_MS=500, STATUS_CHECK_FREQUENCY_MS=10000;
   QTimer *m_StatusCheckTimer;
+
+  // Status check that is running on a worker thread, if any. Only one runs at
+  // a time; a check requested meanwhile is run when it finishes
+  QFutureWatcher<DeepLearningSegmentationModel::StatusCheck> *m_StatusCheckWatcher = nullptr;
+  bool m_StatusCheckPending = false;
 
   // Delegate that handles starting system process
   QtLocalDeepLearningServerDelegate *m_LocalDeepLearningServerDelegate;

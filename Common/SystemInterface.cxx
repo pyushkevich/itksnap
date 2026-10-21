@@ -49,6 +49,7 @@
 #include "UIReporterDelegates.h"
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
+#include "ImageIORemote.h"
 #include "itkVoxBoCUBImageIOFactory.h"
 #include <algorithm>
 #include <ctime>
@@ -90,23 +91,29 @@ SystemInfoDelegate *SystemInterface::m_SystemInfoDelegate = NULL;
 std::string
 SystemInterface::GetApplicationDataDirectory()
 {
-  // TODO: when the username is not ASCII, this crashes!
-  wchar_t path_w[4096];
-  DWORD bufferSize = GetEnvironmentVariableW(L"APPDATA", path_w, 4096);
-  if (!bufferSize)
+  // Read APPDATA as UTF-16 and convert it to UTF-8, the encoding ITK-SNAP uses for all
+  // std::string paths. Non-ASCII characters need no special handling after that: itksys
+  // (built by ITK with KWSYS_ENCODING_DEFAULT_CODEPAGE=CP_UTF8) and the CRT (after the
+  // setlocale(LC_ALL, ".UTF8") call in main) both decode these strings as UTF-8.
+  const DWORD path_w_size = 4096;
+  wchar_t     path_w[path_w_size];
+  DWORD       n_chars = GetEnvironmentVariableW(L"APPDATA", path_w, path_w_size);
+  if (n_chars == 0)
     throw IRISException("Can not access APPDATA path on WIN32.");
 
-  // Convert to multi-byte
-  int size_needed = WideCharToMultiByte(CP_UTF8, 0, &path_w[0], wcslen(path_w), NULL, 0, NULL, NULL);
+  // On failure due to a small buffer, the return value is the required size including the
+  // terminating null, not the number of characters copied, and path_w has not been filled in.
+  if (n_chars >= path_w_size)
+    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int)n_chars - 1);
+
+  // Convert to UTF-8. Passing the length explicitly keeps the terminating null out of
+  // the resulting std::string.
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, NULL, 0, NULL, NULL);
+  if (size_needed <= 0)
+    throw IRISException("Can not convert the APPDATA path to a UTF-8 string");
+
   std::string utf8_path(size_needed, 0);
-  WideCharToMultiByte                  (CP_UTF8, 0, &path_w[0], wcslen(path_w), &utf8_path[0], size_needed, NULL, NULL);
-
-  if(utf8_path.length() == 0)
-    throw IRISException("Can not convert APPDATA path to multi-byte string");
-
-  // Temporary crap-out
-  if(utf8_path.length() != wcslen(path_w))
-    throw IRISException("ITK-SNAP currently does not support non-ASCII characters in user names on Windows (tm) platforms. This will be fixed in the future.");
+  WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, &utf8_path[0], size_needed, NULL, NULL);
 
   // Append the full information
   std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";
@@ -336,11 +343,11 @@ std::string
 SystemInterface
 ::FindUniqueCodeForFile(const char *file, bool generate_if_not_found)
 {
-  // Convert the filename to absolute path
-  string path = SystemTools::CollapseFullPath(file);
-
-  // Convert to unix slashes for consistency
-  SystemTools::ConvertToUnixSlashes(path);
+  // Convert the filename to absolute path, with unix slashes for consistency.
+  // URLs are used as they are
+  string path = CollapseFullPathOrURL(file);
+  if(!IsRemoteImageURL(path))
+    SystemTools::ConvertToUnixSlashes(path);
 
   // Encode the filename as ASCII
   path = EncodeFilename(path);
@@ -386,6 +393,9 @@ bool
 SystemInterface
 ::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
 {
+  if(!m_ImageAssociationsEnabled)
+    return false;
+
   // Find the code previously associated with that file
   string code = this->FindUniqueCodeForFile(file, false);
 
@@ -580,6 +590,9 @@ bool
 SystemInterface
 ::AssociateRegistryWithFile(const char *file, Registry &registry)
 {
+  if(!m_ImageAssociationsEnabled)
+    return false;
+
   // Get the unique code
   string code = FindUniqueCodeForFile(file, true);
   
@@ -859,4 +872,65 @@ long get_system_time_ms()
   long millis = (time.tv_sec * 1000) + (time.tv_usec / 1000);
   return millis;
 #endif
+}
+
+static SNAPTranslatorFunction g_SNAPTranslator = nullptr;
+
+void SetSNAPTranslator(SNAPTranslatorFunction translator)
+{
+  g_SNAPTranslator = translator;
+}
+
+std::string SNAPTranslate(const char *context, const char *text)
+{
+  return g_SNAPTranslator ? g_SNAPTranslator(context, text) : std::string(text);
+}
+
+// Remove the last extension of name if accept() approves it (it is passed
+// the extension without the period); returns true if removed
+static bool StripOneExtension(std::string &name, bool (*accept)(const std::string &))
+{
+  size_t dot = name.rfind('.');
+  if (dot == std::string::npos || dot == 0)
+    return false;
+  std::string ext = name.substr(dot + 1);
+  if (!accept(ext))
+    return false;
+  name.erase(dot);
+  return true;
+}
+
+static std::string ToLower(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+  return s;
+}
+
+std::string StripFilenameExtension(const std::string &filename)
+{
+  std::string name = itksys::SystemTools::GetFilenameName(filename);
+
+  // Compression suffix
+  StripOneExtension(name, [](const std::string &ext) {
+    std::string e = ToLower(ext);
+    return e == "gz" || e == "bz2";
+  });
+
+  // The actual extension
+  std::string base = name;
+  bool stripped = StripOneExtension(name, [](const std::string &ext) {
+    if (ext.empty() || ext.size() > 7 || !std::isalpha((unsigned char)ext[0]))
+      return false;
+    return std::all_of(ext.begin(), ext.end(), [](unsigned char c) { return std::isalnum(c); });
+  });
+
+  // Two-part extensions such as .seq.nrrd
+  if (stripped)
+  {
+    std::string ext = ToLower(base.substr(name.size() + 1));
+    if (ext == "nrrd" || ext == "nhdr")
+      StripOneExtension(name, [](const std::string &e) { return ToLower(e) == "seq"; });
+  }
+
+  return name;
 }

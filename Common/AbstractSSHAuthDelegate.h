@@ -8,9 +8,12 @@
  * IRISApplication so that the Logic layer can request credentials without
  * taking a direct Qt dependency.
  *
- * All methods block until the user responds or cancels.  They are called
- * from whatever thread invokes RemoteImageSource::Download() — currently
- * always the main thread, so a blocking Qt dialog is safe.
+ * All methods block until the user responds or cancels.  They are called by
+ * OpenSSHSession() (SSHLogin.h) between connection attempts, on whatever
+ * thread is opening the session: the main thread for remote image downloads,
+ * a worker thread for the DLS SSH tunnel.  GUI implementations must therefore
+ * marshal their dialogs to the GUI thread (see QtSSHAuthDelegate).  They are
+ * never called from inside libssh callbacks.
  */
 class AbstractSSHAuthDelegate
 {
@@ -56,6 +59,19 @@ public:
                                             const std::string &prompt,
                                             std::string       &username,
                                             std::string       &password) = 0;
+
+  /**
+   * Ask whether to trust a host whose key is not yet in ~/.ssh/known_hosts,
+   * like the ssh command does on first connection. If the user agrees, the key
+   * is added to known_hosts and the connection proceeds.
+   * @param host        Remote hostname
+   * @param key_type    Key type, e.g. "ssh-ed25519"
+   * @param fingerprint Key fingerprint, e.g. "SHA256:..."
+   * @return true to trust the key and connect, false to abort
+   */
+  virtual bool ConfirmHostKey(const std::string &host,
+                              const std::string &key_type,
+                              const std::string &fingerprint) = 0;
 
   /**
    * Prompt for a Flywheel (or other REST) API key.

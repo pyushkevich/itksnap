@@ -14,6 +14,7 @@
 #include <chrono>
 #include <regex>
 #include <functional>
+#include <cstring>
 #include "itksys/MD5.h"
 
 // Minimum server version
@@ -21,80 +22,20 @@ const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.2";
 
 typedef std::chrono::high_resolution_clock Clock;
 
+// Sets a flag for its lifetime, so that the flag is cleared even if an
+// exception is thrown
+struct InteractionInProgressGuard
+{
+  bool &flag;
+  explicit InteractionInProgressGuard(bool &f) : flag(f) { flag = true; }
+  ~InteractionInProgressGuard() { flag = false; }
+};
 
 #if defined(ITKZLIB) && !defined(ITK_USE_SYSTEM_ZLIB)
 #include "itk_zlib.h"
 #else
 #include "zlib.h"
 #endif
-
-#include "libssh/libssh.h"
-
-bool
-startSshTunnel(const std::string &remoteHost,
-               int                remotePort,
-               int                localPort,
-               const std::string &username,
-               const std::string &password,
-               const std::string &private_key)
-{
-  ssh_session session = ssh_new();
-  if (!session)
-  {
-    return false;
-  }
-
-  ssh_options_set(session, SSH_OPTIONS_HOST, remoteHost.c_str());
-  ssh_options_set(session, SSH_OPTIONS_USER, username.c_str());
-
-  if (ssh_connect(session) != SSH_OK)
-  {
-    std::cerr << "SSH Connection failed: " << ssh_get_error(session) << std::endl;
-    ssh_free(session);
-    return false;
-  }
-
-  // Authenticate using the private key
-  bool auth = false;
-  if (ssh_userauth_publickey_auto(session, NULL, NULL) == SSH_AUTH_SUCCESS)
-  {
-    std::cout << "Successfully authenticated using auto-detected key" << std::endl;
-    auth = true;
-  }
-  else if (ssh_userauth_password(session, nullptr, password.c_str()) == SSH_AUTH_SUCCESS)
-  {
-    std::cout << "Successfully authenticated using password" << std::endl;
-    auth = true;
-  }
-  else
-  {
-    std::cerr << "Authentication failed: " << ssh_get_error(session) << std::endl;
-    ssh_disconnect(session);
-    ssh_free(session);
-    return false;
-  }
-
-  // Open a direct TCP/IP tunnel
-  ssh_channel channel = ssh_channel_new(session);
-  if (!channel)
-  {
-    ssh_disconnect(session);
-    ssh_free(session);
-    return false;
-  }
-
-  if (ssh_channel_open_forward(channel, "localhost", remotePort, "localhost", localPort) != SSH_OK)
-  {
-    std::cerr << "Failed to open tunnel: " << ssh_get_error(session) << std::endl;
-    ssh_channel_free(channel);
-    ssh_disconnect(session);
-    ssh_free(session);
-    return false;
-  }
-
-  return true; // Tunnel is now open
-}
-
 
 bool gzipInflate( const std::string& compressedBytes, std::string& uncompressedBytes )
 {
@@ -437,6 +378,9 @@ DeepLearningSegmentationModel::ResetConnection()
   // Reset the proxy URL
   SetProxyURL(std::string());
 
+  // Forget the models listed by the previous server
+  m_RemoteModelMetadata.clear();
+
   // Reset the statuses to default state
   SetNetworkStatus(dls_model::NetworkStatus());
   SetTunnelStatus(dls_model::TunnelStatus());
@@ -588,6 +532,10 @@ DeepLearningSegmentationModel::StartLocalServerIfNeeded()
   }
 }
 
+// Parse the numeric parts of a version string, e.g., "0.1.4" -> {0, 1, 4}.
+// Trailing non-digits in a part are ignored, and parsing stops at the first
+// part that does not start with a digit, so that development and pre-release
+// versions ("0.1.4.dev1", "0.2.0rc1") are accepted.
 static std::vector<int>
 parse_version(const std::string &v)
 {
@@ -596,7 +544,12 @@ parse_version(const std::string &v)
   std::string       item;
   while (std::getline(ss, item, '.'))
   {
-    parts.push_back(std::stoi(item));
+    size_t n_digits = 0;
+    while (n_digits < item.size() && isdigit((unsigned char) item[n_digits]))
+      n_digits++;
+    if (n_digits == 0 || n_digits > 9)
+      break;
+    parts.push_back(std::stoi(item.substr(0, n_digits)));
   }
   return parts;
 }
@@ -629,22 +582,37 @@ version_meets_min(const std::string &version, const std::string &min_required)
 }
 
 
+DeepLearningSegmentationModel::StatusCheckRequest
+DeepLearningSegmentationModel::GetStatusCheckRequest()
+{
+  StatusCheckRequest request;
+  auto *sp = this->GetServerProperties();
+  if (sp)
+  {
+    request.has_server = true;
+    request.hash = sp->GetHash();
+    request.tunnel_missing = sp->GetUseSSHTunnel() && GetProxyURL().empty();
+    request.url = GetActualServerURL();
+  }
+  return request;
+}
+
 DeepLearningSegmentationModel::StatusCheck
-DeepLearningSegmentationModel::AsyncCheckStatus()
+DeepLearningSegmentationModel::AsyncCheckStatus(const StatusCheckRequest &request)
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-  dls_model::NetworkStatus response;
-  auto *sp = this->GetServerProperties();
+  StatusCheck result;
+  dls_model::NetworkStatus &response = result.status;
 
   // Check if URL has been set
-  if (!sp)
+  if (!request.has_server)
   {
-    return std::make_pair(std::string(), response);
+    return result;
   }
 
   // Check if the proxy has been set up for an SSH connection
-  if (sp->GetUseSSHTunnel() && GetProxyURL().size() == 0)
+  if (request.tunnel_missing)
   {
     response.status = dls_model::NETWORK_NOT_CONNECTED;
     response.message = "SSH tunnel has not been configured";
@@ -654,7 +622,7 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
     try
     {
       RESTClientType cli(m_RESTSharedData);
-      std::string url = GetActualServerURL();
+      const std::string &url = request.url;
       cli.SetServerURL(url.c_str());
       bool status = cli.Get("status");
       if (!status)
@@ -676,12 +644,25 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
       {
         Json::Reader json_reader;
         Json::Value  root;
-        if (json_reader.parse(cli.GetOutput(), root, false))
+        bool         has_version = json_reader.parse(cli.GetOutput(), root, false) &&
+                           root.isObject() && root["version"].isString() &&
+                           parse_version(root["version"].asString()).size() > 0;
+        if (!has_version)
+        {
+          // Something answered, but it is not a server we can talk to
+          response.status = dls_model::NETWORK_NOT_CONNECTED;
+          response.message = "the server did not report a valid version number. "
+                             "Is this an ITK-SNAP deep learning server?";
+        }
+        else
         {
           // Check the version against minimum version
           auto version = root["version"].asString();
           if(version_meets_min(version, MINIMUM_SERVER_VERSION))
           {
+            // Get the list of models here, so that the GUI thread never has
+            // to wait on the network for it
+            result.pipelines = FetchRemotePipelines(cli);
             response.status = dls_model::NETWORK_CONNECTED_COMPATIBLE;
             response.message = version;
           }
@@ -691,100 +672,111 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
             response.message = version;
           }
         }
-        else
-          throw IRISException("Server did not provide version number");
       }
     }
-    catch (IRISException &exc)
+    catch (std::exception &exc)
     {
+      // This runs on a worker thread, so no exception may escape. This also
+      // catches errors from the JSON library and the standard library.
       // TODO: this is a bad workaround the fact that we don't know when the local
       response.status = dls_model::NETWORK_NOT_CONNECTED;
       response.message = exc.what();
+      result.pipelines.clear();
     }
   }
 
-  return std::make_pair(sp->GetHash(), response);
+  result.hash = request.hash;
+  return result;
 }
 
 void
 DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &result)
 {
   std::string hash = m_ServerIndex < 0 ? std::string() : m_ServerProperties[m_ServerIndex]->GetHash();
-  if(hash == result.first)
-    this->SetNetworkStatus(result.second);
+  if(hash != result.hash)
+    return;
 
+  // Update the list of models before the status, so that listeners of the
+  // status see the current list
+  bool pipelines_changed = (m_RemoteModelMetadata != result.pipelines);
+  m_RemoteModelMetadata = result.pipelines;
+
+  if(this->GetNetworkStatus() != result.status)
+    this->SetNetworkStatus(result.status);
+  else if(pipelines_changed)
+    m_NetworkStatusModel->InvokeEvent(ValueChangedEvent());
 }
 
 std::map<std::string, dls_model::RemoteModelMetadata>
 DeepLearningSegmentationModel::GetRemotePipelines()
 {
-  // This lock code prevents a race condition
-  std::unique_lock<std::mutex> guard(m_Mutex, std::try_to_lock);
-  if(!guard.owns_lock())
-    return m_RemoteModelMetadata;
-
   if(this->GetServerStatus().status != dls_model::CONN_CONNECTED)
-  {
-    m_RemoteModelMetadata.clear();
-    return m_RemoteModelMetadata;
-  }
+    return std::map<std::string, dls_model::RemoteModelMetadata>();
 
-  if(m_RemoteModelMetadata.empty())
-  {
-    try
-    {
-      RESTClientType cli(m_RESTSharedData);
-      cli.SetServerURL(GetActualServerURL().c_str());
-      if(!cli.Get("v2/models"))
-        throw IRISException("Error requesting list of models from DLS server: %s", cli.GetErrorString());
-
-      Json::Reader json_reader;
-      Json::Value root;
-      if(json_reader.parse(cli.GetOutput(), root, false))
-      {
-        const Json::Value models_list = root["models"];
-        for(auto m : models_list)
-        {
-          dls_model::RemoteModelMetadata md;
-
-          // Read model id
-          auto model_id = m["id"].asString();
-
-          // Read model dimensionality
-          md.dimensions = m["dimensions"].asInt();
-
-          // Read number of channels supported
-          for(auto chan : m["channels"])
-          {
-            int nchan = chan.asInt();
-            md.channels.insert(nchan);
-          }
-
-          for(auto inter : m["interactions"])
-          {
-            auto itype = inter.asString();
-            if(itype == "point")
-              md.supports_point = true;
-            if(itype == "box")
-              md.supports_box = true;
-            if(itype == "lasso")
-              md.supports_lasso = true;
-            if(itype == "scribble")
-              md.supports_scribble = true;
-          }
-          m_RemoteModelMetadata[model_id] = md;
-        }
-      }
-      else
-        throw IRISException("Error requesting list of models from DLS server; unexpected return value: '%s'", cli.GetOutput());
-    }
-    catch(std::exception &exc)
-    {
-      m_RemoteModelMetadata.clear();
-      throw IRISException("Error requesting list of models from DLS server: %s", exc.what());
-    }
-  }
   return m_RemoteModelMetadata;
+}
+
+std::map<std::string, dls_model::RemoteModelMetadata>
+DeepLearningSegmentationModel::FetchRemotePipelines(RESTClientType &cli)
+{
+  std::map<std::string, dls_model::RemoteModelMetadata> pipelines;
+  if(!cli.Get("v2/models"))
+    throw IRISException("Error requesting list of models from DLS server: %s", cli.GetErrorString());
+
+  Json::Reader json_reader;
+  Json::Value root;
+  if(!json_reader.parse(cli.GetOutput(), root, false) || !root.isObject())
+    throw IRISException("Error requesting list of models from DLS server; unexpected return value: '%s'", cli.GetOutput());
+
+  const Json::Value models_list = root["models"];
+  int order = 0;
+  for(auto m : models_list)
+  {
+    dls_model::RemoteModelMetadata md;
+    md.order = order++;
+
+    // Read model id
+    auto model_id = m["id"].asString();
+
+    // Read model dimensionality
+    md.dimensions = m["dimensions"].asInt();
+
+    // Read number of channels supported
+    for(auto chan : m["channels"])
+    {
+      int nchan = chan.asInt();
+      md.channels.insert(nchan);
+    }
+
+    for(auto inter : m["interactions"])
+    {
+      auto itype = inter.asString();
+      if(itype == "point")
+        md.supports_point = true;
+      if(itype == "box")
+        md.supports_box = true;
+      if(itype == "lasso")
+        md.supports_lasso = true;
+      if(itype == "scribble")
+        md.supports_scribble = true;
+    }
+    pipelines[model_id] = md;
+  }
+  return pipelines;
+}
+
+std::vector<std::string>
+DeepLearningSegmentationModel::GetRemotePipelineIdsInServerOrder()
+{
+  auto pipelines = this->GetRemotePipelines();
+  std::vector<std::string> ids;
+  for(auto &it : pipelines)
+    ids.push_back(it.first);
+
+  std::stable_sort(ids.begin(), ids.end(), [&pipelines](const std::string &a, const std::string &b) {
+    return pipelines[a].order < pipelines[b].order;
+  });
+  return ids;
 }
 
 void
@@ -804,7 +796,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // If there is an active session and the user wants to use a new model, release active session
   if(m_ActiveSession.size() && m_ActiveSessionModel != model_id)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Ending prior session");
+    ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                   SNAP_TRANSLATE_NOOP("ProgressTask", "Ending prior session"));
     cli.Get("v2/end_session/%s", m_ActiveSession.c_str());
     m_ActiveSession.clear();
     m_ActiveSessionModel.clear();
@@ -814,7 +807,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // Check if we have an open session with the server, if not establish it
   if(m_ActiveSession.size() == 0)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Creating DLS session");
+    ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                   SNAP_TRANSLATE_NOOP("ProgressTask", "Creating DLS session"));
     cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
     Clock::time_point t0, t1;
     t0 = Clock::now();
@@ -857,9 +851,12 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
 
   // Generate a hash that describes the parameters of the image or image region that we
   // would be sending to the server, without actually generating the image (not to waste
-  // time).
+  // time). Clicks and results are on the grid of the active segmentation (the reference
+  // space), so the image sent depends on it too.
+  auto *ref_wrapper = driver->GetCurrentImageData()->GetReferenceSpaceWrapper();
   size_t rview_hash = std::hash<unsigned long>{}(actual_layer->GetUniqueId());
   rview_hash ^= std::hash<unsigned int>{}(actual_layer->GetTimePointIndex());
+  rview_hash ^= std::hash<unsigned long>{}(ref_wrapper->GetUniqueId()) << 1;
   if(model_metadata.dimensions == 2)
   {
     auto zpos = layer->MapImageCIndexToSliceCIndex(axis, to_double(driver->GetCursorPosition()))[2];
@@ -870,7 +867,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // If the parameters changed, we need to send the image to the server
   if(rview_hash != m_RemoteImageViewHash)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Uploading image to DLS", true);
+    ProgressTaskGuard task_tracker(
+      m_ProgressDelegate, SNAP_TRANSLATE_NOOP("ProgressTask", "Uploading image to DLS"), true);
 
     // Keep track of elapsed time
     Clock::time_point t0, t1, t2, t3, t4, t5;
@@ -883,22 +881,55 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
     // What we send to the server depends on image dimensionality
     if(model_metadata.dimensions == 3)
     {
-      // Send complete image content. Check if the model accepts multi-dimensional content
-      if(actual_layer->IsScalar())
+      // The server works in the voxel space of the image we send, while the clicks we
+      // send and the segmentation it returns are on the grid of the active segmentation
+      // (the reference space). If the image is on a different grid, send a copy of it
+      // resampled onto the reference space.
+      SmartPtr<ImageWrapperBase> resampled;
+      ImageWrapperBase *src_layer = actual_layer;
+
+      // Resampling works on concrete images, so a scalar representation (e.g. one
+      // channel of a multi-channel image) is resampled via the image it belongs to
+      ImageWrapperBase *concrete =
+        actual_layer->GetParentWrapper() ? actual_layer->GetParentWrapper() : actual_layer;
+      if(!concrete->ImageSpaceMatchesReferenceSpace())
       {
-        auto *fsrc = actual_layer->CreateCastToFloatVectorPipeline("DLSExport");
+        SNAPSegmentationROISettings roi;
+        roi.SetROI(driver->GetCurrentImageData()->GetReferenceSpaceImageRegion());
+        roi.SetInterpolationMethod(TRILINEAR);
+        resampled = concrete->ExtractROI(roi, nullptr);
+        src_layer = resampled;
+
+        // Pick the same scalar representation from the resampled image
+        if(concrete != actual_layer)
+        {
+          auto *vec_concrete = dynamic_cast<VectorImageWrapperBase *>(concrete);
+          auto *vec_resampled = dynamic_cast<VectorImageWrapperBase *>(resampled.GetPointer());
+          ScalarRepresentation rep_type;
+          int rep_index;
+          if(!vec_concrete || !vec_resampled ||
+             !vec_concrete->FindScalarRepresentation(actual_layer, rep_type, rep_index))
+            throw IRISException("Unable to resample the image for the DLS server");
+          src_layer = vec_resampled->GetScalarRepresentation(rep_type, rep_index);
+        }
+      }
+
+      // Send complete image content. Check if the model accepts multi-dimensional content
+      if(src_layer->IsScalar())
+      {
+        auto *fsrc = src_layer->CreateCastToFloatVectorPipeline("DLSExport");
         t1 = Clock::now();
         EncodeImage(mpd, fsrc, gzip_buffer);
         t2 = Clock::now();
       }
       else
       {
-        auto *fsrc = actual_layer->CreateCastToFloatPipeline("DLSExport");
+        auto *fsrc = src_layer->CreateCastToFloatPipeline("DLSExport");
         t1 = Clock::now();
         EncodeImage(mpd, fsrc, gzip_buffer);
         t2 = Clock::now();
       }
-      actual_layer->ReleaseInternalPipeline("DLSExport");
+      src_layer->ReleaseInternalPipeline("DLSExport");
     }
     else if(model_metadata.dimensions == 2)
     {
@@ -1045,6 +1076,13 @@ DeepLearningSegmentationModel::UpdateSegmentation(const std::string &model_id,
     auto &model_metadata = GetRemoteModelMetadata(model_id);
     if(model_metadata.dimensions == 3)
     {
+      // Check that the size of raw data matches the buffer size, otherwise the
+      // iteration below would read past the end of the result
+      if(result_raw.size() != expected_size)
+        throw IRISException("DLS server returned segmentation that does not match the size of "
+                            "the image (%zu voxels received, %zu expected)",
+                            result_raw.size(), expected_size);
+
       // Create an ITK image of the segmentation for this label
       using ImageType = itk::Image<char, 3>;
       ImageType::Pointer result_img = ImageType::New();
@@ -1143,6 +1181,13 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                                                        Vector3i          pos,
                                                        bool              reverse)
 {
+  // A click made while a previous interaction is still waiting for the server
+  // would re-enter this method on the same thread and deadlock on m_Mutex, so
+  // it is ignored instead
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 
@@ -1161,7 +1206,8 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
   cli.SetServerURL(GetActualServerURL().c_str());
 
   // Start a task tracker
-  ProgressTaskGuard task_tracker(m_ProgressDelegate, "Performing point interaction");
+  ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                 SNAP_TRANSLATE_NOOP("ProgressTask", "Performing point interaction"));
   cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
 
   // What's the dimensionality of our model?
@@ -1187,7 +1233,6 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                  reverse ? "false" : "true");
   }
   cli.RemoveProgressCallback();
-  std::cout << "*** COMPLETED POINT INTERACTION ***" << std::endl;
 
   if(!rc)
   {
@@ -1199,7 +1244,7 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
             << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive point interaction");
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "Deep learning point interaction");
 }
 
 bool
@@ -1210,6 +1255,17 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
                                                                  LabelImageWrapper *seg,
                                                                  bool               reverse)
 {
+  // Ignore re-entrant requests; see PerformPointInteraction
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
+  // Scribble and lasso interactions send the whole 3D segmentation, which
+  // only makes sense for 3D models
+  if (this->GetRemoteModelMetadata(model_id).dimensions != 3)
+    throw IRISException("The deep learning model %s does not support this interaction, "
+                        "because it is not a 3D model.", model_id.c_str());
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 
@@ -1252,7 +1308,9 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
             << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive scribble interaction");
+  const char *commit_name = strstr(target_url, "lasso") ? "Deep learning lasso interaction"
+                                                       : "Deep learning scribble interaction";
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), commit_name);
 }
 
 const dls_model::RemoteModelMetadata &

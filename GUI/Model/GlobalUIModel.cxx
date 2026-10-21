@@ -587,6 +587,7 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the default behaviors
   dbs->ReadFromRegistry(
         si->Folder("UserInterface.DefaultBehavior"));
+  m_Driver->UpdateHideFileExtensions();
 
   // Read the global display properties and apply them
   SmartPtr<GlobalDisplaySettings> temp_gds = GlobalDisplaySettings::New();
@@ -617,6 +618,11 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the Polygon properties
   m_PolygonSettingsModel->LoadFromRegistry(
         si->Folder("UserInterface.PolygonSettings"));
+
+  // Read the paintbrush properties (only the deep learning model is remembered)
+  PaintbrushSettings pbs = m_Driver->GetGlobalState()->GetPaintbrushSettings();
+  pbs.dl_pipeline_id = si->Folder("UserInterface.PaintbrushSettings")["DeepLearningPipeline"][""];
+  m_Driver->GetGlobalState()->SetPaintbrushSettings(pbs);
 
   // Read the DSS-related preferences
   m_DistributedSegmentationModel->LoadPreferences(
@@ -651,9 +657,13 @@ void GlobalUIModel::SaveUserPreferences()
   m_Driver->GetGlobalState()->GetMeshOptions()->WriteToRegistry(
         si->Folder("View3D.MeshOptions"));
 
-  // Read the Polygon properties
+  // Write the Polygon properties
   m_PolygonSettingsModel->SaveToRegistry(
         si->Folder("UserInterface.PolygonSettings"));
+
+  // Write the paintbrush properties
+  si->Folder("UserInterface.PaintbrushSettings")["DeepLearningPipeline"]
+    << m_Driver->GetGlobalState()->GetPaintbrushSettings().dl_pipeline_id;
 
   // Write the DSS-related preferences
   m_DistributedSegmentationModel->SavePreferences(
@@ -751,8 +761,9 @@ bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
     value[i] = roiSystem.GetIndex()[i] + 1;
     if(range)
       {
+      // The index is shown 1-based, so the last voxel is imsize
       range->Minimum[i] = 1;
-      range->Maximum[i] = imsize[i] - 1;
+      range->Maximum[i] = imsize[i];
       range->StepSize[i] = 1;
       }
     }
@@ -770,11 +781,14 @@ void GlobalUIModel::SetSnakeROIIndexValue(Vector3ui value)
   GlobalState::RegionType roi =
       m_Driver->GetGlobalState()->GetSegmentationROI();
 
-  // Index changed, clamp the size
+  // Index changed (shown 1-based): keep the size, but shrink it if the ROI
+  // would no longer fit in the image
   for(int i = 0; i < 3; i++)
     {
-    roi.SetIndex(i, value[i] - 1);
-    roi.SetSize(i, std::min(value[i], imsize[i] - value[i]));
+    unsigned int idx = std::min(std::max(value[i], 1u), imsize[i]) - 1;
+    unsigned int max_size = imsize[i] - idx;
+    roi.SetIndex(i, idx);
+    roi.SetSize(i, std::max(1u, std::min((unsigned int) roi.GetSize(i), max_size)));
     }
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
@@ -820,12 +834,14 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
   GlobalState::RegionType roi =
       m_Driver->GetGlobalState()->GetSegmentationROI();
 
-  // Size changed, clamp the index
+  // Size changed: keep the index, but move it back if the ROI would extend
+  // past the edge of the image
   for(int i = 0; i < 3; i++)
     {
-    roi.SetSize(i, value[i]);
-    if(value[i] + roi.GetIndex(i) > imsize[i])
-      roi.SetIndex(i, imsize[i] - value[1]);
+    unsigned int size = std::min(std::max(value[i], 1u), imsize[i]);
+    roi.SetSize(i, size);
+    if(size + roi.GetIndex(i) > imsize[i])
+      roi.SetIndex(i, imsize[i] - size);
     }
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
@@ -944,8 +960,8 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
     return "snapshot0001.png";
 
   // Count how many digits there are at the end of the filename
-  std::string noext =
-    itksys::SystemTools::GetFilenameWithoutExtension(last);
+  std::string noext = StripFilenameExtension(last);
+  std::string extn = itksys::SystemTools::GetFilenameName(last).substr(noext.length());
   unsigned int digits = 0;
   for(int i = noext.length() - 1; i >= 0; i--)
     {
@@ -969,7 +985,7 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
   oss << "/";
   oss << noext.substr(0, noext.length() - digits);
   oss << std::setw(digits) << std::setfill('0') << (num + 1);
-  oss << itksys::SystemTools::GetFilenameExtension(last);
+  oss << extn;
   return oss.str();
 }
 

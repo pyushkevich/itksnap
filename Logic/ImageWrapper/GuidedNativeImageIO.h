@@ -175,6 +175,19 @@ public:
   std::string GetFileNameOfNativeImage() const
     { return m_NativeFileName; }
 
+  /**
+   * The name the image is known by: the URL it was downloaded from, if one
+   * was set with SetSourceURL, or else the file it was read from. Layer file
+   * names, the history and per-image settings use this name, so that they
+   * refer to the URL and not to the downloaded copy.
+   */
+  std::string GetSourceFileName() const
+    { return m_SourceURL.size() ? m_SourceURL : m_NativeFileName; }
+
+  /** Set the URL that the file being read was downloaded from */
+  void SetSourceURL(const std::string &url)
+    { m_SourceURL = url; }
+
   unsigned long GetFileSizeOfNativeImage() const
     { return m_NativeSizeInBytes; }
 
@@ -256,6 +269,12 @@ public:
   /** Set the file format in a registry */
   static void SetPixelType(Registry &folder, RawPixelType type);
 
+  /**
+   * Memory currently available to load an image (free plus reclaimable), as
+   * reported by the OS, in bytes. Returns 0 if it cannot be determined.
+   */
+  static size_t GetAvailableMemory();
+
   /** Output for ParseDicomDirectory */
   typedef std::vector<Registry> RegistryArray;
 
@@ -316,6 +335,14 @@ protected:
 
   /** Templated function to create RAW image IO */
   template <typename TRaw> void CreateRawImageIO(Registry &folder);
+
+  /**
+   * Throw an IRISException if the image described by m_IOBase, times nFiles
+   * (for a DICOM series, where m_IOBase describes one file), does not fit in
+   * available memory. Call before allocating, since a failed allocation can
+   * crash (SIGBUS) without an error.
+   */
+  void CheckImageFitsInMemory(size_t nFiles = 1);
 
   /** Templated function that reads a scalar image in its native datatype */
 	template <typename TScalar> void DoReadNative(const char *fname, Registry &folder, itk::Command *ProgressCmd = nullptr);
@@ -409,7 +436,7 @@ protected:
   itk::IOComponentEnum m_NativeType;
   size_t m_NativeComponents;
   unsigned long m_NativeSizeInBytes;
-  std::string m_NativeTypeString, m_NativeFileName;
+  std::string m_NativeTypeString, m_NativeFileName, m_SourceURL;
   std::string m_NativeNickname;
   IOBase::ByteOrder m_NativeByteOrder;
 

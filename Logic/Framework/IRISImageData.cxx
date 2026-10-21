@@ -37,6 +37,8 @@
 #include "itkImage.h"
 #include "Rebroadcaster.h"
 #include "ImageMeshLayers.h"
+#include "IRISApplication.h"
+#include "GlobalState.h"
 
 IRISImageData
 ::IRISImageData()
@@ -51,5 +53,18 @@ IRISImageData
 
 IRISImageData::~IRISImageData()
 {
+}
+
+void
+IRISImageData::UpdateActiveSegmentation(LabelImageWrapper *wrapper)
+{
+  bool geom_change = !IsSameGeometry(wrapper, this->GetActiveSegmentationLayer());
+
+  Superclass::UpdateActiveSegmentation(wrapper);
+
+  // The old ROI indices are meaningless in the new reference space, so reset
+  // the ROI to the whole reference space, as when a main image is loaded
+  if(geom_change && wrapper && wrapper->IsInitialized())
+    m_Parent->GetGlobalState()->SetSegmentationROI(this->GetReferenceSpaceImageRegion());
 }
 

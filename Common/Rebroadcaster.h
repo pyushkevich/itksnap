@@ -24,7 +24,10 @@ class EventBucket;
  *
  * Later on, if we want to stop rebroadcasting, we can use the tag to stop:
  *
- * Rebroadcaster::StopRebroadcasting(tag);
+ * Rebroadcaster::StopRebroadcasting(a1.worker, tag);
+ *
+ * Do not remove the observer from the source object directly (using the tag
+ * with RemoveObserver), because the rebroadcaster would not know about it.
  *
  * The class handles object destruction gracefully. As soon as one of the classes
  * fires a itk::DeleteEvent(), the rebroadcasting stops.
@@ -39,16 +42,19 @@ class Rebroadcaster
 {
 public:
 
+  using UserCallbackType = std::function<void(const itk::Object *, const itk::EventObject &)>;
+
   /**
    * Rebroadcast event sourceEvent from object source as the event
    * targetEvent from object target. Note that if the source event is of
    * a type derived from sourceEvent, then the broadcast will still occur.
    * See docs for the class (above) for notes about the EventBucket param.
    */
-  static unsigned long Rebroadcast(
-      itk::Object *source, const itk::EventObject &sourceEvent,
-      itk::Object *target, const itk::EventObject &targetEvent,
-      EventBucket *bucket = NULL);
+  static unsigned long Rebroadcast(itk::Object            *source,
+                                   const itk::EventObject &sourceEvent,
+                                   itk::Object            *target,
+                                   const itk::EventObject &targetEvent,
+                                   UserCallbackType        callback = nullptr);
 
   /**
    * Rebroadcast event sourceEvent from object source as the same event from
@@ -60,9 +66,16 @@ public:
    * For example, if we want every event fired by source to be rebroadcast by
    * target, we can just call this method with itk::AnyEvent() as sourceEvent.
    */
-  static unsigned long RebroadcastAsSourceEvent(
-      itk::Object *source, const itk::EventObject &sourceEvent,
-      itk::Object *target, EventBucket *bucket = NULL);
+  static unsigned long RebroadcastAsSourceEvent(itk::Object            *source,
+                                                const itk::EventObject &sourceEvent,
+                                                itk::Object            *target,
+                                                UserCallbackType        callback = nullptr);
+
+  /**
+   * Stop rebroadcasting events from the source object. The tag is the value
+   * returned by Rebroadcast() or RebroadcastAsSourceEvent() for this source.
+   */
+  static void StopRebroadcasting(itk::Object *source, unsigned long tag);
 
 protected:
 
@@ -83,7 +96,6 @@ protected:
 
     itk::Object *m_Source, *m_Target;
     itk::EventObject *m_TargetEvent;
-    EventBucket *m_Bucket;
     unsigned long m_SourceTag;
 
     // Whether this association is in response to a delete event.
@@ -95,6 +107,9 @@ protected:
 
     // The name of the source event type, used for deduplication
     const char *m_SourceEventName;
+
+    // Optional callback executed when the source event is fired
+    UserCallbackType m_UserCallback;
 
     bool m_RefireSource;
   };

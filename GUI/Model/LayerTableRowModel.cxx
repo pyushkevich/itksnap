@@ -105,7 +105,10 @@ void AbstractLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperB
 
   // What happens if the layer is deleted? The model should be notified, and
   // it should update its state to a NULL state before something bad happens
-  // in the GUI...
+  // in the GUI. The state is reset right away by the callback, and the GUI
+  // is notified through the rebroadcast.
+  m_LayerDeleteObserverTag =
+      AddListener(layer, itk::DeleteEvent(), this, &Self::LayerDeleteCallback);
   Rebroadcast(layer, itk::DeleteEvent(), ModelUpdateEvent());
 
   // The state of this model only depends on wrapper's position in the list of
@@ -140,18 +143,26 @@ void AbstractLayerTableRowModel::SetNicknameValue(std::string value)
 }
 
 
+AbstractLayerTableRowModel::~AbstractLayerTableRowModel()
+{
+  // If the layer is still alive, stop observing it
+  if(m_Layer)
+    m_Layer->RemoveObserver(m_LayerDeleteObserverTag);
+}
+
+void AbstractLayerTableRowModel::LayerDeleteCallback()
+{
+  m_Layer = nullptr;
+  OnLayerDeleted();
+  m_LayerRole = NO_ROLE;
+  m_LayerPositionInRole = -1;
+  m_LayerNumberOfLayersInRole = -1;
+}
+
 void AbstractLayerTableRowModel::OnUpdate()
 {
-  // Has our layer been deleted?
-  if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
-    {
-    m_Layer = NULL;
-    OnLayerDeleted();
-    m_LayerRole = NO_ROLE;
-    m_LayerPositionInRole = -1;
-    m_LayerNumberOfLayersInRole = -1;
-    }
-  else if(this->m_EventBucket->HasEvent(LayerChangeEvent()))
+  // A deleted layer is handled by LayerDeleteCallback()
+  if(m_Layer && this->m_EventBucket->HasEvent(LayerChangeEvent()))
     {
     this->UpdateRoleInfo();
     }
@@ -550,7 +561,7 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
     // Create a new image wrapper
     SmartPtr<TextureWrapperType> newWrapper = TextureWrapperType::New();
     newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput());
-    newWrapper->SetDefaultNickname("Textures");
+    newWrapper->SetDefaultNickname(SNAPTranslate("DefaultNickname", "Textures"));
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(m_ImageLayer, newWrapper, false);
 
     // Release the cast pipeline

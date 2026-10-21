@@ -26,7 +26,13 @@ protected slots:
 
 protected:
 
+  // Set the thumbnail as the item's icon, with a badge for remote items
+  void setThumbnail(const QPixmap &thumbnail);
+
   QString m_IconFilename;
+
+  // Whether the item is a remote URL
+  bool m_IsRemote = false;
 
 };
 

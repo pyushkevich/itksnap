@@ -17,7 +17,9 @@
 #include <QGraphicsDropShadowEffect>
 #include <QDateTime>
 #include <QToolButton>
+#include <QUrl>
 #include "SNAPQtCommonTranslations.h"
+#include "ImageIORemote.h"
 
 #include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
@@ -494,8 +496,10 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
   SmartPtr<ImageIOWizardModel> wiz_model =
       model->CreateIOWizardModelForSave(wrapper, role, currentTPOnly);
 
-  // Interactive or not?
-  if(force_interactive || wiz_model->GetSuggestedFilename().size() == 0)
+  // Interactive or not? A layer loaded from a remote URL cannot be saved back
+  // to it, so the user must choose a local file.
+  if(force_interactive || wiz_model->GetSuggestedFilename().size() == 0 ||
+     IsRemoteImageURL(wrapper->GetFileName()))
     {
     // Execute the IO wizard
     ImageIOWizard wiz(parent);
@@ -525,6 +529,14 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 {
   // Get the currently stored project name
   QString file_abs = from_utf8(model->GetGlobalState()->GetProjectFilename());
+
+  // A workspace opened from a remote URL cannot be saved back to it, so the
+  // user must choose a local file. Offer just the file name as the default.
+  if(IsRemoteImageURL(to_utf8(file_abs)))
+    {
+    interactive = true;
+    file_abs = QUrl(file_abs).fileName();
+    }
 
   // Prompt for a project filename if one was not provided
   if(interactive || file_abs.length() == 0)
@@ -575,11 +587,13 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
      g_CategoryToLastPathMap.find(HistoryName) != g_CategoryToLastPathMap.end())
     return g_CategoryToLastPathMap[HistoryName].absolutePath();
 
-  // Is there a main image loaded
+  // Is there a main image loaded? Its directory is only useful if it is a
+  // local file, not a URL (which QFileInfo would turn into a bogus path)
   if(model->GetDriver()->IsMainImageLoaded())
     {
-    QString fn = from_utf8(model->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName());
-    return QFileInfo(fn).absolutePath();
+    std::string fn = model->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName();
+    if(!IsRemoteImageURL(fn))
+      return QFileInfo(from_utf8(fn)).absolutePath();
     }
 
   // Use the initial directory

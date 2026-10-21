@@ -110,8 +110,15 @@ public:
   /** Get a filename history list by a particular name */
   irisGetMacro(HistoryManager, HistoryManager*);
 
+  /**
+   * Enable or disable the image associations (settings remembered for each
+   * image file). They are disabled in GUI tests, so that tests do not read
+   * settings left by earlier sessions or modify the user's settings.
+   */
+  irisGetSetMacro(ImageAssociationsEnabled, bool)
+
   /** Find and load a registry file associated with a filename in the system.*/
-  bool FindRegistryAssociatedWithFile(const char *file, 
+  bool FindRegistryAssociatedWithFile(const char *file,
                                       Registry &registry);
 
   /** Find and load a registry file associated with a filename in the system */
@@ -183,6 +190,7 @@ public:
 
 private:
   std::string m_UserPreferenceFile;
+  bool m_ImageAssociationsEnabled = true;
   std::string m_DocumentationDirectory;
 
   // An object used to write large chunks of SNAP data to the registry

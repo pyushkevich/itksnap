@@ -36,6 +36,7 @@
 #include "IRISException.h"
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
+#include "ImageIORemote.h"
 #include "ImageCoordinateGeometry.h"
 
 #include "itkImage.h"
@@ -625,7 +626,8 @@ GuidedNativeImageIO
 				}
 			catch (const std::exception &e)
 				{
-				std::cerr << e.what() << std::endl;
+				throw IRISException("Error: Can not read voxel spacing from 4D Echocardiography "
+				                    "DICOM file '%s' (%s).", FileName, e.what());
 				}
 
 			// Set to 4d
@@ -656,7 +658,8 @@ GuidedNativeImageIO
 				}
 			catch (std::exception &e)
 				{
-				std::cerr << e.what() << std::endl;
+				throw IRISException("Error: Can not read image dimensions from 4D Echocardiography "
+				                    "DICOM file '%s' (%s).", FileName, e.what());
 				}
 
 			for (unsigned int i = 0; i < 4; ++i)
@@ -668,6 +671,11 @@ GuidedNativeImageIO
 			m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
 
 			ecdHeaderProgSrc->AddProgress(0.2);
+			}
+		else
+			{
+			throw IRISException("Error: Can not read 4D Echocardiography DICOM file '%s'. "
+			                    "The file may be damaged or truncated.", FileName);
 			}
     }
   else
@@ -990,6 +998,64 @@ GuidedNativeImageIO
 }
 
 
+size_t
+GuidedNativeImageIO::GetAvailableMemory()
+{
+  size_t availableRAM = 0;
+#if defined(__APPLE__)
+  mach_port_t host = mach_host_self();
+  vm_size_t pageSize = 0;
+  host_page_size(host, &pageSize);
+  vm_statistics64_data_t vmStats;
+  mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+  if(host_statistics64(host, HOST_VM_INFO64,
+                       reinterpret_cast<host_info64_t>(&vmStats),
+                       &count) == KERN_SUCCESS)
+    availableRAM = static_cast<size_t>(vmStats.free_count +
+                                       vmStats.inactive_count) * pageSize;
+#elif defined(__linux__)
+  std::ifstream meminfo("/proc/meminfo");
+  std::string key; size_t val;
+  while(meminfo >> key >> val)
+    if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
+#elif defined(_WIN32)
+  MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
+  if(GlobalMemoryStatusEx(&ms))
+    availableRAM = static_cast<size_t>(ms.ullAvailPhys);
+#endif
+  return availableRAM;
+}
+
+void
+GuidedNativeImageIO::CheckImageFitsInMemory(size_t nFiles)
+{
+  // Compute image size in bytes directly from IO dimensions (more reliable than
+  // GetImageSizeInBytes() which may return 0 before data is read).
+  size_t imageBytes = m_IOBase->GetComponentSize();
+  for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
+    imageBytes *= m_IOBase->GetDimensions(i);
+  imageBytes *= m_IOBase->GetNumberOfComponents();
+  imageBytes *= nFiles;
+
+  // Use 90% of available RAM as the safe limit so the OS and other processes
+  // still have breathing room. Fall back to 4 GB if query fails.
+  size_t availableRAM = GetAvailableMemory();
+  size_t safeLimit = availableRAM
+    ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
+    : (4ULL << 30);
+  if(imageBytes > safeLimit)
+    {
+    double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
+    double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
+    throw IRISException(
+      "Image is too large to load into memory. "
+      "The image requires %.1f GB of RAM, but only %.1f GB is currently "
+      "available on this machine. Close other applications or use a "
+      "machine with more memory.",
+      imageSizeGB, availableGB);
+    }
+}
+
 template<class TScalar>
 void
 GuidedNativeImageIO
@@ -1008,6 +1074,9 @@ GuidedNativeImageIO
   // There is a special handler for the DICOM case!
   if(m_FileFormat == FORMAT_DICOM_DIR && m_DICOMFiles.size() > 1)
     {
+    // The header describes the first file only; the series has one per file
+    CheckImageFitsInMemory(m_DICOMFiles.size());
+
     // Filter for increasing dimensionality
     typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
 
@@ -1103,6 +1172,8 @@ GuidedNativeImageIO
     } 
 	else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
 		{
+    CheckImageFitsInMemory(m_DICOMFiles.size());
+
 		typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
 		reader->SetImageIO(m_IOBase);
 
@@ -1233,18 +1304,21 @@ GuidedNativeImageIO
 
 		// Only read the data tag
 		if (!ecd_data_reader.ReadSelectedTags(tSet))
-			std::cerr << "Can not read:" << FileName << std::endl;
+			throw IRISException("Error: Can not read 4D Echocardiography DICOM file '%s'. "
+			                    "The file may be damaged or truncated.", FileName);
 		else
 			{
 			ecdProgSrc->AddProgress(0.3);
 			gdcm::DataSet &ds = ecd_data_reader.GetFile().GetDataSet();
 
 			if (!ds.FindDataElement(data))
-				std::cerr << "data element not found!" << std::endl;
+				throw IRISException("Error: 4D Echocardiography DICOM file '%s' "
+				                    "has no pixel data.", FileName);
 
 			const gdcm::DataElement &de = ds.GetDataElement(data);
 			if (de.IsEmpty())
-				std::cerr << "data element is empty!" << std::endl;
+				throw IRISException("Error: 4D Echocardiography DICOM file '%s' "
+				                    "has empty pixel data.", FileName);
 
 			for (unsigned int i = 0; i < 4; ++i)
 				{
@@ -1258,6 +1332,11 @@ GuidedNativeImageIO
 			unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
 
 			const gdcm::ByteValue *bv = de.GetByteValue();
+			if (!bv || bv->GetLength() < len * sizeof(TScalar))
+				throw IRISException("Error: Pixel data in 4D Echocardiography DICOM file '%s' "
+				                    "is truncated (%lu bytes, expected %lu).", FileName,
+				                    bv ? (unsigned long) bv->GetLength() : 0UL,
+				                    (unsigned long)(len * sizeof(TScalar)));
 
 			// Start loading image
 			typename NativeImageType::Pointer ecd_image = NativeImageType::New();
@@ -1278,8 +1357,8 @@ GuidedNativeImageIO
 			ecdProgSrc->AddProgress(0.1);
 
 			// -- Extract the buffer from file
-			char *ecd_buffer = (char*)malloc(len);
-			bv->GetBuffer(ecd_buffer, len);
+			char *ecd_buffer = (char*)malloc(len * sizeof(TScalar));
+			bv->GetBuffer(ecd_buffer, len * sizeof(TScalar));
 
 			// -- Pass buffer into ecd_image
 			typedef typename NativeImageType::PixelContainer PixConType;
@@ -1398,62 +1477,8 @@ GuidedNativeImageIO
 
     UpdateImageHeader<NativeImageType>(image);
 
-    // Guard against SIGBUS / OOM: check that the image fits within currently available
-    // memory before calling Allocate(), which would otherwise crash without any error.
-    {
-    // Compute image size in bytes directly from IO dimensions (more reliable than
-    // GetImageSizeInBytes() which may return 0 before data is read).
-    size_t imageBytes = m_IOBase->GetComponentSize();
-    for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
-      imageBytes *= m_IOBase->GetDimensions(i);
-    imageBytes *= m_IOBase->GetNumberOfComponents();
-
-    // Query currently available (free + reclaimable) memory from the OS.
-    size_t availableRAM = 0;
-#if defined(__APPLE__)
-    {
-    mach_port_t host = mach_host_self();
-    vm_size_t pageSize = 0;
-    host_page_size(host, &pageSize);
-    vm_statistics64_data_t vmStats;
-    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
-    if(host_statistics64(host, HOST_VM_INFO64,
-                         reinterpret_cast<host_info64_t>(&vmStats),
-                         &count) == KERN_SUCCESS)
-      availableRAM = static_cast<size_t>(vmStats.free_count +
-                                         vmStats.inactive_count) * pageSize;
-    }
-#elif defined(__linux__)
-    {
-    std::ifstream meminfo("/proc/meminfo");
-    std::string key; size_t val;
-    while(meminfo >> key >> val)
-      if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
-    }
-#elif defined(_WIN32)
-    {
-    MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
-    if(GlobalMemoryStatusEx(&ms))
-      availableRAM = static_cast<size_t>(ms.ullAvailPhys);
-    }
-#endif
-    // Use 90% of available RAM as the safe limit so the OS and other processes
-    // still have breathing room. Fall back to 4 GB if query fails.
-    size_t safeLimit = availableRAM
-      ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
-      : (4ULL << 30);
-    if(imageBytes > safeLimit)
-      {
-      double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
-      double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
-      throw IRISException(
-        "Image is too large to load into memory. "
-        "The image requires %.1f GB of RAM, but only %.1f GB is currently "
-        "available on this machine. Close other applications or use a "
-        "machine with more memory.",
-        imageSizeGB, availableGB);
-      }
-    }
+    // Guard against SIGBUS / OOM before calling Allocate()
+    CheckImageFitsInMemory();
 
     image->Allocate();
 
@@ -1554,6 +1579,28 @@ GuidedNativeImageIO
 {
   using TNative = typename TImageType::InternalPixelType;
 
+  // The writer below handles one scalar per voxel. Multi-component images
+  // would need an extra vector axis, which is not supported yet.
+  if (image->GetNumberOfComponentsPerPixel() != 1)
+    throw IRISException("Error: multi-component images cannot be saved in the "
+                        "NRRD sequence (.seq.nrrd) format.");
+
+  // Map C++ type to NRRD type keyword. Plain char holds ITK's CHAR component
+  // type, which is signed, regardless of the platform's char signedness.
+  const char *nrrdType = nullptr;
+  if      (std::is_same<TNative, char>::value)           nrrdType = "int8";
+  else if (std::is_same<TNative, signed char>::value)    nrrdType = "int8";
+  else if (std::is_same<TNative, unsigned char>::value)  nrrdType = "uint8";
+  else if (std::is_same<TNative, short>::value)          nrrdType = "int16";
+  else if (std::is_same<TNative, unsigned short>::value) nrrdType = "uint16";
+  else if (std::is_same<TNative, int>::value)            nrrdType = "int32";
+  else if (std::is_same<TNative, unsigned int>::value)   nrrdType = "uint32";
+  else if (std::is_same<TNative, float>::value)          nrrdType = "float";
+  else if (std::is_same<TNative, double>::value)         nrrdType = "double";
+  else
+    throw IRISException("Error: unsupported pixel type for the NRRD sequence "
+                        "(.seq.nrrd) format.");
+
   // Get image geometry
   auto size      = image->GetLargestPossibleRegion().GetSize();
   auto spacing   = image->GetSpacing();
@@ -1573,17 +1620,6 @@ GuidedNativeImageIO
   for (long t = 0; t < T; ++t)
     for (long j = 0; j < nSpatial; ++j)
       bufNRRD[(size_t)(j * T + t)] = buf4D[t * nSpatial + j];
-
-  // Map C++ type to NRRD type keyword
-  const char *nrrdType = "int16";
-  if      (std::is_same<TNative, signed char>::value)    nrrdType = "int8";
-  else if (std::is_same<TNative, unsigned char>::value)  nrrdType = "uint8";
-  else if (std::is_same<TNative, short>::value)          nrrdType = "int16";
-  else if (std::is_same<TNative, unsigned short>::value) nrrdType = "uint16";
-  else if (std::is_same<TNative, int>::value)            nrrdType = "int32";
-  else if (std::is_same<TNative, unsigned int>::value)   nrrdType = "uint32";
-  else if (std::is_same<TNative, float>::value)          nrrdType = "float";
-  else if (std::is_same<TNative, double>::value)         nrrdType = "double";
 
   // Detect system endianness
   union { uint16_t i; uint8_t c[2]; } bint = {0x0102};
@@ -1620,10 +1656,12 @@ GuidedNativeImageIO
   f << "dimension: 4\n";
   f << "space: left-posterior-superior\n";
   f << "sizes: " << T << " " << X << " " << Y << " " << Z << "\n";
+
+  // The direction of image axis i is column i of the ITK direction matrix
   f << "space directions: none "
-    << fmt3(spacing[0]*direction[0][0], spacing[0]*direction[0][1], spacing[0]*direction[0][2]) << " "
-    << fmt3(spacing[1]*direction[1][0], spacing[1]*direction[1][1], spacing[1]*direction[1][2]) << " "
-    << fmt3(spacing[2]*direction[2][0], spacing[2]*direction[2][1], spacing[2]*direction[2][2]) << "\n";
+    << fmt3(spacing[0]*direction[0][0], spacing[0]*direction[1][0], spacing[0]*direction[2][0]) << " "
+    << fmt3(spacing[1]*direction[0][1], spacing[1]*direction[1][1], spacing[1]*direction[2][1]) << " "
+    << fmt3(spacing[2]*direction[0][2], spacing[2]*direction[1][2], spacing[2]*direction[2][2]) << "\n";
   f << "kinds: list domain domain domain\n";
   f << "endian: " << endian << "\n";
   f << "encoding: raw\n";
@@ -2236,7 +2274,15 @@ GuidedNativeImageIO::GuessFormatForFileName(
     // formats are well defined by their extension.
     }
 
-  // The rest of this method checks by extension
+  // The rest of this method checks by extension. For a URL, the extension is
+  // that of the file it downloads to, without any ?query or #fragment
+  std::string fname_ext = fname;
+  if(IsRemoteImageURL(fname))
+    {
+    try { fname_ext = RemoteFilenameFromURL(fname); }
+    catch(IRISException &) {}
+    }
+
   for(unsigned int i = 0; i < FORMAT_COUNT; i++)
     {
     // Get the format descriptor
@@ -2244,7 +2290,7 @@ GuidedNativeImageIO::GuessFormatForFileName(
     FileFormatDescriptor fd = GetFileFormatDescriptor(fmt);
 
     // Check if there is a filename match
-    if(fd.TestFilename(fname))
+    if(fd.TestFilename(fname_ext))
       {
       return fmt;
       }

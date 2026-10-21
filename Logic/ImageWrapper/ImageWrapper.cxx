@@ -71,6 +71,8 @@
 #include "RLEImageRegionConstIterator.h"
 #include "TDigestImageFilter.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "ImageLabelIntegrator.h"
+
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -1272,10 +1274,62 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
+void
+ImageWrapper<TTraits>
+::TransformWrappedImageCIndexToReferenceCIndex(
+    const itk::ContinuousIndex<double, 3> &img_index, itk::ContinuousIndex<double, 3> &ref_index) const
+{
+  // See TransformReferenceCIndexToWrappedImageCIndex for why the parent is used
+  if(m_ParentWrapper)
+    {
+    m_ParentWrapper->TransformWrappedImageCIndexToReferenceCIndex(img_index, ref_index);
+    }
+  else if(m_ImageSpaceMatchesReferenceSpace)
+    {
+    for(unsigned int i = 0; i < 3; i++)
+      ref_index[i] = img_index[i];
+    }
+  else
+    {
+    // Map the index to the physical space of the wrapped image
+    itk::Point<double, 3> x_phys_img, x_phys_ref;
+    m_ImageBase->TransformContinuousIndexToPhysicalPoint(img_index, x_phys_img);
+
+    // Apply the inverse of the transform (which maps reference space to image space)
+    auto inverse = m_AffineTransform->GetInverseTransform();
+    itkAssertOrThrowMacro(inverse, "Image transform is not invertible");
+    x_phys_ref = inverse->TransformPoint(x_phys_img);
+
+    // Map the coordinate into reference space voxels
+    m_ReferenceSpace->TransformPhysicalPointToContinuousIndex(x_phys_ref, ref_index);
+    }
+}
+
+template<class TTraits>
 bool ImageWrapper<TTraits>
 ::ImageSpaceMatchesReferenceSpace() const
 {
   return m_ImageSpaceMatchesReferenceSpace;
+}
+
+template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::ImageGridMatchesReferenceSpace() const
+{
+  return m_ImageGridMatchesReferenceSpace;
+}
+
+template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::IsOnReferenceGrid(
+    ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
+{
+  // The images must have the same geometry and the transform must be identity
+  double tol = 1e-5;
+  return ImageWrapperBase::IsSameGeometry(image, referenceSpace, tol) &&
+         AffineTransformHelper::IsIdentity(transform);
 }
 
 
@@ -1311,20 +1365,13 @@ ImageWrapper<TTraits>
   // do not use orthogonal slicing
   const int max_ortho_dim = 1024;
 
-  // Check if the images have same dimensions
-  double tol = 1e-5;
-  bool same_geom = ImageWrapperBase::IsSameGeometry(image, referenceSpace, tol);
-
-  // Use helper class to check for identity
-  bool is_identity = AffineTransformHelper::IsIdentity(transform);
-
   // Check if any of the image dimensions are above the max
   bool is_large = false;
   for(unsigned int d = 0; d < 3; d++)
     if(image->GetBufferedRegion().GetSize()[d] > max_ortho_dim)
       is_large = true;
 
-  return same_geom && is_identity && (!is_large);
+  return !is_large && IsOnReferenceGrid(image, referenceSpace, transform);
 }
 
 template<class TTraits>
@@ -1590,7 +1637,9 @@ ImageWrapper<TTraits>
     this->UpdateNiftiTransforms();
     }
 
-  // Update the reference space identity flag
+  // Update the reference space identity flags
+  m_ImageGridMatchesReferenceSpace =
+      IsOnReferenceGrid(m_Image, m_ReferenceSpace, m_AffineTransform);
   m_ImageSpaceMatchesReferenceSpace =
       CanOrthogonalSlicingBeUsed(m_Image, m_ReferenceSpace, m_AffineTransform);
 
@@ -2736,9 +2785,10 @@ template<class TTraits>
 SmartPtr<ImageWrapperBase>
 ImageWrapper<TTraits>
 ::ExtractROI4D(const SNAPSegmentationROISettings &roi,
-             itk::Command *progressCommand) const
+             itk::Command *progressCommand,
+             ImageBaseType *target_space) const
 {
-  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand);
+  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand, target_space);
 
   // Initialize the new wrapper
   typedef typename TTraits::WrapperType WrapperType;
@@ -2789,11 +2839,18 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::Image4DPointer
 ImageWrapper<TTraits>
 ::DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
-                 itk::Command *progressCommand) const
+                 itk::Command *progressCommand,
+                 ImageBaseType *target_space) const
 {
-  // If the image in this wrapper is not the same as the reference space,
-  // we must force resampling to occur
-  bool force_resampling = !this->IsSlicingOrthogonal();
+  // The space whose voxels the ROI refers to: the reference space unless
+  // another one is given
+  ImageBaseType *refspace = target_space ? target_space : m_ReferenceSpace.GetPointer();
+
+  // If the image in this wrapper is not in that space (taking its transform
+  // into account), we must force resampling to occur
+  bool force_resampling = (refspace != m_ReferenceSpace.GetPointer())
+                            ? !CanOrthogonalSlicingBeUsed(m_Image, refspace, m_AffineTransform)
+                            : !this->IsSlicingOrthogonal();
 
   Image4DPointer outImg = Image4DType::New();
   const unsigned int nT = this->GetNumberOfTimePoints();
@@ -2832,7 +2889,7 @@ ImageWrapper<TTraits>
   for (unsigned int t = 0u; t < nT; ++t)
     {
     tpImg = this->GetImageByTimePoint(t);
-    tpResliced = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
+    tpResliced = Specialization::CopyRegion(tpImg, refspace, this->GetITKTransform(),
                                          roi, force_resampling, TPCommand[t]);
 
     // Element-wise copy (not memcpy!) - ElementType may be a non-trivially
@@ -3200,6 +3257,27 @@ ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
   IdentityInternalToNativeIntensityMapping dummy_mapping;
   return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
 }
+
+
+template <class TTraits>
+SmartPtr<ImageLabelIntegratorBase>
+ImageWrapper<TTraits>::GetLabelIntegrator(ImageBaseType *label_space) const
+{
+  using InterpolateWorker = DefaultNonOrthogonalSlicerWorkerTraits<ImageType, SliceType>;
+  using IntegratorType = NonOrthogonalImageLabelIntegrator<ImageType, SliceType, InterpolateWorker>;
+  SmartPtr<IntegratorType> integrator = IntegratorType::New();
+  integrator->SetInputImage(this->m_Image);
+
+  // The run indices are mapped to physical points through label_space. The
+  // transform maps physical points to this image, whatever grid they came from.
+  integrator->SetReferenceImage(label_space ? label_space : this->GetReferenceSpace());
+  integrator->SetTransform(this->GetITKTransform());
+  integrator->Initialize();
+
+  SmartPtr<ImageLabelIntegratorBase> base_integrator = integrator.GetPointer();
+  return base_integrator;
+}
+
 
 // --------------------------------------------
 // Explicit template instantiation

@@ -4,6 +4,9 @@
 #include <cstdarg>
 #include <algorithm>
 #include <cctype>
+#include <vector>
+#include <chrono>
+#include <thread>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
 #include "itksys/MD5.h"
@@ -23,18 +26,34 @@ template <typename ServerTraits>
 int
 progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
-  long bytes_total = dltotal + ultotal;
-  long bytes_done = dlnow + ulnow;
-  // std::cout << "progress callback " << bytes_done << "," << bytes_total << std::endl;
-
   // Sometimes this is called with zeros, which is fine, we should still let the GUI know
   // so it refreshes at least.
-  double progress = (bytes_total == 0) ? std::nan("nan") : bytes_done * 1.0 / bytes_total;
+  auto *cbi = static_cast<typename RESTClient<ServerTraits>::ProgressCallbackInfo *>(clientp);
+  cbi->total = dltotal + ultotal;
+  cbi->done = dlnow + ulnow;
 
-  typedef std::pair<void *, typename RESTClient<ServerTraits>::ProgressCallbackFunction> CallbackInfo;
-  CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
-  cbi->second(cbi->first, bytes_done, bytes_total);
-  return 0;
+  // A non-zero return value makes CURL abort with CURLE_ABORTED_BY_CALLBACK
+  return cbi->fn(cbi->data, cbi->done, cbi->total) ? 0 : 1;
+}
+
+// Expand a printf-style pattern into a string of whatever length is needed.
+// The va_list is copied, so the caller's args can still be used afterwards.
+std::string
+format_va(const char *pattern, std::va_list args)
+{
+  std::va_list args_size;
+  va_copy(args_size, args);
+  int n = vsnprintf(nullptr, 0, pattern, args_size);
+  va_end(args_size);
+  if (n < 0)
+    throw IRISException("Error formatting REST request '%s'", pattern);
+
+  std::vector<char> buffer(n + 1);
+  std::va_list args_fill;
+  va_copy(args_fill, args);
+  vsnprintf(buffer.data(), buffer.size(), pattern, args_fill);
+  va_end(args_fill);
+  return std::string(buffer.data(), n);
 }
 
 void mutex_lock(CURL *handle, curl_lock_data data, curl_lock_access access, void *clientp)
@@ -49,6 +68,31 @@ void mutex_unlock(CURL *handle, curl_lock_data data, curl_lock_access access, vo
   m->unlock();
 }
 
+
+// Frees a request's header list and form data when the request is done,
+// also when it throws. The options are cleared first, since the curl handle
+// is reused and must not keep pointers to the freed lists.
+struct CurlRequestLists
+{
+  CURL *curl;
+  curl_slist *headers = nullptr;
+  curl_httppost *form = nullptr;
+
+  CurlRequestLists(CURL *c) : curl(c) {}
+  ~CurlRequestLists()
+  {
+    if (headers)
+      {
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, nullptr);
+      curl_slist_free_all(headers);
+      }
+    if (form)
+      {
+      curl_easy_setopt(curl, CURLOPT_HTTPPOST, nullptr);
+      curl_formfree(form);
+      }
+  }
+};
 
 } // namespace RESTClient_internal
 
@@ -109,8 +153,6 @@ RESTClient<ServerTraits>::RESTClient(SharedData *sd)
   m_OutputFile = NULL;
   m_ReceiveCookieMode = false;
 
-  m_CallbackInfo.first = NULL;
-  m_CallbackInfo.second = NULL;
 }
 
 template <typename ServerTraits>
@@ -118,7 +160,7 @@ RESTClient<ServerTraits>::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
   curl_multi_cleanup(m_CurlMulti);
-  delete m_ErrorBuffer;
+  delete[] m_ErrorBuffer;
 }
 
 template <typename ServerTraits>
@@ -134,6 +176,9 @@ RESTClient<ServerTraits>::SetFollowRedirects(bool follow)
 {
   m_FollowRedirects = follow;
   curl_easy_setopt(m_Curl, CURLOPT_FOLLOWLOCATION, follow ? 1L : 0L);
+
+  // Guard against redirect loops (older CURL versions follow without limit)
+  curl_easy_setopt(m_Curl, CURLOPT_MAXREDIRS, 10L);
 }
 
 template <typename ServerTraits>
@@ -162,46 +207,71 @@ RESTClient<ServerTraits>::CurlMultiPerform()
 
   int still_running;
 
+  // Start each transfer with no progress
+  m_CallbackInfo.done = m_CallbackInfo.total = 0;
+
   // Keep track of the last time we called the callback
   auto callback_time = std::chrono::steady_clock::now();
   do
   {
     CURLMcode mc = curl_multi_perform(m_CurlMulti, &still_running);
-    if (mc)
-      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
 
     if (!mc && still_running)
+    {
       /* wait for activity, timeout or "nothing" */
+#if LIBCURL_VERSION_NUM >= 0x074200
       mc = curl_multi_poll(m_CurlMulti, NULL, 0, 50, NULL);
+#else
+      // curl_multi_poll is new in curl 7.66 (Rocky/RHEL 8 has 7.61). curl_multi_wait
+      // returns at once when there is nothing to wait on, so sleep instead.
+      int numfds = 0;
+      mc = curl_multi_wait(m_CurlMulti, NULL, 0, 50, &numfds);
+      if (!mc && numfds == 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+#endif
+    }
 
     if (mc)
+    {
+      curl_multi_remove_handle(m_CurlMulti, m_Curl);
       throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
+    }
 
-    // Make a callback at this time interval for smooth behavior
+    // Make a callback at this time interval for smooth behavior, even when CURL
+    // reports nothing (e.g., while the server computes a response). Repeat the
+    // last progress CURL reported, so that the progress shown does not jump.
     auto now = std::chrono::steady_clock::now();
-    if (m_CallbackInfo.first &&
+    if (m_CallbackInfo.fn &&
         std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
     {
       callback_time = now;
-      m_CallbackInfo.second(m_CallbackInfo.first, 0, 0);
+      if (!m_CallbackInfo.fn(m_CallbackInfo.data, m_CallbackInfo.done, m_CallbackInfo.total))
+      {
+        curl_multi_remove_handle(m_CurlMulti, m_Curl);
+        throw IRISUserCancelException("Transfer cancelled by user");
+      }
     }
 
   } while (still_running); /* if there are still transfers, loop */
 
   // Read the messages from the CURL handle that completed
+  CURLcode result = CURLE_OK;
   struct CURLMsg *m;
   do
   {
     int msgq = 0;
     m = curl_multi_info_read(m_CurlMulti, &msgq);
     if (m && (m->msg == CURLMSG_DONE))
-    {
-      CURL *e = m->easy_handle;
-      if(m->data.result != CURLE_OK)
-        throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(m->data.result), m_ErrorBuffer);
-      curl_multi_remove_handle(m_CurlMulti, e);
-    }
+      result = m->data.result;
   } while (m);
+
+  // Detach the handle before throwing, so that the client can be used again
+  curl_multi_remove_handle(m_CurlMulti, m_Curl);
+
+  if (result == CURLE_ABORTED_BY_CALLBACK)
+    throw IRISUserCancelException("Transfer cancelled by user");
+  else if (result != CURLE_OK)
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(result), m_ErrorBuffer);
 }
 
 template <typename ServerTraits>
@@ -244,12 +314,12 @@ template <typename ServerTraits>
 bool
 RESTClient<ServerTraits>::GetVA(const char *rel_url, std::va_list args)
 {
-  // Expand the URL
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  // Expand the URL. It is passed on to Post as an argument, not as a
+  // pattern, so that '%' characters in the expanded URL are left alone
+  std::string url = RESTClient_internal::format_va(rel_url, args);
 
   // Use the same code as POST, but with null string
-  return this->Post(url_buffer, NULL);
+  return this->Post("%s", NULL, url.c_str());
 }
 
 template <typename ServerTraits>
@@ -287,8 +357,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
                                 : std::string(rel_url);
 
   // Expand the URL
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, joint_pattern.c_str(), args);
+  std::string url_buffer = RESTClient_internal::format_va(joint_pattern.c_str(), args);
 
   // Split into url and post sections
   std::string url_filled, post_filled;
@@ -329,7 +398,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   }
 
   // Set the callback function for progress
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
@@ -341,24 +410,19 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   curl_easy_setopt(m_Curl, CURLOPT_HEADERFUNCTION, RESTClient::HeaderCallback);
   curl_easy_setopt(m_Curl, CURLOPT_HEADERDATA, &m_ResponseHeaders);
 
-  // Apply any extra request headers (e.g. If-None-Match for conditional GET)
-  curl_slist *extra_slist = nullptr;
+  // Apply any extra request headers (e.g. If-None-Match for conditional GET).
+  // The list is freed when this function returns or throws
+  RESTClient_internal::CurlRequestLists lists(m_Curl);
   for (auto &kv : m_ExtraRequestHeaders)
     {
     std::string h = kv.first + ": " + kv.second;
-    extra_slist = curl_slist_append(extra_slist, h.c_str());
+    lists.headers = curl_slist_append(lists.headers, h.c_str());
     }
-  if (extra_slist)
-    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, extra_slist);
+  if (lists.headers)
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, lists.headers);
 
   // Perform the operation - this will throw exception on error
   CurlMultiPerform();
-
-  if (extra_slist)
-    {
-    curl_slist_free_all(extra_slist);
-    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, nullptr);
-    }
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -372,14 +436,25 @@ template <typename ServerTraits>
 void
 RESTClient<ServerTraits>::SetProgressCallback(void *cb_data, ProgressCallbackFunction fn)
 {
-  m_CallbackInfo = make_pair(cb_data, fn);
+  m_CallbackInfo = ProgressCallbackInfo();
+  m_CallbackInfo.data = cb_data;
+  m_CallbackInfo.fn = fn;
 }
 
 template <class ServerTraits>
 void
 RESTClient<ServerTraits>::RemoveProgressCallback()
 {
-  m_CallbackInfo = make_pair(nullptr, nullptr);
+  m_CallbackInfo = ProgressCallbackInfo();
+}
+
+template <class ServerTraits>
+void
+RESTClient<ServerTraits>::SetStallTimeout(long seconds)
+{
+  // Abort when fewer than 1 byte per second are transferred for this long
+  curl_easy_setopt(m_Curl, CURLOPT_LOW_SPEED_LIMIT, seconds > 0 ? 1L : 0L);
+  curl_easy_setopt(m_Curl, CURLOPT_LOW_SPEED_TIME, seconds > 0 ? seconds : 0L);
 }
 
 template <class ServerTraits>
@@ -389,8 +464,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   // Expand the URL
   std::va_list args;
   va_start(args, data);
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  std::string url_buffer = RESTClient_internal::format_va(rel_url, args);
   va_end(args);
 
   // The URL to post to
@@ -430,7 +504,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
 
   // Set the callback functions
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
@@ -477,8 +551,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   // Expand the URL
   std::va_list args;
   va_start(args, extra_fields);
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  std::string url_buffer = RESTClient_internal::format_va(rel_url, args);
 
   // The URL to post to
   string url = this->MakeFullURL(url_buffer);
@@ -491,10 +564,12 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   string fn_full_path = SystemTools::CollapseFullPath(filename);
   string fn_name = SystemTools::GetFilenameName(filename);
 
-  // Use the multi-part (-F) commands
-  struct curl_httppost *formpost = NULL;
+  // Use the multi-part (-F) commands. The form and header list are freed
+  // when this function returns or throws
+  RESTClient_internal::CurlRequestLists lists(m_Curl);
+  struct curl_httppost *&formpost = lists.form;
   struct curl_httppost *lastptr = NULL;
-  struct curl_slist    *headerlist = NULL;
+  struct curl_slist    *&headerlist = lists.headers;
   static const char     buf[] = "Expect:";
 
   /* Fill in the file upload field */
@@ -540,7 +615,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
 
   // Set the callback functions
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
@@ -566,11 +641,6 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
            upload_size / 1.0e6,
            upload_time);
 
-  /* then cleanup the formpost chain */
-  curl_formfree(formpost);
-
-  /* free slist */
-  curl_slist_free_all(headerlist);
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -678,6 +748,14 @@ RESTClient<ServerTraits>::HeaderCallback(char *buffer, size_t size, size_t nitem
 {
   auto *headers = static_cast<std::map<std::string, std::string> *>(userdata);
   std::string line(buffer, size * nitems);
+
+  // A status line starts a new response. When redirects are followed, CURL
+  // passes the headers of every response, so keep only those of the last one
+  if (line.compare(0, 5, "HTTP/") == 0)
+    {
+    headers->clear();
+    return size * nitems;
+    }
 
   auto colon = line.find(':');
   if (colon != std::string::npos)

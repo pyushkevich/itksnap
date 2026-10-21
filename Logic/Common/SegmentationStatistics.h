@@ -45,6 +45,7 @@ class GenericImageData;
 class ColorLabelTable;
 class ScalarImageWrapperBase;
 class IRISApplication;
+class ImageLabelIntegratorBase;
 
 namespace itk {
   template <unsigned int VDim> class ImageRegion;
@@ -107,14 +108,8 @@ private:
 
   // Column information
   std::vector<std::string> m_ImageStatisticsColumnNames;
-  
-  void RecordRunLength(
-      size_t ngray,
-      std::vector<ScalarImageWrapperBase *> &layers,
-      itk::ImageRegion<3> &region,
-      itk::Index<3> &runStart,
-      long runLength,
-      Entry *cachedEntry);
+
+  using ImageLabelIntegratorPointer = SmartPtr<ImageLabelIntegratorBase>;
 };
 
 #endif

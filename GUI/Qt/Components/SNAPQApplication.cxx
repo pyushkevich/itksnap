@@ -26,11 +26,10 @@
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
 #include "SNAPQApplication.h"
+#include "ImageIORemote.h"
 #include <QFileOpenEvent>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QFile>
-#include <QDir>
 #include <QDebug>
 
 SNAPQApplication
@@ -64,49 +63,25 @@ SNAPQApplication::notify(QObject *object, QEvent *event)
 
 QString SNAPQApplication::resolveUrl(const QString &rawUrl)
 {
-  QUrl url(rawUrl);
-  if(url.scheme().startsWith("itksnap-"))
-    {
-    // itksnap-sftp://host/path  →  sftp://host/path
-    // itksnap-scp://host/path   →  scp://host/path
-    QString protocol = url.scheme().mid(8); // strip "itksnap-"
-    return protocol + "://" + url.authority() + url.path();
-    }
-  else if(url.scheme() == "file" || url.scheme().isEmpty())
-    {
-    return url.toLocalFile();
-    }
-  else
-    {
-    // sftp://, scp://, or any other remote URL — pass through as-is
-    return rawUrl;
-    }
+  // file:// URLs become local paths
+  if(rawUrl.startsWith("file:", Qt::CaseInsensitive))
+    return QUrl(rawUrl).toLocalFile();
+
+  // Everything else follows the same rule as --url: the itksnap- prefix is
+  // stripped and the rest of the URL, including any percent-encoding, query
+  // and fragment, is kept exactly as given
+  return from_utf8(ResolveITKSnapURL(to_utf8(rawUrl)));
 }
 
 bool SNAPQApplication::event(QEvent *event)
 {
-  // ---- TEMP DIAGNOSTIC: log every FileOpen event to ~/itksnap-url-debug.log ----
-  if (event->type() == QEvent::FileOpen)
-    {
-    QFileOpenEvent *oe = static_cast<QFileOpenEvent *>(event);
-    QString dbg = QString("[%1] FileOpen: url='%2' file='%3' mainWindow=%4 secsSinceStart=%5")
-                    .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
-                    .arg(oe->url().toString())
-                    .arg(oe->file())
-                    .arg(m_MainWindow ? "SET" : "NULL")
-                    .arg(m_StartupTime.isValid() ? m_StartupTime.secsTo(QTime::currentTime()) : -999);
-    qWarning().noquote() << dbg;
-    QFile logf(QDir::homePath() + "/itksnap-url-debug.log");
-    if (logf.open(QIODevice::Append | QIODevice::Text))
-      { logf.write(dbg.toUtf8()); logf.write("\n"); logf.close(); }
-    }
-  // ---- END TEMP DIAGNOSTIC ----
-
   // Handle file drops and URL scheme activations (itksnap-sftp://, etc.)
   if (event->type() == QEvent::FileOpen && m_MainWindow)
     {
     QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-    QString file = resolveUrl(openEvent->url().toString());
+    // Use the encoded form of the URL: QUrl::toString() decodes some
+    // characters (e.g. %20), which changes the URL that gets loaded
+    QString file = resolveUrl(openEvent->url().toString(QUrl::FullyEncoded));
 
     if(file.isEmpty())
       return true;

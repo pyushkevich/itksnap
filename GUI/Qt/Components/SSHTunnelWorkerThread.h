@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QThread>
 #include <QMutex>
-#include <QEventLoop>
 #include "SSHTunnel.h"
+
+class AbstractSSHAuthDelegate;
 
 class SSHTunnelWorkerThread : public QThread
 {
@@ -14,16 +15,23 @@ public:
   using CallbackType = SSHTunnel::CallbackType;
   using CallbackInfo = SSHTunnel::CallbackInfo;
 
-  explicit SSHTunnelWorkerThread(QObject *parent,
-                                 QString  hostname,
-                                 int      remote_port,
-                                 QString  username,
-                                 QString  keyfile)
+  /**
+   * The auth delegate is used from this worker thread to ask for passwords /
+   * passphrases; it must marshal any UI to the GUI thread (QtSSHAuthDelegate
+   * does) and outlive the thread.
+   */
+  explicit SSHTunnelWorkerThread(QObject                 *parent,
+                                 QString                  hostname,
+                                 int                      remote_port,
+                                 QString                  username,
+                                 QString                  keyfile,
+                                 AbstractSSHAuthDelegate *auth)
     : QThread(parent)
     , m_Hostname(hostname)
-    , m_RemotePort(remote_port)
     , m_SSHUserName(username)
     , m_SSHPrivateKeyFile(keyfile)
+    , m_RemotePort(remote_port)
+    , m_AuthDelegate(auth)
   {}
 
   virtual ~SSHTunnelWorkerThread();
@@ -31,17 +39,13 @@ public:
 signals:
   void tunnelReady(int local_port);
   void tunnelError(QString message);
-  void tunnelPasswordPrompt(SSHTunnel::PromptPasswordInfo info);
-  void promptCompleted();
 
 public slots:
 
-  void passwordResponse(QString password, bool abort);
   void terminate();
 
 protected:
   void run() override;
-  SSHTunnel::CallbackResponse prompt(CallbackType ctype, CallbackInfo info);
 
 protected:
   SSHTunnel::CallbackResponse callback(CallbackType ctype, CallbackInfo info);
@@ -49,9 +53,7 @@ protected:
 
   QString m_Hostname, m_SSHUserName, m_SSHPrivateKeyFile;
   int m_RemotePort;
-
-  QString m_PasswordCallbackValue;
-  bool m_PasswordCallbackAbort;
+  AbstractSSHAuthDelegate *m_AuthDelegate;
 
   bool m_Terminate = false;
   QMutex m_TerminateMutex;

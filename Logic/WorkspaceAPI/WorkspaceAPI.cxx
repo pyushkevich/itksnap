@@ -11,6 +11,15 @@
 #include "RESTClient.h"
 #include "itkCommand.h"
 #include "GuidedMeshIO.h"
+#include "ImageIORemote.h"
+#include "IRISApplication.h"
+
+// The path of a layer as stored in the workspace. Remote URLs are kept as
+// they are, since CollapseFullPath would turn them into bogus local paths.
+static std::string AbsoluteLayerPath(const std::string &filename)
+{
+  return CollapseFullPathOrURL(filename);
+}
 
 using namespace std;
 using itksys::SystemTools;
@@ -168,41 +177,36 @@ bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
   return true;
 }
 
-// TODO: merge with IRISApplication
+void WorkspaceAPI::ReadLayerImage(GuidedNativeImageIO *io, const string &filename,
+                                  Registry &hints, bool header_only) const
+{
+  // A layer loaded from a URL keeps the URL in the workspace. Download it
+  // (or find it in the cache) and read the local copy, which is deleted
+  // after reading unless it is in the cache
+  RemoteDownload download;
+  string local = filename;
+  if(IsRemoteImageURL(filename))
+    {
+    download = DownloadRemoteFile(filename, m_RemoteIOContext);
+    local = download.GetPath();
+    }
+
+  if(header_only)
+    io->ReadNativeImageHeader(local.c_str(), hints);
+  else
+    io->ReadNativeImage(local.c_str(), hints);
+}
+
 string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 {
   // Get the filenames for the layer
   string layer_file_full = folder["AbsolutePath"][""];
 
-  // If the project has moved, try finding a relative location
+  // If the project has moved, try finding a relative location, the same way
+  // ITK-SNAP does when it opens the workspace
   if(m_Moved)
-    {
-    // Get the relative path of the layer wrt project
-    string relative_path;
-
-    // Test the simple thing: is the project location included in the file path
-    if(layer_file_full.compare(0, m_WorkspaceSavedDir.length(), m_WorkspaceSavedDir) == 0)
-      {
-      // Get the balance of the path
-      relative_path = layer_file_full.substr(m_WorkspaceSavedDir.length());
-
-      // Strip the leading slashes
-      SystemTools::ConvertToUnixSlashes(relative_path);
-      relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
-      }
-    else
-      {
-      // Fallback: use relative path mechanism
-      relative_path = SystemTools::RelativePath(
-                                   m_WorkspaceSavedDir.c_str(), layer_file_full.c_str());
-      }
-
-    string moved_file_full = SystemTools::CollapseFullPath(
-                               relative_path.c_str(), m_WorkspaceFileDir.c_str());
-
-    if(SystemTools::FileExists(moved_file_full.c_str(), true))
-      layer_file_full = moved_file_full;
-    }
+    layer_file_full = IRISApplication::GetMovedFilePath(
+          m_WorkspaceSavedDir, m_WorkspaceFileDir, layer_file_full);
 
   // Return the file - no guarantee that it exists...
   return layer_file_full;
@@ -781,7 +785,7 @@ void WorkspaceAPI::UpdateMainLayerFieldsFromImage(Registry &main_layer_folder)
   // TODO: there has to be a way to supply some hints!
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
   Registry hints;
-	io->ReadNativeImageHeader(filename.c_str(), hints);
+  ReadLayerImage(io, filename, hints, true);
   Vector3i dims(0);
   for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
     dims[k] = io->GetIOBase()->GetDimensions(k);
@@ -812,7 +816,7 @@ string WorkspaceAPI::AddLayer(string role, const string &filename)
   Registry &folder = m_Registry.Folder(key);
 
   // Add the filename and role
-  folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  folder["AbsolutePath"] << AbsoluteLayerPath(filename);
   folder["Role"] << role;
 
   // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
@@ -835,7 +839,7 @@ string WorkspaceAPI::SetLayer(string role, const string &filename)
   folder.Clear();
 
   // Add the filename and role
-  folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  folder["AbsolutePath"] << AbsoluteLayerPath(filename);
   folder["Role"] << role;
 
   // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
@@ -872,7 +876,7 @@ string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
 
   // Add the filename
   Registry &polyData = newTP.Folder("PolyData[000]"); // this method only support 1 poly
-  polyData["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  polyData["AbsolutePath"] << AbsoluteLayerPath(filename);
 
   // Add format string from file extension
   size_t dotInd = filename.find_last_of(".");
@@ -901,6 +905,21 @@ void WorkspaceAPI::SetLayerNickname(const string &layer_key, const string &value
         "NickName" : "LayerMetaData.CustomNickName";
 
   GetLayerFolder(layer_key)[target_key] << value;
+}
+
+void WorkspaceAPI::SetActiveSegmentationLayer(const string &layer_key)
+{
+  if(!IsKeyValidLayer(layer_key))
+    throw IRISException("Invalid layer key %s", layer_key.c_str());
+
+  if(GetLayerFolder(layer_key)["Role"][""] != std::string("SegmentationRole"))
+    throw IRISException("Layer %s is not a segmentation layer", layer_key.c_str());
+
+  // Only one layer may be marked as the active segmentation
+  for(int i = 0; i < this->GetNumberOfLayers(); i++)
+    GetLayerFolder(i).RemoveKeys("ActiveSegmentation");
+
+  GetLayerFolder(layer_key)["ActiveSegmentation"] << true;
 }
 
 void WorkspaceAPI::SetLayerColormapPreset(const string &layer_key, const string &value)
@@ -948,7 +967,7 @@ void WorkspaceAPI::RenameLayer(const string &layer_key, const string &new_filena
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
   // Load the header of the image and the image data
-  io->ReadNativeImage(fn_layer.c_str(), io_hints);
+  ReadLayerImage(io, fn_layer, io_hints);
 
   // Save the layer as nee image. Since we are saving as a NIFTI, we don't need to
   // provide any hints
@@ -1134,7 +1153,8 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
     string fn_layer = wsexp.GetLayerActualPath(f_layer);
 
     // Get the current layer base filename
-    string fn_layer_basename = SystemTools::GetFilenameWithoutExtension(fn_layer);
+    string fn_layer_basename = StripFilenameExtension(
+          IsRemoteImageURL(fn_layer) ? RemoteFilenameFromURL(fn_layer) : fn_layer);
 
     // The IO hints for the file
     Registry io_hints, *layer_io_hints;
@@ -1145,7 +1165,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
     SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
     // Load the header of the image and the image data
-    io->ReadNativeImage(fn_layer.c_str(), io_hints);
+    ReadLayerImage(io, fn_layer, io_hints);
 
     // Report progress
     progress->AddProgress(0.5);

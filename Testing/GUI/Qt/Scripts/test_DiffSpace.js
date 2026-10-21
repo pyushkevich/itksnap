@@ -35,7 +35,7 @@ var regpanel = engine.findChild(mainwin,"RegistrationDialog");
 
 //=== Run automatic registration
 engine.setChildProperty(regpanel, "inMovingLayer", "currentText", "t2_chunk");
-engine.clickChild(regpanel, "btnRunRegistration");
+engine.clickChild(regpanel, "btnRunRegistration", true);
 engine.sleep(5000);
 
 //=== Play with the multi_chunk, make sure it can be resliced

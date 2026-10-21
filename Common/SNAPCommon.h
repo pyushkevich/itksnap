@@ -190,6 +190,28 @@ struct DrawOverFilter
   */
 long get_system_time_ms();
 
+/**
+  The name of a file without its directory and without its extension, e.g.
+  "/data/T1_0.8mm.nii.gz" -> "T1_0.8mm". Unlike GetFilenameWithoutExtension,
+  periods inside the name are kept. A compression suffix (.gz, .bz2) and one
+  extension before it are removed; an extension must start with a letter,
+  contain only letters and digits, and be at most 7 characters long. The
+  ".seq" of ".seq.nrrd" is removed too. Defined in SystemInterface.cxx
+  */
+std::string StripFilenameExtension(const std::string &filename);
+
+/**
+  Translate a user-visible string in Logic and Model code, which cannot use
+  Qt. The GUI installs a translator with SetSNAPTranslator at startup;
+  without one the text is returned unchanged. lupdate extracts the calls
+  (SNAPTranslate is declared to it as an alias of QCoreApplication::translate),
+  so both arguments must be string literals. Defined in SystemInterface.cxx
+  */
+std::string SNAPTranslate(const char *context, const char *text);
+
+typedef std::string (*SNAPTranslatorFunction)(const char *context, const char *text);
+void SetSNAPTranslator(SNAPTranslatorFunction translator);
+
 
 /**
   A child class around itk::SmartPointer. It's main purpose is to allow Qt

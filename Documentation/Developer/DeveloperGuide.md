@@ -53,9 +53,10 @@ ITK-SNAP is C++17 and requires CMake ≥ 3.16.
 | libcurl     | —         | Remote image loading                                                |
 | libssh      | —         | SSH tunneling to remote deep-learning servers                       |
 
-Continuous integration builds against **ITK v5.4.0, VTK 9.5.2, and Qt 6.8.1** on Linux,
-macOS (Intel and Apple Silicon), and Windows. Those versions are the best-tested
-combination; the table above gives the floors that CMake enforces.
+Continuous integration builds against **ITK v5.4.7, VTK 9.5.2, and Qt 6.9.3** on Linux,
+macOS and Windows, each for Intel and ARM. Those versions are the best-tested
+combination; the table above gives the floors that CMake enforces. (Windows ARM needs
+ITK 5.4.6 or later, and Qt's ARM Linux binaries need glibc 2.38, i.e. Ubuntu 24.04 or later.)
 
 Two dependency notes that cost people time:
 

@@ -35,6 +35,29 @@ function openMainImage(name)
     engine.sleep(1000);
 }
 
+function openOverlay(name)
+{
+    //=== Opening 'Add Image' (overlay) Dialog
+    engine.trigger("actionAdd_Overlay");
+    engine.sleep(2000);
+
+    //=== Entering Filename
+    var dialog = engine.findChild(mainwin, "wizImageIO");
+    engine.setChildProperty(dialog, "inFilename", "text", datadir + "/" + name);
+
+    //=== Pressing the 'next' button (this loads the image)
+    engine.clickChild(dialog, "qt_wizard_commit");
+    engine.sleep(1000);
+
+    //=== Keeping the default on the 'How should the image be displayed' page
+    engine.invoke(dialog, "next");
+    engine.sleep(1000);
+
+    //=== Pressing the 'finish' button
+    engine.clickChild(dialog, "qt_wizard_finish");
+    engine.sleep(1000);
+}
+
 function openMesh(name)
 {
     //=== Opening 'Open Mesh' Dialog
@@ -224,4 +247,30 @@ function updateMeshAndCheck()
     engine.click(btn);
     engine.sleep(3000);
     engine.validateProperty(btn, "enabled", false);
+}
+function waitForMainImage(timeout_sec = 60)
+{
+    // For tests where ITK-SNAP was started with images on the command line
+    // (e.g. URLs that are downloaded after the event loop starts): wait until
+    // the main image has been loaded, i.e. saving a segmentation is possible
+    var action = engine.findChild(mainwin, "actionSaveSegmentation");
+    for (var i = 0; i < timeout_sec * 2; i++)
+    {
+        if (engine.getProperty(action, "enabled"))
+            return;
+        engine.sleep(500);
+    }
+    engine.testFailed("Timed out waiting for the main image to load");
+}
+function takeScreenshot(filename, widget)
+{
+    // Save a screenshot of the current window (the active dialog, if any, else
+    // the main window), or of a specific widget, to filename (e.g. a .png).
+    // Relative paths are resolved against the current directory. Pauses first
+    // so that pending updates are drawn. Returns the saved file's path.
+    engine.sleep(250);
+    var path = (widget === undefined) ? engine.screenshot(filename)
+                                      : engine.screenshot(filename, widget);
+    engine.print("Saved screenshot: " + path);
+    return path;
 }

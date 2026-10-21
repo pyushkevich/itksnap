@@ -87,3 +87,15 @@ bool StdoutSSHAuthDelegate::PromptForUsernameAndPassword(const std::string &host
     return false;
   return readLine("  Password: ", password, false);
 }
+
+bool StdoutSSHAuthDelegate::ConfirmHostKey(const std::string &host,
+                                           const std::string &key_type,
+                                           const std::string &fingerprint)
+{
+  std::cout << "The authenticity of host '" << host << "' can't be established.\n"
+            << "  " << key_type << " key fingerprint is " << fingerprint << "\n";
+  std::string answer;
+  if (!readLine("  Are you sure you want to continue connecting (yes/no)? ", answer, true))
+    return false;
+  return answer == "yes";
+}

@@ -468,7 +468,7 @@ IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
   LabelImageWrapper *snap_seg = m_CurrentImageData->SetSegmentationImage(io, false, true);
 
   // Update filenames
-  snap_seg->SetFileName(io->GetFileNameOfNativeImage());
+  snap_seg->SetFileName(io->GetSourceFileName());
 
   // Set the loaded labels as valid
   this->SetColorLabelsInSegmentationAsValid(snap_seg);
@@ -523,7 +523,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
 
   // Update the history
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
-    "LabelImage", io->GetFileNameOfNativeImage(), true);
+    "LabelImage", io->GetSourceFileName(), true);
 
   // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
@@ -587,13 +587,15 @@ IRISApplication ::UpdateSegmentationWithSliceDrawing(IRISApplication::SliceBinar
   corners[3][0] = r_draw.GetUpperIndex()[0];
   corners[3][1] = r_draw.GetUpperIndex()[1];
 
-  // Compute 3D extents of the region
-  Vector3ui pos_min, pos_max;
+  // Compute 3D extents of the region. The indices are signed because the
+  // slice being drawn on may lie outside of the segmentation image.
+  Vector3i pos_min, pos_max;
   for (int i = 0; i < 4; i++)
   {
     // Get the 3D coordinate of the corner
-    Vector3ui idxVol = to_unsigned_int(
-      xfmSliceToImage->TransformPoint(Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
+    Vector3d xVol =
+      xfmSliceToImage->TransformPoint(Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice));
+    Vector3i idxVol((int)std::floor(xVol[0]), (int)std::floor(xVol[1]), (int)std::floor(xVol[2]));
 
     if (i == 0)
     {
@@ -616,7 +618,11 @@ IRISApplication ::UpdateSegmentationWithSliceDrawing(IRISApplication::SliceBinar
   LabelImageType::RegionType r_vol;
   r_vol.SetIndex(to_itkIndex(pos_min));
   r_vol.SetUpperIndex(to_itkIndex(pos_max));
-  r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion());
+
+  // Crop() leaves the region unchanged if it does not overlap the
+  // segmentation, so in that case there is nothing to paint
+  if (!r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion()))
+    return 0;
 
   // Create an iterator for painting
   SegmentationUpdateIterator itVol(this->GetSelectedSegmentationLayer(),
@@ -826,7 +832,7 @@ void
 IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force)
 {
   // Cursor position is handled through ImageData
-  this->GetCurrentImageData()->SetCursorPosition(cursor);
+  this->GetCurrentImageData()->SetCursorPosition(cursor, force);
 }
 
 Vector3i
@@ -1177,8 +1183,8 @@ IRISApplication ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Co
     // Take apart the filename
     std::string full = itksys::SystemTools::CollapseFullPath(sets.GetMeshFileName().c_str());
     std::string path = itksys::SystemTools::GetFilenamePath(full.c_str());
-    std::string file = itksys::SystemTools::GetFilenameWithoutExtension(full.c_str());
-    std::string extn = itksys::SystemTools::GetFilenameExtension(full.c_str());
+    std::string file = StripFilenameExtension(full);
+    std::string extn = itksys::SystemTools::GetFilenameName(full).substr(file.length());
     std::string prefix = file;
 
     // Are the last 5 characters of the filename numeric?
@@ -1474,10 +1480,10 @@ IRISApplication ::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadat
   // Set the filename of the overlay
   // TODO: this is cumbersome, could we just initialize the wrapper from the
   // GuidedNativeImageIO without passing all this junk around?
-  layer->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetSourceFileName());
 
   // Add the overlay to the history
-  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetSourceFileName(), true);
 
   // Apply the default color map for overlays
   std::string deflt_preset = m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
@@ -1539,6 +1545,28 @@ IRISApplication ::AddDerivedOverlayImage(const ImageWrapperBase *sourceLayer,
 }
 
 void
+IRISApplication::UpdateHideFileExtensions()
+{
+  bool hide = m_GlobalState->GetDefaultBehaviorSettings()->GetHideFileExtensions();
+  if (hide == WrapperBase::GetHideFileExtensions())
+    return;
+
+  WrapperBase::SetHideFileExtensions(hide);
+
+  // Tell the views that the nicknames of all layers may have changed
+  GenericImageData *data[] = { m_IRISImageData, m_SNAPImageData };
+  for (GenericImageData *gid : data)
+  {
+    if (!gid)
+      continue;
+    for (LayerIterator it(gid); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+    for (MeshLayerIterator it(gid->GetMeshLayers()); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+  }
+}
+
+void
 IRISApplication ::AutoContrastLayerOnLoad(ImageWrapperBase *layer)
 {
   // Get a pointer to the policy for this layer
@@ -1586,7 +1614,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   ImageWrapperBase *layer = m_IRISImageData->GetMain();
 
   // Set the filename and nickname of the image wrapper
-  layer->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetSourceFileName());
 
   // Initialize the color label table to defaults
   m_ColorLabelTable->InitializeToDefaults();
@@ -1598,8 +1626,8 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   CreateSegmentationSettings(layer, MAIN_ROLE);
 
   // Update the system's history list
-  m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
-  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
+  m_HistoryManager->UpdateHistory("MainImage", io->GetSourceFileName(), false);
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetSourceFileName(), false);
 
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(m_IRISImageData->GetReferenceSpace()->GetBufferedRegion());
@@ -1623,7 +1651,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.
   ImageWrapperBase::DisplaySlicePointer thumbnail = layer->MakeThumbnail(128);
-  m_SystemInterface->WriteThumbnail(io->GetFileNameOfNativeImage().c_str(), thumbnail);
+  m_SystemInterface->WriteThumbnail(io->GetSourceFileName().c_str(), thumbnail);
 
   // We also want to reset the label history at this point, as these are
   // very different labels
@@ -1818,20 +1846,25 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
   // If fname is a remote URL, download it to a temp file first and work with
   // the local copy from here on.  The original URL is stamped onto the layer
   // at the end so the rest of the application can see where the image came from.
+  // A temporary download is deleted when this function returns.
   std::string remote_url;
   std::string local_fname = fname;
+  RemoteDownload download;
   if (IsRemoteImageURL(fname))
     {
     remote_url = fname;
-    local_fname = DownloadRemoteFile(fname, GetRemoteIOContext());
+    download = DownloadRemoteFile(fname, GetRemoteIOContext());
+    local_fname = download.GetPath();
     fname = local_fname.c_str();
     }
 
   // When hints are not provided, we load them using the association system
   if (!ioHints)
   {
-    // Load the settings associated with this file
-    m_SystemInterface->FindRegistryAssociatedWithFile(fname, regAssoc);
+    // Load the settings associated with this file (with the URL, for a
+    // remote image, not with the downloaded copy)
+    m_SystemInterface->FindRegistryAssociatedWithFile(
+      remote_url.empty() ? fname : remote_url.c_str(), regAssoc);
 
     // Get the folder dealing with grey image properties
     ioHints = &regAssoc.Folder("Files.Grey");
@@ -1842,6 +1875,10 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
 
   // Configure io using delegate
   del->ConfigureImageIO(io);
+
+  // A remote image is known by its URL: layer names, the history and the
+  // per-image settings use it instead of the path of the downloaded copy
+  io->SetSourceURL(remote_url);
 
   // Load the header of the image
   io->ReadNativeImageHeader(fname, *ioHints, headerProgCmd);
@@ -2122,8 +2159,9 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
     if (!filename || strlen(filename) == 0)
       continue;
 
-    // Get the full name of the image file
-    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+    // Get the full name of the image file. Layers loaded from a remote URL
+    // keep the URL, which CollapseFullPath would turn into a bogus local path
+    std::string layer_file_full = CollapseFullPathOrURL(filename);
 
     // Create a folder for this layer
     Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
@@ -2136,6 +2174,12 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
 
     // Save the metadata associated with the layer
     SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+
+    // Mark the active segmentation, which defines the reference space. This
+    // is a per-layer flag so that it stays with the layer when itksnap-wt
+    // adds, removes or reorders layers.
+    if (it.GetRole() == LABEL_ROLE && layer == GetCurrentImageData()->GetActiveSegmentationLayer())
+      folder["ActiveSegmentation"] << true;
 
     // Save the layer transform - relevant only for overlays
     if (it.GetRole() == OVERLAY_ROLE)
@@ -2171,6 +2215,12 @@ IRISApplication::SaveProject(const std::string &proj_file)
     "as long as the relative location of the images to the project file is \n"
     "the same. Do not modify the SaveLocation entry, or this will not work.\n";
 
+  // Workspaces can be opened from remote URLs, but not saved to them
+  if (IsRemoteImageURL(proj_file))
+    throw IRISException("Workspaces cannot be saved to a remote location (%s). "
+                        "Please save the workspace to a local file instead.",
+                        proj_file.c_str());
+
   // Get the full name of the project file
   std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
 
@@ -2200,8 +2250,11 @@ IRISApplication::GetRemoteIOContext() const
   ctx.progressDelegate = m_ProgressDelegate;
   ctx.connectionPool   = m_ActiveConnectionPool.GetPointer();
   ctx.authDelegate     = m_SSHAuthDelegate;
-  ctx.appDataDir       = m_SystemInterface->GetApplicationDataDirectory();
   ctx.remoteSettings   = m_GlobalState->GetRemoteResourceSettings();
+
+  // Without the data directory, DownloadRemoteFile() does not use the cache
+  if (m_RemoteCacheEnabled)
+    ctx.appDataDir = m_SystemInterface->GetApplicationDataDirectory();
   return ctx;
 }
 
@@ -2215,8 +2268,22 @@ IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
   // Get the relative path of the layer wrt project
   string relative_path;
 
-  // Test the simple thing: is the project location included in the file path
-  if (original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0)
+  // Test the simple thing: is the project location included in the file path.
+  // The prefix must end at a separator, or a file in "/data/proj_data" would
+  // be taken to be in "/data/proj".
+  size_t n_dir = project_dir_orig.length();
+  bool under_project_dir =
+    n_dir > 0 && original_file_path.compare(0, n_dir, project_dir_orig) == 0 &&
+    (original_file_path.length() == n_dir || project_dir_orig.back() == '/' ||
+     project_dir_orig.back() == '\\' || original_file_path[n_dir] == '/' ||
+     original_file_path[n_dir] == '\\');
+
+  // A remote layer that is not stored alongside the workspace is referenced
+  // by its URL, which stays valid wherever the workspace is moved
+  if (!under_project_dir && IsRemoteImageURL(original_file_path))
+    return ret;
+
+  if (under_project_dir)
   {
     // Get the balance of the path
     relative_path = original_file_path.substr(project_dir_orig.length());
@@ -2276,13 +2343,17 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
     ~PoolCleaner() { pool = nullptr; }
   } pool_cleaner{m_ActiveConnectionPool};
 
-  std::string local_proj_file = proj_file;
-  if (IsRemoteImageURL(proj_file))
-    local_proj_file = DownloadRemoteFile(proj_file, GetRemoteIOContext());
-
   // Load the registry file
   Registry preg;
-  preg.ReadFromXMLFile(local_proj_file.c_str());
+  if (IsRemoteImageURL(proj_file))
+    {
+    RemoteDownload download = DownloadRemoteFile(proj_file, GetRemoteIOContext());
+    preg.ReadFromXMLFile(download.GetPath().c_str());
+    }
+  else
+    {
+    preg.ReadFromXMLFile(proj_file.c_str());
+    }
 
   // project_dir: for a remote workspace use the parent directory of the
   // original URL (e.g. "scp://user@host/data") so the moved-path rebase
@@ -2314,6 +2385,7 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   std::string key;
   bool        main_loaded = false;
   int         n_segs_loaded = 0;
+  unsigned long active_seg_id = 0;
   for (int i = 0; preg.HasFolder(key = Registry::Key("Layers.Layer[%03d]", i)); i++)
   {
     // Get the key for the next image
@@ -2370,6 +2442,14 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
     else if (role == LABEL_ROLE)
     {
       n_segs_loaded++;
+
+      // Remember the layer marked as the active segmentation. The layer that
+      // was just loaded is the last segmentation layer.
+      if (folder["ActiveSegmentation"][false])
+      {
+        for (LayerIterator it = m_CurrentImageData->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
+          active_seg_id = it.GetLayer()->GetUniqueId();
+      }
     }
   }
 
@@ -2383,11 +2463,13 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   // Set the selected layer in the GUI to be the main image
   m_GlobalState->SetSelectedLayerInspectorLayerId(m_CurrentImageData->GetMain()->GetUniqueId());
 
-  // Set the selected segmentation layer to be the first one. Go through
+  // Select the segmentation that was active when the workspace was saved, or
+  // the first one for workspaces that do not record it. Go through
   // GlobalState (not GenericImageData directly) so the ValueChangedEvent
   // fires and the GUI picks up the correction.
-  m_GlobalState->SetSelectedSegmentationLayerId(
-    m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
+  if (!active_seg_id)
+    active_seg_id = m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId();
+  m_GlobalState->SetSelectedSegmentationLayerId(active_seg_id);
 
   // Save the project filename (proj_file_full is the remote URL for remote
   // workspaces, or the collapsed local path for local ones)
@@ -2467,6 +2549,8 @@ IRISApplication::LoadAnnotations(const char *filename)
   m_CurrentImageData->GetAnnotations()->LoadAnnotations(reg);
 
   m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
+
+  InvokeEvent(AnnotationChangeEvent());
 }
 
 

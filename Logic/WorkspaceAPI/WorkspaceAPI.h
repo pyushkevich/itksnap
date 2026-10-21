@@ -2,11 +2,13 @@
 #define WORKSPACEAPI_H
 
 #include "Registry.h"
+#include "ImageIORemote.h"
 #include <set>
 
 namespace itk { class Command; }
 
 struct MultiChannelDisplayMode;
+class GuidedNativeImageIO;
 
 /**
  * This class encapsulates an ITK-SNAP workspace. It is just a wrapper around
@@ -212,6 +214,12 @@ public:
   /** Set layer nickname */
   void SetLayerColormapPreset(const std::string &layer_key, const std::string &value);
 
+  /**
+   * Make a segmentation layer the active segmentation, i.e., the one that is
+   * selected (and defines the reference space) when the workspace is opened
+   */
+  void SetActiveSegmentationLayer(const std::string &layer_key);
+
   /** Rename the layer on disk and in the project */
   void RenameLayer(const std::string &layer_key, const std::string &new_filename, bool force = false);
 
@@ -278,7 +286,25 @@ public:
   /** Print a list of all annotations */
   void PrintAnnotationList(std::ostream &os, const std::string &line_prefix);
 
+  /**
+   * Set how layers given by a URL are downloaded when their image data is
+   * read (export, upload, rename). By default they are downloaded without a
+   * cache, progress or password prompts. The context's objects must outlive
+   * this object.
+   */
+  void SetRemoteIOContext(const RemoteIOContext &ctx) { m_RemoteIOContext = ctx; }
+
 protected:
+
+  /**
+   * Read a layer's image (only the header if header_only), downloading it
+   * first if the path is a URL
+   */
+  void ReadLayerImage(GuidedNativeImageIO *io, const std::string &filename,
+                      Registry &hints, bool header_only = false) const;
+
+  // How layers given by a URL are downloaded
+  RemoteIOContext m_RemoteIOContext;
 
   // The Registry object containing workspace data
   Registry m_Registry;

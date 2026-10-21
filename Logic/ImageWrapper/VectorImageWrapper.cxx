@@ -29,7 +29,6 @@
 #include "Rebroadcaster.h"
 #include "GuidedNativeImageIO.h"
 #include "itkImageFileWriter.h"
-
 #include <iostream>
 
 #include "itkVectorGradientAnisotropicDiffusionImageFilter.h"
@@ -55,48 +54,6 @@ VectorImageWrapper<TTraits>
                  itk::Command *progressCommand) const
 {
    return Superclass::DeepCopyRegion(roi, progressCommand);
-}
-
-template<class TTraits>
-void
-VectorImageWrapper<TTraits>
-::GetRunLengthIntensityStatistics(
-    const itk::ImageRegion<3> &region,
-    const itk::Index<3> &startIdx, long runlength,
-    double *out_nvalid, double *out_sum, double *out_sumsq) const
-{
-  if(this->IsSlicingOrthogonal())
-    {
-    ConstIterator it(this->m_Image, region);
-    it.SetIndex(startIdx);
-    size_t nc = this->GetNumberOfComponents();
-
-    // Perform the integration
-    for(long q = 0; q < runlength; q++, ++it)
-      {
-      PixelType p = it.Get();
-      for(size_t c = 0; c < nc; c++)
-        {
-        double v = (double) p[c];
-        if(!std::isnan(v))
-          {
-          *out_nvalid += 1.0;
-          *out_sum += v;
-          *out_sumsq += v * v;
-          }
-        }
-      }
-    }
-  else
-    {
-    // TODO: implement non-orthogonal statistics
-    size_t nc = this->GetNumberOfComponents();
-    for(size_t c = 0; c < nc; c++)
-      {
-      out_sum[c] += nan("");
-      out_sumsq[c] += nan("");
-      }
-    }
 }
 
 template<class TTraits>

@@ -94,11 +94,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-alpha.3")
+SET(SNAP_VERSION_QUALIFIER "-alpha.5")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20260901")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 01, 2026")
+SET(SNAP_VERSION_RELEASE_DATE "20261015")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Oct 15, 2026")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -162,29 +162,40 @@ ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 # *** THIS CODE MUST APPEAR BEFORE CALLING CONFIGURE_FILE on SNAPCommon.cxx ***
 #--------------------------------------------------------------------------------
 
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-IF(NOT DEFINED CPACK_SYSTEM_NAME)
-  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
-ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
-IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
-  IF(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
-  ELSE(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
-  ENDIF(CMAKE_CL_64)
-ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}")
 
-# For Apple, we need to base the filename on the architecture
-IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
-  LIST(LENGTH CMAKE_OSX_ARCHITECTURES _length)
-  IF(_length GREATER 1)
-    SET(CPACK_SYSTEM_NAME Darwin-Universal)
+# The system part of the package name is <os>-<arch>, e.g. windows-x64,
+# macos-arm64, linux-arm64. Each platform names the same architecture
+# differently (AMD64, x86_64; ARM64, arm64, aarch64), so map them to the
+# names that users know.
+IF(NOT DEFINED CPACK_SYSTEM_NAME)
+  IF(WIN32)
+    SET(_snap_os windows)
+  ELSEIF(APPLE)
+    SET(_snap_os macos)
   ELSE()
-    SET(CPACK_SYSTEM_NAME Darwin-${CMAKE_OSX_ARCHITECTURES})
+    STRING(TOLOWER "${CMAKE_SYSTEM_NAME}" _snap_os)
   ENDIF()
+
+  SET(_snap_arch ${CMAKE_SYSTEM_PROCESSOR})
+  IF(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    LIST(LENGTH CMAKE_OSX_ARCHITECTURES _length)
+    IF(_length GREATER 1)
+      SET(_snap_arch universal)
+    ELSE()
+      SET(_snap_arch ${CMAKE_OSX_ARCHITECTURES})
+    ENDIF()
+  ENDIF()
+  STRING(TOLOWER "${_snap_arch}" _snap_arch)
+  IF(_snap_arch MATCHES "^(amd64|x86_64|x64)$")
+    SET(_snap_arch x64)
+  ELSEIF(_snap_arch MATCHES "^(arm64|aarch64)$")
+    SET(_snap_arch arm64)
+  ELSEIF(_snap_arch MATCHES "^(x86|i[3-6]86)$")
+    SET(_snap_arch x86)
+  ENDIF()
+
+  SET(CPACK_SYSTEM_NAME ${_snap_os}-${_snap_arch})
 ENDIF()
 
 # If this is an OSMESA enabled build, add that to the name
@@ -316,6 +327,8 @@ SET(LOGIC_CXX
   Logic/WorkspaceAPI/CSVParser.cxx
   Logic/WorkspaceAPI/FormattedTable.cxx
   Logic/WorkspaceAPI/RESTClient.cxx
+  Logic/WorkspaceAPI/SSHConnector.cxx
+  Logic/WorkspaceAPI/SSHLogin.cxx
   Logic/WorkspaceAPI/SSHTunnel.cxx
   Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
@@ -326,9 +339,6 @@ SET(LOGIC_HEADERS
   Common/AbstractModel.h
   Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
-  Common/AbstractSSHAuthDelegate.h
-  Common/StdoutProgressDelegate.h
-  Common/StdoutSSHAuthDelegate.h
   Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
@@ -364,6 +374,8 @@ SET(LOGIC_HEADERS
   Common/SNAPCommon.h
   Common/SNAPExportITKToVTK.h
   Common/SNAPEvents.h
+  Common/StdoutProgressDelegate.h
+  Common/StdoutSSHAuthDelegate.h
   Common/SystemInterface.h
   Common/TagList.h
   Logic/Common/BrushWatershedPipeline.hxx
@@ -489,14 +501,20 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/ColorLookupTable.h
+  Logic/Slicing/ImageLabelIntegrator.h
+  Logic/Slicing/ImageLabelIntegrator.txx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h
   Logic/Slicing/NonOrthogonalSlicer.txx
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.h
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
+  Logic/WorkspaceAPI/SSHConnector.h
+  Logic/WorkspaceAPI/SSHLogin.h
   Logic/WorkspaceAPI/SSHTunnel.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.h
@@ -687,6 +705,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/DarkModeToolbar.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/DICOMListingTable.cxx
+  GUI/Qt/Components/ElidedTextWidgets.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
@@ -725,6 +744,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SNAPQtCommonTranslations.cxx
+  GUI/Qt/Components/SegmentationAutosave.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
@@ -799,6 +819,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/DarkModeToolbar.h
   GUI/Qt/Components/DICOMListingTable.h
   GUI/Qt/Components/DisplayLayoutInspector.h
+  GUI/Qt/Components/ElidedTextWidgets.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
@@ -831,6 +852,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
+  GUI/Qt/Components/SegmentationAutosave.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SNAPQtCommonTranslations.h
   GUI/Qt/Components/SSHTunnelWorkerThread.h
@@ -1113,9 +1135,12 @@ IF( MSVC )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF( MSVC )
   
-IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+# Keep windows.h (pulled in e.g. by libssh via winsock2.h) from defining min
+# and max macros, which break std::min/max and VNL. Needed for all Windows
+# generators, including Ninja (used in CI), not just Visual Studio/NMake
+IF( WIN32 )
   ADD_DEFINITIONS(-DNOMINMAX)
-ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+ENDIF( WIN32 )
 
 #--------------------------------------------------------------------------------
 # Define External Libraries
@@ -1277,6 +1302,14 @@ IF(WIN32)
   # Add the .rc file
   SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.rc)
 
+  # Application manifest, which requests the UTF-8 process code page so that non-ASCII paths
+  # in argv and in narrow Win32 API calls are decoded as UTF-8. MSVC passes .manifest sources
+  # to the linker.
+  IF(MSVC)
+    SET(SNAP_WIN32_MANIFEST ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.manifest)
+    SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_WIN32_MANIFEST})
+  ENDIF(MSVC)
+
 ENDIF(WIN32)
 
 
@@ -1289,17 +1322,28 @@ TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} PRIVATE ${SNAP_INTERNAL_LIBS} ${SNAP_E
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# ITK-SNAP has no QML files: Qt6::Qml is only used for QJSEngine in the GUI test
+# engine. Without this, Qt runs qmlimportscanner over the whole source tree at the
+# end of every configure, including a build directory placed inside it. In CI,
+# after cpack, that took several minutes per configure on macOS.
+set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES QT_QML_MODULE_NO_IMPORT_SCAN TRUE)
+
 #--------------------------------------------------------------------------------
 # QT Internationalization
 #--------------------------------------------------------------------------------
 
-set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN)
+set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN ja fr pt_BR)
 string(JOIN " " QT_I18N_TRANSLATED_LANGUAGES_STRING ${QT_I18N_TRANSLATED_LANGUAGES})
+# The Logic and Model libraries, which cannot use Qt, are scanned for strings
+# marked with SNAP_TRANSLATE_NOOP (progress task titles) or passed to
+# SNAPTranslate (default layer nicknames)
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
-  SOURCE_TARGETS itksnapui_qt ${SNAP_BUNDLE_NAME}
+  SOURCE_TARGETS itksnapui_qt itksnapui_model itksnaplogic ${SNAP_BUNDLE_NAME}
   TS_FILE_DIR GUI/Qt/Translations
   TS_FILE_BASE itksnap
+  LUPDATE_OPTIONS
+    -tr-function-alias QT_TRANSLATE_NOOP+=SNAP_TRANSLATE_NOOP,translate+=SNAPTranslate
 )
 
 #--------------------------------------------------------------------------------
@@ -1309,15 +1353,24 @@ qt_add_translations(
 ENABLE_TESTING()
 
 # Acceleration factor for GUI tests
-SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING 
+SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING
     "Acceleration factor for GUI tests, use <1 on VMS and slow machines")
 MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
+
+# Qt platform plugin for GUI tests (sets QT_QPA_PLATFORM). Empty means the
+# default platform, which shows windows on the desktop. Use "offscreen" to run
+# the GUI tests without any windows, so the desktop stays usable while they run.
+SET(SNAP_GUI_TEST_QT_PLATFORM "" CACHE STRING
+    "Qt platform for GUI tests (e.g. offscreen); empty for the default platform")
+SET_PROPERTY(CACHE SNAP_GUI_TEST_QT_PLATFORM PROPERTY STRINGS "" offscreen minimal)
+MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  CloseWithMouseEvent
   NaNs
-  4DContinuousRenderingD
+  4DContinuousRendering
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
@@ -1327,6 +1380,7 @@ SET(GUI_TESTS
   RegionCompetition
   RandomForest
   RandomForestBailOut
+  SnakeClassificationNavigation
   MeshImport
   MeshWorkspace
   SegmentationMesh
@@ -1334,9 +1388,18 @@ SET(GUI_TESTS
   VolumeRendering
   Reloading
   SegmentationSwitching
+  SegmentationAutosave
+  SliceIndexRange
+  AnnotationReferenceSpace
   4DToMC
   MCTo4D
   DeformationGrid
+  ZoomToFitCycle
+  SnakeROIPanel
+  ReloadSegmentation
+  AdaptiveBrush
+  RegistrationReslice
+  Large2DImages
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
@@ -1417,6 +1480,15 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
 
 add_test(NAME TDigestTest COMMAND testTDigest ${TESTDATA_DIR}/tdigest_test.nii.gz 0.98)
 
+# RLE image (segmentation storage): slicing along every axis permutation and
+# direction, and conversion to and from itk::Image, on a full-size and on a
+# cropped segmentation
+add_test(NAME RLEImageTest COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz)
+add_test(NAME RLEImageTestCropped COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz)
+
+# ITK's iterator tests, run on RLE images
+add_test(NAME RLEIteratorTests COMMAND iteratorTests)
+
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test
     Testing/Logic/IRISApplicationTest.cxx)
@@ -1424,6 +1496,14 @@ TARGET_LINK_LIBRARIES(logic_api_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
+
+# Needs the same manifest as the main executable to get the UTF-8 process code page
+ADD_EXECUTABLE(nonascii_path_test
+    Testing/Logic/NonAsciiPathTest.cxx ${SNAP_WIN32_MANIFEST})
+TARGET_LINK_LIBRARIES(nonascii_path_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(nonascii_path_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME NonAsciiPathTest COMMAND nonascii_path_test ${TEMP})
 
 ADD_EXECUTABLE(remote_image_load_test
     Testing/Logic/RemoteImageLoadTest.cxx)
@@ -1439,6 +1519,15 @@ add_test(NAME RemoteImageLoadTest_SingleImage
   COMMAND remote_image_load_test
     --regression-test -g
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
+# Test: a percent-encoded URL (here the "." of the extension, %2E). The URL
+# must not be used as a printf format (where %2E is a conversion), and the
+# downloaded file must get the decoded name so the format is detected.
+add_test(NAME RemoteImageLoadTest_EncodedURL
+  COMMAND remote_image_load_test
+    --regression-test -g
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl%2Egz"
     "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
 
 # Test: load a workspace that includes a standalone mesh layer over HTTPS
@@ -1457,14 +1546,72 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
+# The test clears the cache, so it gets an application data directory of its
+# own (see below).
+
+# Test: the history and the per-image settings of an image loaded from a URL
+# use the URL, so the settings come back when it is opened again.
+add_test(NAME RemoteImageLoadTest_URLKeys
+  COMMAND remote_image_load_test
+    --test-url-keys
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz?x=1")
+
+# These tests clear the cache or write settings, so each gets its own
+# application data directory, away from the user's profile and from the other
+# remote tests running in parallel. The directory comes from APPDATA on
+# Windows and HOME on Linux; on macOS the test's delegate puts it in the
+# working directory.
+foreach(_test RemoteImageLoadTest_Cache RemoteImageLoadTest_URLKeys)
+  set(_home "${CMAKE_CURRENT_BINARY_DIR}/Testing/${_test}_Home")
+  file(MAKE_DIRECTORY ${_home})
+  IF(WIN32)
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "APPDATA=${_home}")
+  ELSEIF(APPLE)
+    set_tests_properties(${_test} PROPERTIES WORKING_DIRECTORY "${_home}")
+  ELSE()
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "HOME=${_home}")
+  ENDIF()
+endforeach()
+
+# Test: save a workspace containing a layer loaded from a URL, check that the
+# URL is stored as-is, and reopen it.
+add_test(NAME RemoteImageLoadTest_SaveWorkspace
+  COMMAND remote_image_load_test
+    --test-save-workspace
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    ${TEMP})
+
+# Test: cancelling an HTTP download from the progress callback stops it
+add_test(NAME RemoteImageLoadTest_Cancel
+  COMMAND remote_image_load_test
+    --test-cancel
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
+
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
+  RemoteImageLoadTest_EncodedURL
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
+  RemoteImageLoadTest_SaveWorkspace
+  RemoteImageLoadTest_Cancel
+  RemoteImageLoadTest_URLKeys
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)
+
+# Test: offline check of the fw:// URL grammar. No network, no API key. HOME
+# is pointed at an empty directory so a developer's ~/.fw/config.yml is not
+# read and valid forms stop at the absent key prompt. The key lookup reads HOME
+# before USERPROFILE on Windows too, so this works on every platform. No Remote
+# label since it runs offline.
+add_test(NAME RemoteImageLoadTest_FlywheelURLForms
+  COMMAND remote_image_load_test --test-fw-url-forms)
+set(FW_URLFORMS_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/FlywheelURLFormsHome")
+file(MAKE_DIRECTORY ${FW_URLFORMS_HOME})
+set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES
+  ENVIRONMENT "HOME=${FW_URLFORMS_HOME}"
+  TIMEOUT 60)
 
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
@@ -1482,23 +1629,215 @@ TARGET_INCLUDE_DIRECTORIES(TestColorLabelTableFile PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestColorLabelTableFile COMMAND TestColorLabelTableFile ${TEMP})
 
-# Set up a test for each GUI test
-FOREACH(GUI_TEST ${GUI_TESTS})
+# Test: NRRD sequence (.seq.nrrd) export round-trips geometry and voxel values
+ADD_EXECUTABLE(TestNrrdSequenceIO
+    Testing/Logic/TestNrrdSequenceIO.cxx)
+TARGET_LINK_LIBRARIES(TestNrrdSequenceIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
+
+# Test: remote file cache stores, evicts and locks its metadata correctly
+ADD_EXECUTABLE(TestRemoteFileCache
+    Testing/Logic/TestRemoteFileCache.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteFileCache ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteFileCache PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteFileCache COMMAND TestRemoteFileCache ${TEMP})
+
+# Test: VTK XML image (.vti) IO handles orientation, extents and arrays
+ADD_EXECUTABLE(TestVTIImageIO
+    Testing/Logic/TestVTIImageIO.cxx)
+TARGET_LINK_LIBRARIES(TestVTIImageIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
+
+# Test: slicing from preview pipelines that only buffer the requested slice
+ADD_EXECUTABLE(TestIRISSlicerPreview
+    Testing/Logic/TestIRISSlicerPreview.cxx)
+TARGET_LINK_LIBRARIES(TestIRISSlicerPreview ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestIRISSlicerPreview PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestIRISSlicerPreview COMMAND TestIRISSlicerPreview)
+
+# Test: rebroadcasting events between objects
+ADD_EXECUTABLE(TestRebroadcaster
+    Testing/Logic/TestRebroadcaster.cxx)
+TARGET_LINK_LIBRARIES(TestRebroadcaster ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRebroadcaster PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRebroadcaster COMMAND TestRebroadcaster)
+
+# Test: checks when loading segmentations (overlap, single time point in 4D)
+ADD_EXECUTABLE(TestSegmentationLoadChecks
+    Testing/Logic/TestSegmentationLoadChecks.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationLoadChecks ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationLoadChecks PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationLoadChecks
+  COMMAND TestSegmentationLoadChecks ${TESTDATA_DIR} ${TEMP})
+
+# Test: layer nicknames from filenames with periods and compound extensions
+ADD_EXECUTABLE(TestStripFilenameExtension
+    Testing/Logic/TestStripFilenameExtension.cxx)
+TARGET_LINK_LIBRARIES(TestStripFilenameExtension ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestStripFilenameExtension PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestStripFilenameExtension COMMAND TestStripFilenameExtension)
+
+# Test: segmentation statistics with upsampled segmentations and rotated overlays
+ADD_EXECUTABLE(TestSegmentationStatistics
+    Testing/Logic/TestSegmentationStatistics.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationStatistics ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationStatistics
+  COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
+
+# Parsing of remote URLs (no network access)
+ADD_EXECUTABLE(TestRemoteURLs
+    Testing/Logic/TestRemoteURLs.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteURLs ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteURLs PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteURLs COMMAND TestRemoteURLs)
+
+# Undo and redo of segmentation edits, per segmentation and per time point
+ADD_EXECUTABLE(TestUndoRedo
+    Testing/Logic/TestUndoRedo.cxx)
+TARGET_LINK_LIBRARIES(TestUndoRedo ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestUndoRedo PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestUndoRedo
+  COMMAND TestUndoRedo ${TESTDATA_DIR} ${TEMP})
+
+# Opening a workspace after it was copied or moved with its images
+ADD_EXECUTABLE(TestMovedWorkspace
+    Testing/Logic/TestMovedWorkspace.cxx)
+TARGET_LINK_LIBRARIES(TestMovedWorkspace ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestMovedWorkspace PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestMovedWorkspace
+  COMMAND TestMovedWorkspace ${TESTDATA_DIR} ${TEMP})
+
+# Sampling of large 2D images (non-orthogonal slicing), with overlays and segmentations
+ADD_EXECUTABLE(TestLarge2DSlicing
+    Testing/Logic/TestLarge2DSlicing.cxx)
+TARGET_LINK_LIBRARIES(TestLarge2DSlicing ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestLarge2DSlicing PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestLarge2DSlicing
+  COMMAND TestLarge2DSlicing ${TESTDATA_DIR} ${TEMP})
+
+# Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
+# are passed on to ITK-SNAP, e.g. images to load from the command line. When
+# SNAP_GUI_TEST_LAUNCHER is set, ITK-SNAP is run through that command.
+FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
 
   # Add the test
-  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en)
+  IF(SNAP_GUI_TEST_LAUNCHER)
+    SET(snap_exe $<TARGET_FILE:${SNAP_BUNDLE_NAME}>)
+  ELSE()
+    SET(snap_exe ${SNAP_BUNDLE_NAME})
+  ENDIF()
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_GUI_TEST_LAUNCHER} ${snap_exe} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
 
-  IF(WIN32)
+  # On Windows with CMake >= 3.22, PATH is set for all tests further below
+  IF(WIN32 AND CMAKE_VERSION VERSION_LESS 3.22)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH=${QT_BINARY_DIR_NATIVE})
-  ELSE(WIN32)
+  ELSEIF(NOT WIN32)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH="${QT_BINARY_DIR_NATIVE}:$ENV{PATH}")
-  ENDIF(WIN32)
+  ENDIF()
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
+  # Optionally run without windows (see SNAP_GUI_TEST_QT_PLATFORM)
+  IF(SNAP_GUI_TEST_QT_PLATFORM)
+    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT QT_QPA_PLATFORM=${SNAP_GUI_TEST_QT_PLATFORM})
+  ENDIF()
+
+ENDFUNCTION()
+
+# Set up a test for each GUI test
+FOREACH(GUI_TEST ${GUI_TESTS})
+  ADD_SNAP_GUI_TEST(${GUI_TEST})
 ENDFOREACH(GUI_TEST)
+
+# GUI tests that open data from URLs given on the command line, as a browser
+# link would. These require network access and are labelled "Remote".
+ADD_SNAP_GUI_TEST(RemoteSaveLayer
+  -g "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+  -s "${GITHUB_TESTDATA_URL}/MRIcrop-seg.gipl.gz")
+ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
+  -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
+SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
+
+# Progress shown for a URL loaded from the drop dialog. serve_slowly.py serves
+# the test data on a local port, slowly enough to watch the download.
+FIND_PACKAGE(Python3 COMPONENTS Interpreter QUIET)
+IF(Python3_Interpreter_FOUND)
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8917 6 --)
+  ADD_SNAP_GUI_TEST(DropRemoteProgress)
+
+  # A URL opened as macOS opens a browser link (a file open event, sent by
+  # --test-url). The server refuses the image unless its query arrives intact;
+  # the workspace URL has a query, so it does not end in .itksnap
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8918 0
+    --require-query "token=a%2Fb&x=1" --)
+  ADD_SNAP_GUI_TEST(OpenURLEventImage
+    --test-url "itksnap-http://127.0.0.1:8918/MRIcrop-orig.gipl.gz?token=a%2Fb&x=1#frag")
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8919 0 --)
+  ADD_SNAP_GUI_TEST(OpenURLEventWorkspace
+    --test-url "itksnap-http://127.0.0.1:8919/MRIcrop-with-mesh.itksnap?token=abc")
+
+  # A workspace URL given with --url, as the URL handler on Windows and Linux
+  # passes it, opens with the progress dialog showing during the download
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8920 6 --)
+  ADD_SNAP_GUI_TEST(URLWorkspaceProgress
+    --url "itksnap-http://127.0.0.1:8920/MRIcrop-with-mesh.itksnap")
+
+  # The sample dataset links on the Getting Started page open in the window
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8921 0 --)
+  ADD_SNAP_GUI_TEST(GettingStartedLinks)
+  UNSET(SNAP_GUI_TEST_LAUNCHER)
+ENDIF()
+
+# Workspace with two segmentations, the last of which is marked as active by
+# itksnap-wt; the GUI test checks that it opens with that segmentation active
+SET(WT_ACTIVE_SEG_WORKSPACE "${TEMP}/WorkspaceActiveSegmentation_wt.itksnap")
+ADD_TEST(NAME WorkspaceToolSetActiveSeg
+  COMMAND itksnap-wt
+    -layers-set-main "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz"
+    -layers-pick 1 -props-set-active-seg
+    -layers-pick 2 -props-set-active-seg
+    -o "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceToolSetActiveSeg PROPERTIES
+  FIXTURES_SETUP WorkspaceActiveSegmentationData)
+
+ADD_SNAP_GUI_TEST(WorkspaceActiveSegmentation -w "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceActiveSegmentation PROPERTIES
+  FIXTURES_REQUIRED WorkspaceActiveSegmentationData)
+
+# On Windows, let every test find the Qt and VTK DLLs by prepending their
+# directories to the inherited PATH (this must follow all ADD_TEST calls)
+IF(WIN32 AND NOT CMAKE_VERSION VERSION_LESS 3.22)
+  FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
+  GET_PROPERTY(SNAP_ALL_TESTS DIRECTORY PROPERTY TESTS)
+  SET_PROPERTY(TEST ${SNAP_ALL_TESTS} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+    "PATH=path_list_prepend:${QT_BINARY_DIR_NATIVE}"
+    "PATH=path_list_prepend:$<TARGET_FILE_DIR:VTK::CommonCore>")
+ENDIF()
+
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS
@@ -1550,9 +1889,14 @@ INCLUDE(CTest)
 # Copy and configure the program data directory
 #--------------------------------------------------------------------------------
 
-# All program files - use recursive globbing
-FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES 
-  ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
+# All program files - use recursive globbing. The patterns must include the
+# ProgramData directory; on their own they match the whole source tree,
+# including a build directory placed inside it.
+SET(SNAP_PROGRAM_DATA_DIR ${SNAP_SOURCE_DIR}/ProgramData)
+FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES
+  ${SNAP_PROGRAM_DATA_DIR}/*.txt ${SNAP_PROGRAM_DATA_DIR}/*.html
+  ${SNAP_PROGRAM_DATA_DIR}/*.gif ${SNAP_PROGRAM_DATA_DIR}/*.png
+  ${SNAP_PROGRAM_DATA_DIR}/*.img.gz ${SNAP_PROGRAM_DATA_DIR}/*.hdr)
 
 # Copy documentation from the source tree to the build tree
 FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
@@ -1562,6 +1906,12 @@ FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
     ${SNAP_BINARY_DIR}/${SHORTNAME}
    COPYONLY)
 ENDFOREACH(DATAFILE)
+
+#--------------------------------------------------------------------------------
+# Workspace tool (itksnap-wt). This is added before the packaging section so that
+# it is installed before the Qt deployment script runs (see below).
+#--------------------------------------------------------------------------------
+ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 
 #--------------------------------------------------------------------------------
 # INSTALLATION AND PACKAGING SECTION
@@ -1669,12 +2019,19 @@ IF(APPLE)
   # Use Qt deployment script to take care of plugins
   set(executable_path "../../../${SNAP_BUNDLE_NAME}.app")
 
+  # Command-line tools in Contents/bin that link non-system libraries (libssh from
+  # Homebrew). macdeployqt points them at the copies in Contents/Frameworks; otherwise
+  # they would load the libraries from the build machine. Paths are relative to the
+  # install prefix (Contents/Resources).
+  set(deploy_cli_exes "../bin/itksnap-wt")
+
   qt_generate_deploy_script(
       TARGET ${SNAP_BUNDLE_NAME}
       OUTPUT_SCRIPT deploy_script
       CONTENT "
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"${executable_path}\"
+      ADDITIONAL_EXECUTABLES ${deploy_cli_exes}
       GENERATE_QT_CONF
   )
   qt_deploy_translations(
@@ -1900,52 +2257,63 @@ CONFIGURE_FILE(
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
+# sftp is used to create the destination folder before uploading, since the
+# SourceForge file release server offers no shell and scp cannot create it
+FIND_PROGRAM(SFTP_PROGRAM NAMES sftp DOC "Location of the sftp program (optional)")
+MARK_AS_ADVANCED(SFTP_PROGRAM)
+
 SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
 MARK_AS_ADVANCED(SCP_ARGUMENTS)
 
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+# The branch in nightly and experimental package names. A pull request build
+# checks out a merge commit with no branch ("HEAD"), so GitHub's name for the
+# pull request branch is used instead. A "/" would make the upload path a
+# folder that does not exist.
+SET(SNAP_PACKAGE_BRANCH "${SNAP_VERSION_GIT_BRANCH}")
+IF(NOT "$ENV{GITHUB_HEAD_REF}" STREQUAL "")
+  SET(SNAP_PACKAGE_BRANCH "$ENV{GITHUB_HEAD_REF}")
+ENDIF()
+STRING(REPLACE "/" "-" SNAP_PACKAGE_BRANCH "${SNAP_PACKAGE_BRANCH}")
+
+SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_PACKAGE_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_PACKAGE_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(RELEASE_TARGET "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
-SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
+SET(SCP_HOST "frs.sourceforge.net")
+SET(SCP_ROOT_DIR "/home/frs/project/itk-snap/itk-snap")
+SET(SCP_ROOT "${SCP_HOST}:${SCP_ROOT_DIR}")
 
 #--------------------------------------------------------------------------------
 # Create targets
 
-ADD_CUSTOM_TARGET(itksnap_upload_nightly
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-  ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
+# Add a target that uploads the package to SCP_ROOT/subdir/dest_name, first
+# creating SCP_ROOT/subdir if it does not exist. In an sftp batch file, the
+# leading '-' makes sftp ignore the error from mkdir if the folder exists.
+FUNCTION(SNAP_ADD_UPLOAD_TARGET target subdir dest_name)
+  SET(batch_file "${SNAP_BINARY_DIR}/${target}_mkdir.sftp")
+  FILE(WRITE "${batch_file}" "-mkdir \"${SCP_ROOT_DIR}/${subdir}\"\n")
+  ADD_CUSTOM_TARGET(${target}
+    VERBATIM
+    COMMAND "${SFTP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS} -b "${batch_file}"
+      ${SCP_USERNAME},itk-snap@${SCP_HOST}
+    COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
+      ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${subdir}/${dest_name}
+    DEPENDS ${CPACK_TARGET}
+    WORKING_DIRECTORY ${SNAP_BINARY_DIR}
+    COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${subdir}/${dest_name}")
+ENDFUNCTION()
 
-ADD_CUSTOM_TARGET(itksnap_upload_experimental
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/${EXPERIMENTAL_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${EXPERIMENTAL_TARGET}")
-
-ADD_CUSTOM_TARGET(itksnap_upload_release
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${SNAP_VERSION_FULL}/${RELEASE_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${RELEASE_TARGET}")
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_nightly Nightly ${NIGHTLY_TARGET})
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_experimental Experimental ${EXPERIMENTAL_TARGET})
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_release ${SNAP_VERSION_FULL} ${RELEASE_TARGET})
 
 
 #--------------------------------------------------------------------------------
 # Set up package target
 include(CPack)
-
-#--------------------------------------------------------------------------------
-# ALFABIS utilities (experimental)
-#--------------------------------------------------------------------------------
-# Workspace tool is automatically included
-ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 
 
 #--------------------------------------------------------------------------------

@@ -97,15 +97,22 @@ most efficient form and is what ITK-SNAP workspaces store internally.
 ```
 fw://<server>/acquisitions/<container-id>/files/<filename>
 fw://<server>/analyses/<container-id>/files/<filename>
+fw://<server>/sessions/<container-id>/files/<filename>
+fw://<server>/subjects/<container-id>/files/<filename>
+fw://<server>/projects/<container-id>/files/<filename>
 ```
 
 - `acquisitions` refers to an acquisition container.
 - `analyses` refers to an analysis (gear output) container.
+- `sessions` refers to a session (visit) container.
+- `subjects` refers to a subject container.
+- `projects` refers to a project container.
 
 **Example**:
 ```
 fw://example.flywheel.io/acquisitions/64a1c3f2e4b07d0012abcdef/files/brain.nii.gz
 fw://example.flywheel.io/analyses/69ebae9505fb3e3183ff7935/files/output.nii.gz
+fw://example.flywheel.io/sessions/64b2d4a3f5c18e0023bcdef0/files/case.itksnap
 ```
 
 #### Label-based (`find/`)
@@ -121,17 +128,25 @@ fw://<server>/find/<group>/<project>/<subject>/<session>/acquisitions/<label>/fi
 fw://<server>/find/<group>/<project>/<subject>/<session>/analyses/<label>/files/<filename>
 ```
 
+The `find/` form still resolves only `acquisitions` or `analyses` at the leaf;
+to open a file attached to a session, subject or project, use the direct form
+above with that container's ID.
+
 **Example**:
 ```
 fw://example.flywheel.io/find/pennbrain/StudyABC/sub-01/ses-01/acquisitions/T1w/files/brain.nii.gz
 ```
 
 **Authentication**: ITK-SNAP looks for an API key in `~/.fw/config.yml`
-(written by the Flywheel CLI — run `fw login` to populate it). If the file is
-absent or no key matches the target server, a dialog prompts for the key. The
-key may be in `host:secret` or bare `secret` format; both are accepted.
+(written by the Flywheel CLI — run `fw login` to populate it). Only a key in
+`host:secret` format whose host matches the target server is used; the
+`default_profile` key is never sent to a different server. If the file is
+absent or no key matches, a dialog prompts for the key, which may be in
+`host:secret` or bare `secret` format.
 API keys are cached in memory for the session; a `401` response clears the
 cache and shows an error asking the user to retry.
+An unrecognised `fw://` URL is now rejected before the API key is looked up, so
+a malformed link no longer opens the key prompt.
 
 ---
 

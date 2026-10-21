@@ -8,6 +8,7 @@
 
 #include "ColorMap.h"
 #include "ImageIODelegates.h"
+#include "ImageIORemote.h"
 #include "HistoryManager.h"
 #include "GenericImageData.h"
 #include "QtReporterDelegates.h"
@@ -56,6 +57,11 @@ ImageIOWizardModel ::InitializeForSave(GlobalUIModel             *parent,
   m_SaveDelegate = delegate;
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_Overlay = false;
+
+  // A layer loaded from a remote URL cannot be saved back to it, so only
+  // suggest its file name, to be saved to a local folder of the user's choice
+  if (IsRemoteImageURL(m_SuggestedFilename))
+    m_SuggestedFilename = itksys::SystemTools::GetFilenameName(m_SuggestedFilename);
   m_LoadedImage = NULL;
   m_SaveCurrentTPIn3D = saveCrntTP;
 

@@ -627,6 +627,24 @@ public:
     painter.drawEllipse(QPointF(x,y), rx, ry);
   }
 
+  virtual void SetClipRect(double x, double y, double w, double h) override
+  {
+    painter.setClipRect(QRectF(x, y, w, h).normalized());
+  }
+
+  virtual void SetClipRectWithHole(double x, double y, double w, double h,
+                                    double hole_x, double hole_y, double hole_w, double hole_h) override
+  {
+    QRegion outer(QRectF(x, y, w, h).normalized().toAlignedRect());
+    QRegion hole(QRectF(hole_x, hole_y, hole_w, hole_h).normalized().toAlignedRect());
+    painter.setClipRegion(outer.subtracted(hole));
+  }
+
+  virtual void ClearClip() override
+  {
+    painter.setClipping(false);
+  }
+
   virtual void SetPenColor(const Vector3d &rgb) override
   {
     QPen pen = painter.pen();
@@ -778,6 +796,12 @@ public:
   virtual int TextWidth(const std::string &str) override
   {
     return painter.fontMetrics().horizontalAdvance(QString::fromUtf8(str.c_str()));
+  }
+
+  virtual std::string MiddleElideText(const std::string &str, int width) override
+  {
+    QString text = QString::fromUtf8(str.c_str());
+    return painter.fontMetrics().elidedText(text, Qt::ElideMiddle, width).toStdString();
   }
 
   virtual void DrawText(const std::string &str) override

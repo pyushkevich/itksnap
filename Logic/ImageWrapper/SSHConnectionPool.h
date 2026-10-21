@@ -3,12 +3,13 @@
 
 #include "SNAPCommon.h"
 #include "IRISException.h"
-#include "SSHTunnel.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include <libssh/sftp.h>
 #include <map>
 #include <string>
+
+class AbstractSSHAuthDelegate;
 
 /**
  * Thread-unsafe SSH + SFTP session cache, keyed by "[user@]host".
@@ -16,7 +17,7 @@
  * Callers (typically SCPRemoteImageSource) call GetOrCreate() to obtain an
  * authenticated (ssh_session, sftp_session) pair.  On a cache hit the pair is
  * returned immediately, skipping the SSH handshake.  On a miss a fresh
- * session is established via SSHTunnel::OpenSession() and the SFTP subsystem
+ * session is established via OpenSSHSession() (SSHLogin.h) and the SFTP subsystem
  * is initialised, then both are cached before being returned.
  *
  * The pool owns all cached sessions and disconnects / frees them in its
@@ -42,18 +43,17 @@ public:
    * Return a live (ssh, sftp) pair for @p host / @p username.
    *
    * On a cache hit the cached pair is returned without any network activity.
-   * On a miss (or a stale disconnected entry) SSHTunnel::OpenSession() is
-   * called with @p callback / @p callback_data to establish and authenticate
-   * a new SSH session; then sftp_new() + sftp_init() initialise the SFTP
-   * subsystem.  The resulting pair is cached and returned.
+   * On a miss (or a stale disconnected entry) OpenSSHSession() establishes
+   * and authenticates a new SSH session, asking @p auth for any passwords or
+   * passphrases it needs (non-interactive if @p auth is null); then the SFTP
+   * subsystem is initialised.  The resulting pair is cached and returned.
    *
    * @throws IRISException if the SSH connection or SFTP initialisation fails.
    */
-  SessionPair GetOrCreate(const std::string   &host,
-                          const std::string   &username,
-                          SSHTunnel::Callback  callback,
-                          void                *callback_data,
-                          int                  port = 0);
+  SessionPair GetOrCreate(const std::string       &host,
+                          const std::string       &username,
+                          AbstractSSHAuthDelegate *auth,
+                          int                      port = 0);
 
   /** Disconnect and free every cached session.  Called by the destructor. */
   void CloseAll();

@@ -117,7 +117,10 @@ AbstractModel::Rebroadcast(
   m_Rebroadcast.push_back(reb);
   return AddListenerPair(src, srcEvent, reb, &Rebroadcaster::Broadcast, &Rebroadcaster::Broadcast);
   */
-  return ::Rebroadcaster::Rebroadcast(src, srcEvent, this, trgEvent, m_EventBucket);
+  return ::Rebroadcaster::Rebroadcast(
+    src, srcEvent, this, trgEvent, [this](const itk::Object *obj, const itk::EventObject &event) {
+      m_EventBucket->PutEvent(event, obj);
+    });
 }
 
 unsigned long

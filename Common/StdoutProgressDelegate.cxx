@@ -23,12 +23,16 @@ StdoutProgressDelegate::StdoutProgressDelegate()
 }
 
 std::string StdoutProgressDelegate::StartTask(const char *title, bool trackProgress,
-                                               bool /*useTimeout*/)
+                                               bool /*useTimeout*/,
+                                               const std::string &titleArg)
 {
   std::string id = std::to_string(m_NextId++);
 
   Task t;
   t.title           = title ? title : "";
+  size_t pos = t.title.find("%1");
+  if (pos != std::string::npos)
+    t.title.replace(pos, 2, titleArg);
   t.reportsProgress = trackProgress;
   m_Tasks.push_back({id, std::move(t)});
 

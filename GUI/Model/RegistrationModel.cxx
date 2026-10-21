@@ -56,7 +56,7 @@ RegistrationModel::RegistrationModel()
         &Self::GetLogScalingValueAndRange,
         &Self::SetLogScalingValue);
 
-  m_RotationCenter = Vector3i(0, 0, 0);
+  m_RotationCenter.Fill(0.0);
 
   // Set up the automatic registration parameters
 
@@ -113,11 +113,12 @@ void RegistrationModel::ResetOnMainImageChange()
     ImageWrapperBase* main_img = m_Driver->GetIRISImageData()->GetMain();
     Vector3ui main_dim = main_img->GetSize();
 
-    // Reset the center of rotation
-    Vector3i center;
+    // Reset the center of rotation to the center voxel of the main image
+    itk::Index<3> center;
     for(int i = 0; i < 3; i++)
       center[i] = main_dim[i] / 2;
-    this->SetRotationCenter(center);
+    main_img->GetImageBase()->TransformIndexToPhysicalPoint(center, m_RotationCenter);
+    this->UpdateManualParametersFromWrapper(false, true);
 
     // Reset the multi-resolution pyramid based on some heuristics
     int dim_min = main_dim.min_value();
@@ -295,9 +296,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   // rotation and the P matrix is around the center of the moving image
 
   // Get the center of rotation in LPS coords
-  itk::Point<double, 3> ptCenter;
-  layer->GetReferenceSpace()->TransformIndexToPhysicalPoint(
-        to_itkIndex(m_RotationCenter), ptCenter);
+  itk::Point<double, 3> ptCenter = m_RotationCenter;
   Vec3 crot = ptCenter.GetVnlVector();
 
   // Get the moving image center in LPS coords
@@ -454,9 +453,7 @@ RegistrationModel::MapParametersToAffineTransform(
   Mat3 R = MapEulerAnglesToRotationMatrix(euler_angles);
 
   // Compute the offset to that the rotation preserves the center
-  itk::Point<double, 3> ptCenter;
-  layer->GetReferenceSpace()->TransformIndexToPhysicalPoint(
-        to_itkIndex(m_RotationCenter), ptCenter);
+  itk::Point<double, 3> ptCenter = m_RotationCenter;
   Vec3 crot = ptCenter.GetVnlVector();
 
   // Compute the rotation around the center
@@ -551,9 +548,7 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
   QuaterionTransform::VnlQuaternionType quat(axis, theta);
 
   // Get the rotation center in world coordinates
-  itk::Point<double, 3> ptCenter;
-  layer->GetReferenceSpace()->TransformIndexToPhysicalPoint(
-        to_itkIndex(m_RotationCenter), ptCenter);
+  itk::Point<double, 3> ptCenter = m_RotationCenter;
 
   rotation->SetRotation(quat);
 
@@ -592,8 +587,22 @@ void RegistrationModel::ApplyTranslation(const Vector3d &tran)
 
 void RegistrationModel::SetRotationCenter(const Vector3i &pos)
 {
-  m_RotationCenter = pos;
+  // pos is in reference space voxels; store it as a physical point
+  auto *ref = m_Driver->GetCurrentImageData()->GetReferenceSpace();
+  if(!ref)
+    return;
+  ref->TransformIndexToPhysicalPoint(to_itkIndex(pos), m_RotationCenter);
   this->UpdateManualParametersFromWrapper(false, true);
+}
+
+Vector3i RegistrationModel::GetRotationCenter() const
+{
+  // The nearest reference space voxel to the stored physical point
+  auto *ref = m_Driver->GetCurrentImageData()->GetReferenceSpace();
+  if(!ref)
+    return Vector3i(0, 0, 0);
+  itk::Index<3> idx = ref->TransformPhysicalPointToIndex(m_RotationCenter);
+  return Vector3i(idx);
 }
 
 void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix,
@@ -970,12 +979,15 @@ void RegistrationModel
   assert(moving);
 
   // We can take advantage of existing facilities for interpolation and reslicing
-  // in the ImageWrapper class
+  // in the ImageWrapper class. The transform is defined relative to the main
+  // image, so reslice onto the main image's grid, even when the reference
+  // space (the active segmentation) has a different one.
+  ImageWrapperBase *main = m_Driver->GetCurrentImageData()->GetMain();
   SNAPSegmentationROISettings roi;
   roi.SetInterpolationMethod(method);
-  roi.SetROI(m_Driver->GetCurrentImageData()->GetMain()->GetBufferedRegion());
+  roi.SetROI(main->GetBufferedRegion());
   SmartPtr<ImageWrapperBase> reslice =
-      moving->ExtractROI4D(roi, m_Parent->GetProgressCommand());
+      moving->ExtractROI4D(roi, m_Parent->GetProgressCommand(), main->GetImageBase());
 
   // Give it a nickname
   reslice->SetCustomNickname(std::string("resliced ") + moving->GetNickname());

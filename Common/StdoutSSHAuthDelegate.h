@@ -24,6 +24,10 @@ public:
                                     std::string       &username,
                                     std::string       &password) override;
 
+  bool ConfirmHostKey(const std::string &host,
+                      const std::string &key_type,
+                      const std::string &fingerprint) override;
+
 private:
   // Read one line from stdin, with or without terminal echo.
   // Returns false on EOF / Ctrl-D (cancellation).

@@ -130,16 +130,6 @@ int
 UndoDataManager<TPixel>
 ::CommitStaging(const char *text)
 {
-  // If we are not currently pointing past the end of the delta
-  // list, we should prune all the deltas from the current point
-  // to the end. So that's the loop that we do
-  while(m_Position != m_CommitList.end())
-    {
-    m_TotalSize -= m_Position->GetNumberOfRLEs();
-    m_Position->DeleteDeltas();
-    m_Position = m_CommitList.erase(m_Position);
-    }
-
   // Create a commit that we will be adding
   Commit new_commit(m_StagingList, text);
 
@@ -149,11 +139,23 @@ UndoDataManager<TPixel>
   // Get the number of RLEs being added
   size_t n_new_rles = new_commit.GetNumberOfRLEs();
 
-  // If there are no new rles, the just bail out
+  // If there are no new rles, the just bail out. This must happen before the
+  // redo commits are pruned below, so that an edit that changed nothing (e.g.,
+  // a paintbrush click on voxels that already have the label) keeps them
   if(n_new_rles == 0)
     {
     new_commit.DeleteDeltas();
     return 0;
+    }
+
+  // If we are not currently pointing past the end of the delta
+  // list, we should prune all the deltas from the current point
+  // to the end. So that's the loop that we do
+  while(m_Position != m_CommitList.end())
+    {
+    m_TotalSize -= m_Position->GetNumberOfRLEs();
+    m_Position->DeleteDeltas();
+    m_Position = m_CommitList.erase(m_Position);
     }
 
   // Check whether we need to prune from the back to keep total size under control

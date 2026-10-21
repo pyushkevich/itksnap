@@ -43,6 +43,7 @@
 #include "SnakeWizardPanel.h"
 #include "LatentITKEventNotifier.h"
 #include <QProgressDialog>
+#include <QPointer>
 #include "QtReporterDelegates.h"
 #include "SliceWindowCoordinator.h"
 #include "HistoryQListModel.h"
@@ -73,6 +74,7 @@
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
 #include <DropActionDialog.h>
+#include <ElidedTextWidgets.h>
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
@@ -80,6 +82,7 @@
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
 #include "ImageIORemote.h"
+#include "SNAPQApplication.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -327,6 +330,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the advanced progress reporter
   m_ProgressFader = new ProgressReportWidget(this);
+  m_ProgressFader->setObjectName("progressReport");
 
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
@@ -334,7 +338,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_Progress->reset();
 
   // Set title
-  this->setWindowTitle(tr("ITK-SNAP"));
+  m_TitleElider = new WindowTitleElider(this);
+  m_TitleElider->setTitle(tr("ITK-SNAP"));
 
   // We accept drop events
   setAcceptDrops(true);
@@ -1076,8 +1081,12 @@ void MainImageWindow::CreateRecentMenu(
   // Create an action for each recent item
   for(int i = 0; i < recent.size(); i++)
     {
-    // Create an action for this file
-    QAction *action = submenu->addAction(from_utf8(recent[i]));
+    // Create an action for this file. The file name is kept in the action's
+    // data; in the text, '&' (common in URLs) is escaped so it is not shown
+    // as a shortcut marker
+    QString file = from_utf8(recent[i]);
+    QAction *action = submenu->addAction(QString(file).replace("&", "&&"));
+    action->setData(file);
     if(use_shortcut && i < 10)
       action->setShortcut(QKeySequence(shortcut_modifier + Qt::Key_1 + i));
     connect(action, SIGNAL(triggered(bool)), this, slot);
@@ -1130,28 +1139,28 @@ void MainImageWindow::UpdateWindowTitle()
   if(m_Model->GetGlobalState()->GetProjectFilename().length())
     projfile = QFileInfo(from_utf8(m_Model->GetGlobalState()->GetProjectFilename())).fileName();
 
-  // Set up the window title
+  // Set up the window title. Long filenames are elided in the middle.
   if(projfile.length())
     {
     // If a project has multiple layers, we should indicate which segmentation image is being viewed
-    this->setWindowTitle(tr("%1 - ITK-SNAP").arg(projfile));
+    m_TitleElider->setTitle(tr("%1 - ITK-SNAP"), { projfile });
     }
   else if(mainfile.length() && segfile.length())
     {
-    this->setWindowTitle(tr("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    m_TitleElider->setTitle(tr("%1 - %2 - ITK-SNAP"), { mainfile, segfile });
     }
   else if(mainfile.length())
     {
-    this->setWindowTitle(tr("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
+    m_TitleElider->setTitle(tr("%1 - New Segmentation - ITK-SNAP"), { mainfile });
     }
   else
     {
-    this->setWindowTitle(tr("ITK-SNAP"));
+    m_TitleElider->setTitle(tr("ITK-SNAP"));
     }
 
-  // Update the IPC instance directory slot with the new title
+  // Update the IPC instance directory slot with the full title
   m_Model->GetSynchronizationModel()->UpdateWindowTitle(
-    this->windowTitle().toStdString());
+    m_TitleElider->fullTitle().toStdString());
 
   // Set up the save segmentation menu items
   if(segfile.length())
@@ -1368,9 +1377,9 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     std::string filename = to_utf8(file);
     // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
     // IsProjectFile cannot read the file content, so we fall back to checking
-    // the .itksnap extension
+    // the .itksnap extension (ignoring any query or fragment)
     bool isRemote = IsRemoteImageURL(filename);
-    bool isProject = (isRemote && file.endsWith(".itksnap", Qt::CaseInsensitive)) ||
+    bool isProject = (isRemote && HasWorkspaceExtension(filename)) ||
                      (!isRemote && d->IsProjectFile(filename.c_str()));
 
     if (isProject)
@@ -1429,6 +1438,16 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
   }
 }
 
+void MainImageWindow::on_brsGettingStarted_anchorClicked(const QUrl &url)
+{
+  // itksnap-* links (the sample datasets) are opened in this window, as a
+  // file dropped on it would be. Other links are opened in the web browser
+  if (url.scheme().startsWith("itksnap-"))
+    LoadDroppedFile(SNAPQApplication::resolveUrl(url.toString(QUrl::FullyEncoded)), true);
+  else
+    QDesktopServices::openUrl(url);
+}
+
 #ifdef __APPLE__
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFURL.h>
@@ -1436,8 +1455,13 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
 
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
-  QUrl url = event->mimeData()->urls().first();
-  qDebug() << "DROP EVENT: " << url;
+  // Some platforms deliver a drop without the URL list that dragEnterEvent
+  // accepted
+  QList<QUrl> urls = event->mimeData()->urls();
+  if (urls.isEmpty())
+    return;
+
+  QUrl url = urls.first();
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
@@ -1568,7 +1592,7 @@ void MainImageWindow::LoadRecentActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadMainImage(file);
 }
 
@@ -1576,7 +1600,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
 
 	// Show a progress dialog
 	using namespace imageiowiz;
@@ -1648,7 +1672,7 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, false);
 }
 
@@ -1656,7 +1680,7 @@ void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, true);
 }
 
@@ -1678,7 +1702,7 @@ void MainImageWindow::LoadRecentLabelDefinitionsTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadLabelDefinitions(file);
 }
 
@@ -1717,7 +1741,10 @@ void MainImageWindow::LoadProject(const QString &file)
   auto *driver = m_Model->GetDriver();
   AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
 
-  ProgressReportDialog *progressDlg = new ProgressReportDialog(tr("Opening workspace..."), this);
+  // The dialog closes itself when the last task is done, but it is only
+  // deleted here, after the driver no longer uses its progress delegate
+  QPointer<ProgressReportDialog> progressDlg =
+    new ProgressReportDialog(tr("Opening workspace..."), this);
   driver->SetProgressDelegate(progressDlg->GetDelegate());
   progressDlg->open();
 
@@ -1727,6 +1754,10 @@ void MainImageWindow::LoadProject(const QString &file)
     IRISWarningList warnings;
     driver->OpenWorkspace(to_utf8(file), warnings);
     }
+  catch(IRISUserCancelException &)
+    {
+    // The user canceled loading, there is nothing to report
+    }
   catch(exception &exc)
     {
     ReportNonLethalException(this, exc, tr("Error Opening Project"),
@@ -1734,8 +1765,12 @@ void MainImageWindow::LoadProject(const QString &file)
     }
 
   driver->SetProgressDelegate(savedDelegate);
-  if (progressDlg->isVisible())
-    progressDlg->done(0);
+  if (progressDlg)
+    {
+    if (progressDlg->isVisible())
+      progressDlg->done(0);
+    progressDlg->deleteLater();
+    }
 }
 
 void MainImageWindow::LoadProjectInNewInstance(const QString &file)
@@ -1783,7 +1818,7 @@ void MainImageWindow::LoadRecentProjectActionTriggered()
 
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadProject(file);
 }
 
@@ -1817,7 +1852,7 @@ void MainImageWindow::on_actionReorient_Image_triggered()
 void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
 {
   // Reset the common zoom factor
-  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
+  m_Model->GetSliceCoordinator()->CycleViewToFitInAllWindows();
 }
 
 void MainImageWindow::on_actionCenter_on_Cursor_triggered()

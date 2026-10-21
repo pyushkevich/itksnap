@@ -109,9 +109,12 @@ SliceWindowCoordinator::OnUpdate()
   // Has a new main image been loaded
   if (this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
   {
-    // Reset the view to fit (depending on linked zoom)
+    // Reset the view to fit the whole scene (depending on linked zoom)
     if (m_ParentModel->GetDriver()->IsMainImageLoaded())
+    {
+      this->ResetFitTargets();
       this->ResetViewToFitInAllWindows();
+    }
   }
 
   // Layer transform moved (e.g. registration drag): each slice model already
@@ -124,18 +127,12 @@ SliceWindowCoordinator::OnUpdate()
     // recomputation of optimal zoom in each window and resetting of the zoom.
     if (m_LinkedZoom && AreSliceModelsInitialized())
     {
-      // Check if the current zoom level matches one of the windows, in which case
-      // we will reapply the optimal zoom to all windows (make them all fit)
-      double common_zoom = GetCommonZoomLevel();
-      bool   rezoom = false;
+      // Check if all windows still show their fit, in which case we will
+      // reapply the optimal zoom to all windows (make them all fit)
+      bool rezoom = true;
       for (unsigned int i = 0; i < 3; i++)
-      {
-        if (common_zoom == m_SliceModel[i]->GetOptimalZoomFullExtent())
-        {
-          rezoom = true;
-          break;
-        }
-      }
+        if (!m_SliceModel[i]->GetViewIsFit())
+          rezoom = false;
 
       // Recompute the optimal zoom in each of the views
       for (unsigned int i = 0; i < 3; i++)
@@ -153,7 +150,7 @@ SliceWindowCoordinator::OnUpdate()
 
 double
 SliceWindowCoordinator
-::ComputeSmallestOptimalZoomLevel()
+::ComputeSmallestOptimalZoomLevel(ZoomFitTarget target)
 {
   assert(m_WindowsRegistered);
 
@@ -167,7 +164,8 @@ SliceWindowCoordinator
     {
     if(dlm->GetViewPanelVisibilityModel(i)->GetValue())
       {
-      double optzoom = m_SliceModel[i]->GetOptimalZoomFullExtent();
+      ZoomFitTarget t = (target == FIT_TARGET_COUNT) ? m_SliceModel[i]->GetFitTarget() : target;
+      double optzoom = m_SliceModel[i]->GetOptimalView(t).zoom;
       if(!foundVisible || minoptzoom > optzoom)
         {
         minoptzoom = optzoom;
@@ -196,10 +194,85 @@ SliceWindowCoordinator
   // If linked zoom, use the smallest optimal zoom level
   if(m_LinkedZoom)
     {
-    double optzoom = ComputeSmallestOptimalZoomLevel();
+    double optzoom = ComputeSmallestOptimalZoomLevel(FIT_TARGET_COUNT);
     if(optzoom > 0.0)
       SetZoomLevelAllWindows(optzoom);
+
+    // The common zoom is part of the fit in each window
+    for(unsigned int i = 0; i < 3; i++)
+      m_SliceModel[i]->MarkViewAsFit();
     }
+}
+
+void
+SliceWindowCoordinator
+::CycleViewToFitInAllWindows()
+{
+  // Only if initialized
+  assert(m_WindowsRegistered);
+  DisplayLayoutModel *dlm = m_ParentModel->GetDisplayLayoutModel();
+
+  // Advance to the next target only if all visible windows still show the
+  // last fit (they have not been zoomed or panned since)
+  bool at_fit = true;
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    if (!dlm->GetViewPanelVisibilityModel(i)->GetValue())
+      continue;
+    auto *sm = m_SliceModel[i];
+    if (sm->GetFitTarget() != m_AllViewsFitTarget || !sm->GetViewIsFit())
+      at_fit = false;
+  }
+
+  // The next target is the next one that looks different from the current
+  // one in at least one visible window
+  ZoomFitTarget target = m_AllViewsFitTarget;
+  if (at_fit)
+  {
+    for (int k = 1; k < FIT_TARGET_COUNT; k++)
+    {
+      ZoomFitTarget t = (ZoomFitTarget)((m_AllViewsFitTarget + k) % FIT_TARGET_COUNT);
+      bool differs = false;
+      for (unsigned int i = 0; i < 3; i++)
+      {
+        auto *sm = m_SliceModel[i];
+        if (dlm->GetViewPanelVisibilityModel(i)->GetValue() &&
+            !sm->GetOptimalView(t).SameInPlane(sm->GetOptimalView(m_AllViewsFitTarget)))
+          differs = true;
+      }
+      if (differs)
+      {
+        target = t;
+        break;
+      }
+    }
+  }
+
+  // Apply the target in all windows
+  m_AllViewsFitTarget = target;
+  for (unsigned int i = 0; i < 3; i++)
+    m_SliceModel[i]->ResetViewToFit(target);
+
+  // If linked zoom, use the smallest optimal zoom level
+  if (m_LinkedZoom)
+  {
+    double optzoom = ComputeSmallestOptimalZoomLevel(target);
+    if (optzoom > 0.0)
+      SetZoomLevelAllWindows(optzoom);
+
+    // The common zoom is part of the fit in each window
+    for (unsigned int i = 0; i < 3; i++)
+      m_SliceModel[i]->MarkViewAsFit();
+  }
+}
+
+void
+SliceWindowCoordinator
+::ResetFitTargets()
+{
+  m_AllViewsFitTarget = FIT_SCENE;
+  for (unsigned int i = 0; i < 3; i++)
+    m_SliceModel[i]->SetFitTarget(FIT_SCENE);
 }
 
 void SliceWindowCoordinator
@@ -234,7 +307,7 @@ SliceWindowCoordinator
     for(unsigned int i=0;i<3;i++)
       {
       m_SliceModel[i]->SetViewZoom(
-            m_SliceModel[i]->GetOptimalZoomFullExtent() * factor);
+            m_SliceModel[i]->GetOptimalView(FIT_SCENE).zoom * factor);
       }
     }
 }
@@ -282,13 +355,16 @@ SliceWindowCoordinator
   // Only if initialized
   assert(m_WindowsRegistered);
 
+  // Fit the next target in this window
+  GenericSliceModel *sm = m_SliceModel[window];
+  ZoomFitTarget target = sm->GetNextFitTarget();
+  sm->ResetViewToFit(target);
+
   // Reset zoom to fit in the current window
   if(m_LinkedZoom)
     {
-    SetZoomLevelAllWindows(m_SliceModel[window]->GetOptimalZoomFullExtent());
+    SetZoomLevelAllWindows(sm->GetOptimalView(target).zoom);
     }
-
-  m_SliceModel[window]->ResetViewToFit();
 }
 
 void
@@ -349,8 +425,19 @@ SliceWindowCoordinator
       minZoom = m_SliceModel[i]->GetViewZoom();
     }
 
+  // If all windows were fit, they still are after taking the smallest of
+  // their fit zooms (that is what fitting with linked zoom does)
+  bool all_fit = true;
+  for(unsigned int i=0; i<3; i++)
+    if(!m_SliceModel[i]->GetViewIsFit())
+      all_fit = false;
+
   // Assign the minimum zoom
   SetZoomLevelAllWindows(minZoom);
+
+  if(all_fit)
+    for(unsigned int i=0; i<3; i++)
+      m_SliceModel[i]->MarkViewAsFit();
 }
 
 
@@ -371,7 +458,7 @@ double SliceWindowCoordinator::GetCommonZoomLevelInLogicalPixels()
 double SliceWindowCoordinator::GetCommonOptimalFitZoomLevel()
 {
   assert(m_LinkedZoom && m_WindowsRegistered);
-  return m_SliceModel[0]->GetOptimalZoomFullExtent();
+  return m_SliceModel[0]->GetOptimalView(FIT_SCENE).zoom;
 }
 
 void
@@ -398,7 +485,7 @@ SliceWindowCoordinator
       maxZoom = (maxZoom == 0.0 || maxZoom < zMax) ? zMax : maxZoom;
 
       // Minimum zoom is just 0.25 of the optimal zoom
-      double zMin = 0.25 * m_SliceModel[i]->GetOptimalZoomFullExtent();
+      double zMin = 0.25 * m_SliceModel[i]->GetOptimalView(FIT_SCENE).zoom;
       minZoom = (minZoom == 0.0 || minZoom > zMin) ? zMin : minZoom;
       }
     }
@@ -428,7 +515,7 @@ SliceWindowCoordinator
       maxZoom = (maxZoom == 0.0 || maxZoom < zMax) ? zMax : maxZoom;
 
       // Minimum zoom is just 0.25 of the optimal zoom
-      double zMin = 0.25 * m_SliceModel[i]->GetOptimalZoomFullExtent();
+      double zMin = 0.25 * m_SliceModel[i]->GetOptimalView(FIT_SCENE).zoom;
       minZoom = (minZoom == 0.0 || minZoom > zMin) ? zMin : minZoom;
       }
     }

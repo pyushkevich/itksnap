@@ -6,10 +6,11 @@
 Rebroadcaster::DispatchMap Rebroadcaster::m_SourceMap;
 Rebroadcaster::DispatchMap Rebroadcaster::m_TargetMap;
 
-unsigned long Rebroadcaster
-::Rebroadcast(itk::Object *source, const itk::EventObject &sourceEvent,
-              itk::Object *target, const itk::EventObject &targetEvent,
-              EventBucket *bucket)
+unsigned long Rebroadcaster ::Rebroadcast(itk::Object            *source,
+                                          const itk::EventObject &sourceEvent,
+                                          itk::Object            *target,
+                                          const itk::EventObject &targetEvent,
+                                          UserCallbackType        callback)
 {
   // Deduplication: if an identical (source, sourceEvent, target, targetEvent)
   // association already exists, return the existing tag rather than creating a
@@ -20,12 +21,32 @@ unsigned long Rebroadcaster
   const char *tgtEvtName = targetEvent.GetEventName();
   if(m_SourceMap.count(source))
     {
-    for(Association *a : m_SourceMap[source])
+    AssociationList &l = m_SourceMap[source];
+    for(AssociationIterator it = l.begin(); it != l.end(); ++it)
       {
+      Association *a = *it;
       if(a->m_Target == target &&
          strcmp(a->m_SourceEventName, srcEvtName) == 0 &&
          strcmp(a->m_TargetEvent->GetEventName(), tgtEvtName) == 0)
+        {
+        // If the observer has been removed from the source behind our back
+        // (RemoveObserver instead of StopRebroadcasting), the association is
+        // stale: discard it and create a new one below
+        if(!a->m_IsForDeleteEvent && !source->GetCommand(a->m_SourceTag))
+          {
+          m_TargetMap[a->m_Target].remove(a);
+          l.erase(it);
+          delete a;
+          break;
+          }
+
+        // Callbacks (std::function) cannot be compared, so they are not part
+        // of the key. If the existing association has no callback, it adopts
+        // the new one, so that the callback is not silently lost.
+        if(callback && !a->m_UserCallback)
+          a->m_UserCallback = callback;
         return a->m_SourceTag;
+        }
       }
     }
 
@@ -43,7 +64,7 @@ unsigned long Rebroadcaster
     }
 
   // Pass the bucket pointer
-  assoc->m_Bucket = bucket;
+  assoc->m_UserCallback = callback;
 
 #ifdef SNAP_DEBUG_EVENTS
   if(flag_snap_debug_events)
@@ -96,14 +117,40 @@ unsigned long Rebroadcaster
   return assoc->m_SourceTag;
 }
 
-unsigned long Rebroadcaster
-::RebroadcastAsSourceEvent(
-    itk::Object *source, const itk::EventObject &sourceEvent,
-    itk::Object *target, EventBucket *bucket)
+unsigned long
+Rebroadcaster ::RebroadcastAsSourceEvent(itk::Object            *source,
+                                         const itk::EventObject &sourceEvent,
+                                         itk::Object            *target,
+                                         UserCallbackType        callback)
 {
   // We just call the main rebroadcast method with RefireEvent() to indicate
   // that the source event should be refired
-  return Rebroadcast(source, sourceEvent, target, RefireEvent(), bucket);
+  return Rebroadcast(source, sourceEvent, target, RefireEvent(), callback);
+}
+
+void Rebroadcaster::StopRebroadcasting(itk::Object *source, unsigned long tag)
+{
+  DispatchMap::iterator itmap = m_SourceMap.find(source);
+  if(itmap == m_SourceMap.end())
+    return;
+
+  AssociationList &l = itmap->second;
+  for(AssociationIterator it = l.begin(); it != l.end(); ++it)
+    {
+    Association *assoc = *it;
+    if(!assoc->m_IsForDeleteEvent && assoc->m_SourceTag == tag)
+      {
+      source->RemoveObserver(tag);
+      m_TargetMap[assoc->m_Target].remove(assoc);
+      l.erase(it);
+      delete assoc;
+      return;
+      }
+    }
+
+  // Note: the (possibly now empty) entries for the source and target stay in
+  // the maps. They record that a delete observer has been added to these
+  // objects, and are removed when the objects are deleted.
 }
 
 void Rebroadcaster::DeleteTargetCallback(
@@ -134,7 +181,9 @@ void Rebroadcaster::DeleteTargetConstCallback(
     if(target != assoc->m_Source)
       assoc->m_Source->RemoveObserver(assoc->m_SourceTag);
 
-    // Remove the association from the source's list
+    // Remove the association from the source's list. The source's entry is
+    // kept even if it becomes empty, since it records that a delete observer
+    // has been added to the source
     m_SourceMap[assoc->m_Source].remove(assoc);
 
     // Delete the association
@@ -196,7 +245,7 @@ Rebroadcaster::Association::Association(
   m_Source = source;
   m_Target = target;
   m_TargetEvent = targetEvent.MakeObject();
-  m_Bucket = NULL;
+  m_UserCallback = nullptr;
   m_SourceTag = 0;
 
   m_SourceObjectName = source->GetNameOfClass();
@@ -237,12 +286,12 @@ void Rebroadcaster::Association::ConstCallback(const itk::Object *source, const 
     }
 #endif // SNAP_DEBUG_EVENTS
 
+  // If there is a bucket, record in it
+  if(m_UserCallback)
+    m_UserCallback(source, evt);
+
   // Rebroadcast the target event
   m_Target->InvokeEvent(*firedEvent);
-
-  // If there is a bucket, record in it
-  if(m_Bucket)
-    m_Bucket->PutEvent(evt, source);
 }
 
 

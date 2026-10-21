@@ -55,7 +55,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   QStandardItem *itemSliceViews = append_category_item(model->invisibleRootItem(), tr("Slice Views"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::BACKGROUND_2D, tr("Background"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS, tr("Crosshair"));
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS_OOB, tr("Crosshair (outside segmentation)"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::REFERENCE_SPACE_BOUNDS, tr("Segmentation bounds"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, tr("Rulers"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, tr("Anatomic Markers"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, tr("ROI Edges"));
@@ -116,6 +116,7 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkSyncPan, dbs->GetSyncPanModel());
   makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
   makeCoupling(ui->chkAutoContrast, dbs->GetAutoContrastModel());
+  makeCoupling(ui->chkHideFileExtensions, dbs->GetHideFileExtensionsModel());
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();

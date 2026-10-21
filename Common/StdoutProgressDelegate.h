@@ -19,7 +19,8 @@ public:
   StdoutProgressDelegate();
 
   std::string StartTask(const char *title, bool trackProgress,
-                        bool useTimeout = false) override;
+                        bool useTimeout = false,
+                        const std::string &titleArg = std::string()) override;
   bool UpdateProgress(const std::string &task_id, double percent) override;
   void CompleteTask(const std::string &task_id) override;
 

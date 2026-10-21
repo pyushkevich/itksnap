@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QCoreApplication>
 #include "AbstractProgressDelegate.h"
 #include "ProgressReportWidget.h"
 
@@ -16,14 +17,20 @@ public:
     : QObject(parent), m_Widget(widget) {}
 
   std::string StartTask(const char *title, bool trackProgress,
-                        bool useTimeout = false) override
+                        bool useTimeout = false,
+                        const std::string &titleArg = std::string()) override
   {
     static int counter = 0;
     counter++;
     size_t hash = std::hash<const char *>{}(title) ^ std::hash<int>{}(counter);
     std::string id = std::string("task") + std::to_string(hash);
-    m_Widget->startTask(QString::fromStdString(id), QString::fromUtf8(title),
-                        trackProgress, useTimeout);
+
+    // Titles are marked with SNAP_TRANSLATE_NOOP("ProgressTask", ...)
+    QString text = QCoreApplication::translate("ProgressTask", title);
+    if (text.contains("%1"))
+      text = text.arg(QString::fromStdString(titleArg));
+
+    m_Widget->startTask(QString::fromStdString(id), text, trackProgress, useTimeout);
     return id;
   }
 

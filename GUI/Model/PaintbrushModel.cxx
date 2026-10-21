@@ -7,6 +7,8 @@
 #include "SegmentationUpdateIterator.h"
 #include "BrushWatershedPipeline.hxx"
 #include "DeepLearningSegmentationModel.h"
+#include "PaintbrushSettingsModel.h"
+#include "IRISException.h"
 
 
 PaintbrushModel::PaintbrushModel()
@@ -56,10 +58,18 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
   auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
   auto newpos = xCrossInteger.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
 
-  /*
-  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
-  Vector3ui newpos = to_unsigned_int(xCrossInteger.clamp(Vector3i(0), xSize - Vector3i(1)));
-  */
+  // If the current slice is outside the reference space, there is nowhere
+  // valid to paint - hide the brush instead of using the clamped (wrong) slice
+  int axis = (int) m_Parent->GetSliceDirectionInImageSpace();
+  if (newpos[axis] != xCrossInteger[axis])
+  {
+    if (m_MouseInside)
+    {
+      m_MouseInside = false;
+      InvokeEvent(PaintbrushMovedEvent());
+    }
+    return;
+  }
 
   if (newpos != m_MousePosition || m_MouseInside == false)
   {
@@ -125,6 +135,16 @@ PaintbrushModel ::ProcessPushEvent(const Vector3d &xSlice, const Vector2ui &grid
 
     // Compute the mouse position
     ComputeMousePosition(xSlice);
+
+    // The current slice may be outside the reference space (e.g. the active
+    // segmentation defines a reference space that doesn't cover this slice)
+    if (!m_MouseInside)
+    {
+      m_IsEngaged = false;
+      throw IRISWarning("Warning: Cannot paint here."
+                         "The current slice is outside the bounds of the "
+                         "segmentation image, so this location cannot be painted.");
+    }
 
     // Check if the right button was pressed
     ApplyBrush(reverse_mode, false, false);
@@ -238,45 +258,49 @@ PaintbrushModel::CommitDrawing()
   PaintbrushSettings pbs = gs->GetPaintbrushSettings();
   LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
 
-  // Handle the deep learning case
-  if (pbs.smart_mode == PAINTBRUSH_DLS)
+  // Handle the deep learning case. Deep learning interactions are along the
+  // slice axes, so in free rotation mode the stroke is kept as drawn (the
+  // deep learning mode button is disabled in this case)
+  if (pbs.smart_mode == PAINTBRUSH_DLS && !HasMainImageTransformed())
   {
     // Get the model
     auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
     auto *img = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
 
-    // Undo the drawing we just did. But there is a chance that the drawing produced nothing in
-    // which case for now we just ignore it
-    seg->StoreUndoPoint("Temporary undo point");
-    if(!seg->IsUndoPossible())
+    // Undo the drawing we just did. The drawing may have changed nothing (e.g.,
+    // a click on voxels that already have the drawing label), in which case no
+    // undo point is created and there is nothing to undo
+    const LabelImageWrapper::UndoDataManagerCommitType *commit = nullptr;
+    if (seg->StoreUndoPoint("Temporary undo point"))
     {
-      return;
+      seg->Undo();
+      commit = &seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
     }
-
-    seg->Undo();
-    auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
+    size_t n_deltas = commit ? commit->GetDeltas().size() : 0;
 
     // Get the remote model properties
-    auto dl_model_props = model->GetRemotePipelines()[pbs.dl_pipeline_id];
+    std::string pipeline_id =
+      m_Parent->GetParentUI()->GetPaintbrushSettingsModel()->GetEffectiveDeepLearningPipeline();
+    auto dl_model_props = model->GetRemotePipelines()[pipeline_id];
 
     // If only one delta, then treat it as a point interaction; also treat as point interaction if the model
     // does not support scribble interactions, although in this case, we might want to consider sending a
     // multi-point interaction
     bool rc = false;
-    if((commit.GetDeltas().size() == 1 && m_MouseInside) || !dl_model_props.supports_scribble)
+    if((n_deltas <= 1 && m_MouseInside) || !dl_model_props.supports_scribble)
     {
-      rc = model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
+      rc = model->PerformPointInteraction(pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
     }
-    else if(commit.GetDeltas().size() > 1)
+    else if(n_deltas > 1)
     {
       // Compute the image corresponding to the last drawing
       SmartPtr<LabelImageWrapper> w_delta = LabelImageWrapper::New();
       w_delta->InitializeToWrapper(seg, (LabelType) 0);
       auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
-      auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
+      auto counts = seg->GenerateImageForRedo(*commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
 
-      model->PerformScribbleInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
+      model->PerformScribbleInteraction(pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
     }
 
   }
@@ -295,7 +319,15 @@ PaintbrushModel::AcceptAtCursor()
 {
   IRISApplication *driver = m_Parent->GetDriver();
 
-  m_MousePosition = m_Parent->GetDriver()->GetCursorPosition();
+  Vector3i cursor = driver->GetCursorPosition();
+  if (!m_Parent->IsSliceInReferenceSpace(cursor))
+  {
+    throw IRISWarning("Warning: Cannot paint here."
+                       "The current slice is outside the bounds of the "
+                       "segmentation image, so this location cannot be painted.");
+  }
+
+  m_MousePosition = cursor;
   m_MouseInside = true;
   ApplyBrush(false, true, true);
   CommitDrawing();
@@ -304,6 +336,13 @@ PaintbrushModel::AcceptAtCursor()
 bool
 PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
 {
+  // The slice may have moved outside the reference space mid-drag; in that
+  // case ComputeMousePosition() already cleared m_MouseInside. Silently skip
+  // painting here rather than clamping to the nearest valid slice (the
+  // initial push already warns about this - see ProcessPushEvent)
+  if (!m_MouseInside)
+    return false;
+
   if (HasMainImageTransformed())
     return ApplyBrushByPolygonRasterization(reverse_mode, dragging);
 
@@ -324,6 +363,21 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
 
   // Whether watershed filter is used (adaptive brush)
   bool flagWatershed = (pbs.smart_mode == PAINTBRUSH_WATERSHED && (!reverse_mode) && (!dragging));
+
+  // The watersheds are computed on the voxels of an image layer, which must be
+  // on the same grid as the segmentation. Use the layer being painted on if it
+  // is, else the main image. If neither is (e.g. the active segmentation has a
+  // different geometry), paint with the plain brush instead.
+  ImageWrapperBase *watershed_layer = nullptr;
+  if (flagWatershed)
+  {
+    watershed_layer = gid->FindLayer(m_ContextLayerId, false);
+    if (!watershed_layer || !watershed_layer->ImageGridMatchesReferenceSpace())
+      watershed_layer = gid->GetMain();
+    if (!watershed_layer->ImageGridMatchesReferenceSpace())
+      watershed_layer = nullptr;
+    flagWatershed = (watershed_layer != nullptr);
+  }
 
   // Define a region of interest
   LabelImageWrapper::ImageType::RegionType xTestRegion;
@@ -349,27 +403,31 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   // Special code for Watershed brush
   if (flagWatershed)
   {
-    // Get the currently engaged layer
-    ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
-    if (!context_layer)
-      context_layer = gid->GetMain();
-
-    // Obtain a cast to float pipeline from the layer
+    // Obtain a cast to float pipeline from the layer chosen above
     // TODO: this causes repeated memory allocation - should probably create when entering mode
     auto *img_source =
-      context_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
+      watershed_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
 
-    // Precompute the watersheds
-    m_Watershed->PrecomputeWatersheds(img_source,
-                                      driver->GetSelectedSegmentationLayer()->GetImage(),
-                                      xTestRegion,
-                                      to_itkIndex(m_MousePosition),
-                                      pbs.watershed.smooth_iterations);
+    // Precompute the watersheds. ITK's watershed filter throws when the region
+    // has a single basin (e.g., the image is constant under the brush). Such a
+    // region is all one watershed, so paint the whole brush.
+    try
+    {
+      m_Watershed->PrecomputeWatersheds(img_source,
+                                        driver->GetSelectedSegmentationLayer()->GetImage(),
+                                        xTestRegion,
+                                        to_itkIndex(m_MousePosition),
+                                        pbs.watershed.smooth_iterations);
 
-    m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+      m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+    }
+    catch (itk::ExceptionObject &)
+    {
+      flagWatershed = false;
+    }
 
     // Release the casting pipeline
-    context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
+    watershed_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
   }
 
   // Shift vector (different depending on whether the brush has odd/even diameter
@@ -419,24 +477,6 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   return true;
 }
 
-bool
-PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
-{
-  // Get the model
-  auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
-  auto *img =
-    m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
-
-  // Handle the point interaction
-  if (m_MouseInside)
-  {
-    return model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, reverse_mode);
-  }
-
-  return false;
-}
-
 PaintbrushSettings
 PaintbrushModel::GetEffectivePaintbrushSettings()
 {
@@ -465,7 +505,7 @@ bool
 PaintbrushModel ::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging)
 {
   // build 2d vertices
-  std::vector<Vector2d> vts2d = m_BrushPoints;
+  std::vector<Vector2d> vts2d = GetBrushOutline();
   Vector3d              ctr = GetCenterOfPaintbrushInSliceSpace();
 
   for (auto &v : vts2d)
@@ -478,4 +518,127 @@ PaintbrushModel ::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragg
   m_Parent->Voxelize2DPolygonToSegmentationSlice(
     vts2d, "Oblique Paintbrush Update", false, reverse_mode);
   return true;
+}
+
+void
+PaintbrushModel::InsertWithCollinearCheck(const Vector2d &head)
+{
+  Vector2d      a, b;
+  int           n = m_BrushOutline.size();
+
+  // Do not insert the same point twice
+  if (n > 0)
+  {
+    b = m_BrushOutline[n - 1];
+    if (fabs(b[0] - head[0]) < 1e-4 && fabs(b[1] - head[1]) < 1e-4)
+      return;
+
+    // Do not insert collinear points
+    if (n > 1)
+    {
+      a = m_BrushOutline[n - 2];
+      double v = (b[0] - a[0]) * (head[1] - a[1]) - (b[1] - a[1]) * (head[0] - a[0]);
+      if (fabs(v) < 1.e-4)
+      {
+        m_BrushOutline[n - 1] = head;
+        return;
+      }
+    }
+  }
+
+  // Safe to append point
+  m_BrushOutline.push_back(head);
+}
+
+const std::vector<Vector2d> &
+PaintbrushModel::GetBrushOutline()
+{
+  // Get the current properties
+  PaintbrushSettings ps = GetEffectivePaintbrushSettings();
+  Vector3d           spref = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSpacing();
+
+  // Check if the cached outline can be used
+  if (m_BrushOutline.size() && spref == m_BrushOutlineSpacing &&
+      ps.radius == m_BrushOutlineSettings.radius && ps.isotropic == m_BrushOutlineSettings.isotropic &&
+      ps.shape == m_BrushOutlineSettings.shape && ps.volumetric == m_BrushOutlineSettings.volumetric)
+    return m_BrushOutline;
+
+  // Cache the current settings
+  m_BrushOutlineSettings = ps;
+  m_BrushOutlineSpacing = spref;
+
+  // Create the new walk
+  m_BrushOutline.clear();
+
+  // This is a simple 2D marching algorithm. At any given state of the
+  // marching, there is a 'tail' and a 'head' of an arrow. To the right
+  // of the arrow is a voxel that's inside the brush and to the left a
+  // voxel that's outside. Depending on the two voxels that are
+  // ahead of the arrow to the left and right (in in, in out, out out)
+  // at the next step the arrow turns right, continues straight or turns
+  // left. This goes on until convergence
+
+  // Initialize the marching. This requires constructing the first arrow
+  // and marching it to the left until it is between out and in voxels.
+  // If the brush has even diameter, the arrow is from (0,0) to (1,0). If
+  // the brush has odd diameter (center at voxel center) then the arrow
+  // is from (-0.5, -0.5) to (-0.5, 0.5)
+  Vector2d xTail, xHead;
+  if (fmod(ps.radius, 1.0) == 0)
+  {
+    xTail = Vector2d(0.0, 0.0);
+    xHead = Vector2d(0.0, 1.0);
+  }
+  else
+  {
+    xTail = Vector2d(-0.5, -0.5);
+    xHead = Vector2d(-0.5, 0.5);
+  }
+
+  // Shift the arrow to the left until it is in position
+  while (TestInside(Vector2d(xTail(0) - 0.5, xTail(1) + 0.5), ps))
+  {
+    xTail(0) -= 1.0;
+    xHead(0) -= 1.0;
+  }
+
+  // Record the starting point, which is the current tail. Once the head
+  // returns to the starting point, the loop is done
+  Vector2d xStart = xTail;
+
+  // Add the first vertex
+  InsertWithCollinearCheck(xStart);
+
+  // Do the loop
+  size_t n = 0;
+  while ((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
+  {
+    // Add the current head to the loop
+    InsertWithCollinearCheck(xHead);
+
+    // Check the voxels ahead to the right and left
+    Vector2d xStep = xHead - xTail;
+    Vector2d xLeft(-xStep(1), xStep(0));
+    Vector2d xRight(xStep(1), -xStep(0));
+    bool     il = TestInside(xHead + 0.5 * (xStep + xLeft), ps);
+    bool     ir = TestInside(xHead + 0.5 * (xStep + xRight), ps);
+
+    // Update the tail
+    xTail = xHead;
+
+    // Decide which way to go
+    if (il && ir)
+      xHead += xLeft;
+    else if (!il && ir)
+      xHead += xStep;
+    else if (!il && !ir)
+      xHead += xRight;
+    else
+      assert(0);
+  }
+
+  // Add the last vertex
+  InsertWithCollinearCheck(xStart);
+
+  return m_BrushOutline;
 }
