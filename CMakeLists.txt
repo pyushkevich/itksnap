@@ -1621,6 +1621,14 @@ TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
 
+# Test: label description files with Windows line endings or no header are recognized
+ADD_EXECUTABLE(TestColorLabelTableFile
+    Testing/Logic/TestColorLabelTableFile.cxx)
+TARGET_LINK_LIBRARIES(TestColorLabelTableFile ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestColorLabelTableFile PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestColorLabelTableFile COMMAND TestColorLabelTableFile ${TEMP})
+
 # Test: NRRD sequence (.seq.nrrd) export round-trips geometry and voxel values
 ADD_EXECUTABLE(TestNrrdSequenceIO
     Testing/Logic/TestNrrdSequenceIO.cxx)
