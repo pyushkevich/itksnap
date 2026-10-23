@@ -35,6 +35,11 @@
 #include "ImageCoordinateGeometry.h"
 #include "IRISException.h"
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+
 const char ImageCoordinateGeometry::m_RAICodes[3][2] = {
   {'R', 'L'},
   {'A', 'P'},
@@ -229,29 +234,42 @@ ImageCoordinateGeometry
   const static std::string rai_start("RAI"), rai_end("LPS");
   std::string rai_out("...");
 
-  for(size_t i = 0; i < 3; i++)
+  // Find the globally closest one-to-one assignment between image axes
+  // (matrix columns) and anatomical axes (matrix rows). Selecting the
+  // largest entry in every column independently can assign the same
+  // anatomical axis more than once for strongly oblique images, producing
+  // invalid codes such as SAP, SAA, or IRI. For a direction cosine matrix,
+  // the signed cardinal matrix closest in Frobenius norm is obtained by
+  // choosing the row permutation that maximizes the sum of the selected
+  // absolute direction cosines. There are only 3! = 6 assignments.
+  std::array<size_t, 3> permutation = {{0, 1, 2}};
+  std::array<size_t, 3> best_permutation = permutation;
+  double best_score = -std::numeric_limits<double>::infinity();
+
+  do
     {
-    // Get the direction of the i-th voxel coordinate
-    vnl_vector<double> dir_i = mat.get_column(i);
-
-    // Get the maximum angle with any axis
-    double maxabs_i = dir_i.inf_norm();
-    for(size_t off = 0; off < 3; off++)
+    double score = 0.0;
+    for(size_t i = 0; i < 3; ++i)
       {
-      // This trick allows us to visit (i,i) first, so that if one of the
-      // direction cosines makes the same angle with two of the axes, we 
-      // can still assign a valid RAI code
-      size_t j = (i + off) % 3;
+      score += std::fabs(mat(permutation[i], i));
+      }
 
-      // Is j the best-matching direction?
-      if(fabs(dir_i[j]) == maxabs_i)
-        {
-        rai_out[i] = dir_i[j] > 0 ? rai_start[j] : rai_end[j];
-        break;
-        }
+    // Keep the first permutation on exact ties. Since permutations are
+    // visited lexicographically, an axis-aligned identity remains RAI.
+    if(score > best_score)
+      {
+      best_score = score;
+      best_permutation = permutation;
       }
     }
-      
+  while(std::next_permutation(permutation.begin(), permutation.end()));
+
+  for(size_t i = 0; i < 3; ++i)
+    {
+    const size_t j = best_permutation[i];
+    rai_out[i] = mat(j, i) > 0 ? rai_start[j] : rai_end[j];
+    }
+
   return rai_out;
 }
 
