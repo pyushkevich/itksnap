@@ -199,6 +199,14 @@ SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NA
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 
+# Package version and vendor. Without these, CPack falls back to its defaults
+# (0.1.1 and "Humanity"), which the NSIS installer writes to Add/Remove Programs
+SET(CPACK_PACKAGE_VERSION "${SNAP_VERSION_FULL}")
+SET(CPACK_PACKAGE_VERSION_MAJOR "${SNAP_VERSION_MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${SNAP_VERSION_MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${SNAP_VERSION_PATCH}")
+SET(CPACK_PACKAGE_VENDOR "itksnap.org")
+
 #--------------------------------------------------------------------------------
 # SOURCE FILE SPECIFICATION                 
 #--------------------------------------------------------------------------------
@@ -1292,6 +1300,19 @@ IF(WIN32)
 
 ENDIF(WIN32)
 
+# On Windows, embed a VERSIONINFO resource so that the version and publisher
+# can be read from the executable (Explorer, deployment tools)
+FUNCTION(snap_add_version_resource target description)
+  IF(WIN32)
+    SET(SNAP_RC_TARGET ${target})
+    SET(SNAP_RC_DESCRIPTION ${description})
+    STRING(SUBSTRING ${SNAP_VERSION_RELEASE_DATE} 0 4 SNAP_RC_YEAR)
+    SET(rc_file ${SNAP_BINARY_DIR}/Win32/${target}_version.rc)
+    CONFIGURE_FILE(${SNAP_SOURCE_DIR}/Utilities/Win32/version.rc.in ${rc_file} @ONLY)
+    TARGET_SOURCES(${target} PRIVATE ${rc_file})
+  ENDIF(WIN32)
+ENDFUNCTION()
+
 
 # Define the main SNAP executable
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
@@ -1301,6 +1322,7 @@ qt_add_executable(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} PRIVATE ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+snap_add_version_resource(${SNAP_BUNDLE_NAME} "ITK-SNAP")
 
 #--------------------------------------------------------------------------------
 # QT Internationalization
@@ -1909,7 +1931,11 @@ ELSEIF(WIN32)
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
-  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
+
+  # Give it a windowsy directory name. This must be set before it is used for
+  # the display name in Add/Remove Programs below
+  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
+  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY}")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
   SET(CPACK_NSIS_MODIFY_PATH ON)
@@ -1920,9 +1946,6 @@ ELSEIF(WIN32)
     SET(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
   ENDIF(CMAKE_CL_64)
 
-  # Give it a windowsy directory name
-  SET(CPACK_PACKAGE_INSTALL_DIRECTORY "ITK-SNAP ${SNAP_VERSION_MAJOR}.${SNAP_VERSION_MINOR}")
-  
   # On Win32, the executable is the actual exe
   SET(CPACK_PACKAGE_EXECUTABLES ITK-SNAP "ITK-SNAP")
 
