@@ -1141,6 +1141,7 @@ IF( MSVC )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
   ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+  add_compile_options(/MP)
 ENDIF( MSVC )
   
 # Keep windows.h (pulled in e.g. by libssh via winsock2.h) from defining min
