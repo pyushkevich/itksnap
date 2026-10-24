@@ -25,6 +25,7 @@
 - Deep learning segmentation (DLS):
   - SAM2 support, and a choice of model for the paintbrush and the polygon (lasso) tools; the chosen model is remembered
   - Images are sent to the server on the grid of the active segmentation
+  - Requires server version 0.1.6 or later (`pip install -U itksnap-dls`). Older servers gave every session the same ID, so two ITK-SNAP windows or users sharing a server overwrote each other's sessions
 - Crash recovery: segmentations with unsaved changes are autosaved every 5 minutes (`--autosave SECONDS` changes the interval; 0 turns it off). After a crash of any kind, the next launch tells you where the recovered files are. The autosave runs in the background and doesn't mark the segmentation as saved.
 - The Getting Started page links to sample datasets ([on Hugging Face](https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data)), which open in the current window
 - The snake (active contour) wizard panel now has the classifier's neighborhood and coordinate feature options, which were only in the speed image dialog before
