@@ -52,8 +52,9 @@ inline std::pair<QString, QString> DLSConnectionStatusText::Get(dls_model::Conne
       return
       {
         "darkred", tr("Server version %1 is too old; %2+ required")
-                     .arg(QString::fromStdString(value.message),
-                          DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION)
+                       .arg(QString::fromStdString(value.message),
+                            DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION) +
+                     " " + tr("Upgrade it with: pip install -U itksnap-dls")
       };
 
     case dls_model::CONN_CONNECTED:

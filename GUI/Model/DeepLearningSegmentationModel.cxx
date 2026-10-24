@@ -17,8 +17,9 @@
 #include <cstring>
 #include "itksys/MD5.h"
 
-// Minimum server version
-const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.2";
+// Minimum server version. Servers before 0.1.6 give every session the same ID,
+// so two clients of one server overwrite each other's sessions
+const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.6";
 
 typedef std::chrono::high_resolution_clock Clock;
 
