@@ -233,7 +233,8 @@ function getLayerResolutionInfo(rowObjectName)
         spacingZ: parseFloat(engine.getChildProperty(dlg, "outSpacingZ", "text")),
         dimX: engine.getChildProperty(dlg, "outDimX", "text"),
         dimY: engine.getChildProperty(dlg, "outDimY", "text"),
-        dimZ: engine.getChildProperty(dlg, "outDimZ", "text")
+        dimZ: engine.getChildProperty(dlg, "outDimZ", "text"),
+        orientation: engine.getChildProperty(dlg, "outRAI", "text")
     };
 
     //=== Close the inspector dialog
