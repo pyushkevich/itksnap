@@ -443,7 +443,21 @@ jobs:
             export PATH="$(cygpath -u "$MESA_DIR"):$PATH"
           fi
           # Print the output of failing tests, which CDash shows but the log otherwise doesn't
-          ${{ matrix.ctest_cmd }} -D ExperimentalTest --output-on-failure
+          ${{ matrix.ctest_cmd }} -D ExperimentalTest --output-on-failure || true
+          # Check the test report rather than the exit code. Failing here (continue-on-error)
+          # still lets the CDash submit run; the Gatekeeper then fails the job.
+          TAG=$(head -n 1 Testing/TAG)
+          if [ ! -f "Testing/$TAG/Test.xml" ]; then
+            echo "::error::No test results were written"
+            exit 1
+          fi
+          N_FAILED=$(grep -cE '<Test Status="(failed|notrun)"' "Testing/$TAG/Test.xml" || true)
+          if [ "$N_FAILED" != "0" ]; then
+            echo "::error::$N_FAILED test(s) failed or did not run:"
+            grep -A1 -E '<Test Status="(failed|notrun)"' "Testing/$TAG/Test.xml" \
+              | sed -n 's/.*<Name>\(.*\)<\/Name>.*/  \1/p'
+            exit 1
+          fi
 
       - name: ITK-SNAP Dashboard -- Submit
         id: ctest-submit
@@ -453,10 +467,10 @@ jobs:
         run: |
           ${{ matrix.ctest_cmd }} -D ExperimentalSubmit
 
-      # Fail the job if the configure or build failed, or the CDash submit failed. Failing
-      # tests don't stop the job (some are allowed to fail); they are reported on CDash.
+      # Fail the job if the configure or build failed, a test failed, or the CDash submit
+      # failed. When testing is skipped, the test step's outcome is 'skipped', which passes.
       - name: ITK-SNAP Dashboard -- Gatekeeper
-        if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
+        if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-test.outcome == 'failure' || steps.ctest-submit.outcome != 'success' }}
         run: exit -1
 
       # Cache the ITK-SNAP build, for master only: each entry is about 400 MB, and saving one

@@ -34,7 +34,14 @@
 - A clear error message instead of a crash when an image is too large for the available memory
 - Long filenames and layer names are shortened in the middle, so that both their start and their end stay visible; layer nicknames keep periods in the filename (e.g. `T1_0.8mm.nii.gz` is now `T1_0.8mm`, not `T1_0`). A new preference shows file extensions in layer nicknames.
 - The Layer Inspector title shows the selected layer
-- New user interface languages: French, Japanese and Brazilian Portuguese. The German, Spanish and Chinese (Simplified) translations are updated for the new features, and default layer and label names are now translated too. The language follows the system settings, or can be chosen with `--lang` (e.g. `--lang fr`)
+- New user interface languages: French, Japanese and Brazilian Portuguese. The German, Spanish and Chinese (Simplified) translations are updated for the new features, and default layer and label names are now translated too.
+- Choosing the language:
+  - The language now follows the user's preferred languages. Before, the region setting could override them, e.g. English macOS with a German region showed the German UI
+  - The language can be chosen in Preferences (General tab), which Help > Language opens, or with `--lang` (e.g. `--lang fr`). A new choice takes effect after a restart
+- Preferences dialog:
+  - Changes take effect right away, without OK or Apply. Revert Changes undoes the changes made since the dialog was opened
+  - Each tab has a Reset to Defaults button
+  - The synchronization options are shown as a nested list
 
 ### Security
 
@@ -65,7 +72,20 @@
 - Host names and server messages in SSH dialogs are shown as plain text
 - Remote downloads follow HTTP redirects, can be cancelled, are aborted when the connection stalls, and leave no temporary files behind
 - Fixed the remote file cache when several ITK-SNAP windows use it at once
-- Fixed a hang when opening some DICOM files, and memory leaks in mesh and layer handling and the network code
+- DICOM:
+  - A CT exam from GE or Siemens with several series was read as a single 4D CTA series, and the first series was always loaded. Now the series can be chosen, and only a series with several images at each position is read as 4D CTA
+  - A series whose files write the slice thickness differently (e.g. `0.625000` and `0.625`) is no longer split in two
+  - Fixed a hang when opening some DICOM files
+- Fixed memory leaks in mesh and layer handling and the network code
+- The Layer Inspector shows the orientation of the selected layer, not always that of the main image
+- Label description files with Windows line endings or without the header line can be dropped on the main window and imported
+- Errors while painting with the brush are reported, instead of making ITK-SNAP quit
+- Fixed a crash when a drop contains no files
+- Windows:
+  - NRRD images were read with wrong spacing when the system uses a decimal comma
+  - ITK-SNAP quit silently when a file given on the command line didn't exist; now it reports the missing file
+  - The installer shows the right name, version and publisher in Apps & Features, and the executables carry version information
+- macOS: the `itksnap` command-line launcher works when the application path contains spaces
 - A 4D echocardiography DICOM file that can't be read shows an error instead of crashing
 - Various other fixes (see GitHub)
 
