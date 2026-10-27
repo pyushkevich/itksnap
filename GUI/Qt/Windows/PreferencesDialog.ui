@@ -55,6 +55,54 @@ font-weight:bold;</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_11">
            <item>
+            <layout class="QHBoxLayout" name="lytLanguage">
+             <item>
+              <widget class="QLabel" name="lblLanguageIcon">
+               <property name="pixmap">
+                <pixmap resource="../Resources/SNAPResources.qrc">:/root/material_translate_16.png</pixmap>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblLanguage">
+               <property name="text">
+                <string>Language:</string>
+               </property>
+               <property name="buddy">
+                <cstring>inLanguage</cstring>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="inLanguage">
+               <property name="toolTip">
+                <string>Language of the user interface. Takes effect the next time ITK-SNAP starts.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblLanguageRestart">
+               <property name="text">
+                <string>Restart ITK-SNAP to use the new language</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="spcLanguage">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
             <widget class="QCheckBox" name="chkAutoContrast">
              <property name="toolTip">
               <string>When this option is checked, image contrast will be adjusted automatically based on the image histogram whenever a new image is loaded into ITK-SNAP.</string>
@@ -96,36 +144,23 @@ font-weight:bold;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox">
-             <property name="title">
-              <string/>
+            <widget class="QWidget" name="wgtSyncOptions">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <layout class="QVBoxLayout" name="lytSyncOptions">
               <property name="leftMargin">
-               <number>6</number>
+               <number>24</number>
               </property>
               <property name="topMargin">
-               <number>6</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
-               <number>6</number>
+               <number>0</number>
               </property>
               <property name="bottomMargin">
-               <number>6</number>
+               <number>0</number>
               </property>
-              <item>
-               <spacer name="horizontalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Orientation::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item>
                <widget class="QCheckBox" name="chkSyncCursor">
                 <property name="text">
@@ -1860,6 +1895,7 @@ color:white;</string>
  <tabstops>
   <tabstop>listWidget</tabstop>
   <tabstop>tabWidgetGeneral</tabstop>
+  <tabstop>inLanguage</tabstop>
   <tabstop>chkLinkedZoom</tabstop>
   <tabstop>chkContinuousUpdate</tabstop>
   <tabstop>chkSynchronize</tabstop>

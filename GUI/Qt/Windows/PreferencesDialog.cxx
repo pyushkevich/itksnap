@@ -17,11 +17,13 @@
 #include "QtWidgetActivator.h"
 #include "GlobalUIModel.h"
 #include "ColorMapModel.h"
+#include "SNAPQtCommon.h"
 
 #include <QTreeView>
 #include <QPushButton>
 #include <QtAbstractItemViewCoupling.h>
 #include <QInputDialog>
+#include <QDir>
 #include <QMessageBox>
 #include <QtConcurrent>
 
@@ -90,6 +92,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
 
+  // Set up the list of languages
+  PopulateLanguages();
+
   // Create slice layout view icon paths
   for (int i = 0; i < 3; ++i)
     m_SliceLayoutPixmapPaths[i].SetDialog(this);
@@ -117,6 +122,9 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
   makeCoupling(ui->chkAutoContrast, dbs->GetAutoContrastModel());
   makeCoupling(ui->chkHideFileExtensions, dbs->GetHideFileExtensionsModel());
+  makeCoupling(ui->inLanguage, dbs->GetUILanguageModel());
+  activateOnFlag(ui->lblLanguageRestart, m_Model, GlobalPreferencesModel::UIF_UI_LANGUAGE_CHANGED,
+                 QtWidgetActivator::HideInactive);
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
@@ -435,6 +443,55 @@ PreferencesDialog::onModelUpdate(const EventBucket &bucket)
 
 }
 
+
+void
+PreferencesDialog::PopulateLanguages()
+{
+  // Keep the English word next to the translated one, so that a user who
+  // can't read the current language can still find this setting
+  QString label = tr("Language:");
+  if (label != QStringLiteral("Language:"))
+    label = QString("%1 (Language)").arg(label);
+  ui->lblLanguage->setText(label);
+
+  // An empty code means the language follows the system settings
+  ui->inLanguage->clear();
+  ui->inLanguage->addItem(tr("System default"), QVariant::fromValue(std::string()));
+
+  // Qt names some languages for the territory it assumes (e.g., "American
+  // English" for en, "español de España" for es), so name these explicitly
+  QMap<QString, QString> names;
+  names["en"] = QStringLiteral("English");
+  names["es"] = QStringLiteral("Español");
+  names["zh_CN"] = QStringLiteral("简体中文");
+
+  // Offer each translation built into ITK-SNAP, named in its own language
+  QStringList files = QDir(":/i18n").entryList(QStringList() << "itksnap_*.qm", QDir::Files, QDir::Name);
+  for (const QString &file : files)
+  {
+    QString code = file.mid(QString("itksnap_").length());
+    code.chop(QString(".qm").length());
+
+    QString name = names.value(code);
+    if (name.isEmpty())
+    {
+      QLocale l(code);
+      name = l.nativeLanguageName();
+      if (code.contains('_'))
+        name += QString(" (%1)").arg(l.nativeTerritoryName());
+      if (name.size())
+        name[0] = name[0].toUpper();
+    }
+
+    ui->inLanguage->addItem(name, QVariant::fromValue(to_utf8(code)));
+  }
+}
+
+void
+PreferencesDialog::on_chkSynchronize_toggled(bool check)
+{
+  ui->wgtSyncOptions->setEnabled(check);
+}
 
 void
 PreferencesDialog::UpdateColorMapPresets()

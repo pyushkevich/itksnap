@@ -29,7 +29,8 @@ public:
 
   // State flags
   enum UIState {
-    UIF_VALID_UI_ELEMENT_SELECTED
+    UIF_VALID_UI_ELEMENT_SELECTED,
+    UIF_UI_LANGUAGE_CHANGED
   };
 
   bool CheckState(UIState state);
@@ -42,6 +43,15 @@ public:
   // be exposed to the GUI as a boolean model, whereas internally it is
   // of an ENUM type
   irisSimplePropertyAccessMacro(CheckForUpdate, bool)
+
+  /**
+   * The translation in use (e.g., "de", or "en" for the untranslated user
+   * interface) and the one that "System default" selects. These are set at
+   * startup, so that the dialog can tell whether a new language choice needs
+   * a restart to take effect.
+   */
+  irisGetSetMacro(ActiveUILanguage, std::string)
+  irisGetSetMacro(SystemUILanguage, std::string)
 
   // Screen layout
   irisGetMacro(GlobalDisplaySettings, GlobalDisplaySettings *)
@@ -126,6 +136,9 @@ protected:
   // Layout label
   SmartPtr<AbstractSimpleStringProperty> m_LayoutLabelModel[3];
   bool GetLayoutLabelIndexedValue(int index, std::string &value);
+
+  // Translation in use and the one selected by "System default"
+  std::string m_ActiveUILanguage, m_SystemUILanguage;
 
   // Parent model
   GlobalUIModel *m_ParentModel;

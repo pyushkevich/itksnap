@@ -21,9 +21,12 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 	    <string>en</string>
-			<string>es</string>
-			<string>zh-Hans</string>
 			<string>de</string>
+			<string>es</string>
+			<string>fr</string>
+			<string>ja</string>
+			<string>pt-BR</string>
+			<string>zh-Hans</string>
 	</array>
 	<key>CFBundleSignature</key>
 	<string>itksnap</string>

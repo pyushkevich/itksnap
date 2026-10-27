@@ -39,6 +39,9 @@ GlobalPreferencesModel::GlobalPreferencesModel()
           m_GlobalDisplaySettings->GetSliceLayoutModel());
     }
 
+  // Choosing a language changes whether a restart is needed
+  Rebroadcast(m_DefaultBehaviorSettings->GetUILanguageModel(),
+              ValueChangedEvent(), StateMachineChangeEvent());
 }
 
 bool GlobalPreferencesModel::GetCheckForUpdateValue(bool &outValue)
@@ -119,6 +122,13 @@ bool GlobalPreferencesModel::CheckState(GlobalPreferencesModel::UIState state)
     {
     case GlobalPreferencesModel::UIF_VALID_UI_ELEMENT_SELECTED:
       return m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT;
+    case GlobalPreferencesModel::UIF_UI_LANGUAGE_CHANGED:
+      {
+      std::string selected = m_DefaultBehaviorSettings->GetUILanguage();
+      if (selected.empty())
+        selected = m_SystemUILanguage;
+      return selected != m_ActiveUILanguage;
+      }
     }
   return false;
 }

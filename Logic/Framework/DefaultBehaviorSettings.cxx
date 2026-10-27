@@ -14,6 +14,7 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
 
   m_AutoContrastModel = NewSimpleProperty("AutoContrast", false);
   m_HideFileExtensionsModel = NewSimpleProperty("HideFileExtensions", true);
+  m_UILanguageModel = NewSimpleProperty("UILanguage", std::string());
 
   // Permissions
   RegistryEnumMap<UpdateCheckingPermission> remUpdate;

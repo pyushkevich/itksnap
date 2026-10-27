@@ -66,6 +66,8 @@ private slots:
 
   void on_PreferencesDialog_accepted();
 
+  void on_chkSynchronize_toggled(bool check);
+
 private:
   Ui::PreferencesDialog *ui;
 
@@ -73,6 +75,9 @@ private:
 
   // Fill the color map presets
   void UpdateColorMapPresets();
+
+  // Fill the list of user interface languages
+  void PopulateLanguages();
 
   // Helper methods for building the appearance tree
   QStandardItem *append_appearance_item(
