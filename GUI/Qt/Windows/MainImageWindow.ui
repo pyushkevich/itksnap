@@ -743,6 +743,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="separator"/>
     <addaction name="actionInstallCLI"/>
     <addaction name="actionCheck_for_Updates"/>
+    <addaction name="actionLanguage"/>
     <addaction name="separator"/>
     <addaction name="actionDocumentation_Home"/>
    </widget>
@@ -1550,6 +1551,18 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionCheck_for_Updates">
    <property name="text">
     <string>Check for Software Updates ...</string>
+   </property>
+  </action>
+  <action name="actionLanguage">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/material_translate_16.png</normaloff>:/root/material_translate_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Language ...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionDocumentation_Home">

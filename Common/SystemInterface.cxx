@@ -183,7 +183,13 @@ SystemInterface
      throw IRISException("Unable to create application data directory %s.", appdir.c_str());
 
   // Set the preferences file
-  m_UserPreferenceFile = appdir + "/UserPreferences.xml";
+  m_UserPreferenceFile = GetUserPreferencesFilePath();
+}
+
+std::string
+SystemInterface::GetUserPreferencesFilePath()
+{
+  return GetApplicationDataDirectory() + "/UserPreferences.xml";
 }
 
 SystemInterface

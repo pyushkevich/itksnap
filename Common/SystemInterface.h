@@ -186,7 +186,14 @@ public:
   void LaunchChildSNAPSimple(std::list<std::string> args);
 
   /** Get the directory where per-user application data (preferences, cache, etc.) are stored. */
-  std::string GetApplicationDataDirectory();
+  static std::string GetApplicationDataDirectory();
+
+  /**
+   * Get the path of the user preferences file. Unlike GetUserPreferencesFileName,
+   * this can be called before SystemInterface is constructed, e.g., to read the
+   * user interface language before any translated text is created.
+   */
+  static std::string GetUserPreferencesFilePath();
 
 private:
   std::string m_UserPreferenceFile;

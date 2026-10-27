@@ -17,11 +17,13 @@
 #include "QtWidgetActivator.h"
 #include "GlobalUIModel.h"
 #include "ColorMapModel.h"
+#include "SNAPQtCommon.h"
 
 #include <QTreeView>
 #include <QPushButton>
 #include <QtAbstractItemViewCoupling.h>
 #include <QInputDialog>
+#include <QDir>
 #include <QMessageBox>
 #include <QtConcurrent>
 
@@ -90,6 +92,15 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
 
+  // Set up the list of languages
+  PopulateLanguages();
+
+  // Changes take effect right away, so instead of Apply and Cancel the dialog
+  // has a button that restores the preferences it had when it was opened
+  m_RevertButton = ui->buttonBox->addButton(tr("Revert Changes"), QDialogButtonBox::ResetRole);
+  m_RevertButton->setObjectName("btnRevert");
+  m_RevertButton->setToolTip(tr("Restore the preferences to how they were when this dialog was opened"));
+
   // Create slice layout view icon paths
   for (int i = 0; i < 3; ++i)
     m_SliceLayoutPixmapPaths[i].SetDialog(this);
@@ -117,6 +128,9 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
   makeCoupling(ui->chkAutoContrast, dbs->GetAutoContrastModel());
   makeCoupling(ui->chkHideFileExtensions, dbs->GetHideFileExtensionsModel());
+  makeCoupling(ui->inLanguage, dbs->GetUILanguageModel());
+  activateOnFlag(ui->lblLanguageRestart, m_Model, GlobalPreferencesModel::UIF_UI_LANGUAGE_CHANGED,
+                 QtWidgetActivator::HideInactive);
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
@@ -239,7 +253,7 @@ PreferencesDialog::ShowDialog()
 {
   if (!this->isVisible())
   {
-    m_Model->InitializePreferences();
+    m_Model->StorePreferencesForRevert();
     ui->listWidget->setCurrentRow(0);
     this->show();
   }
@@ -327,14 +341,8 @@ PreferencesDialog::on_listWidget_itemSelectionChanged()
 void
 PreferencesDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
-  {
-    m_Model->ApplyPreferences();
-  }
-  else if (button == ui->buttonBox->button(QDialogButtonBox::Ok))
-  {
-    this->accept();
-  }
+  if (button == m_RevertButton)
+    m_Model->RevertPreferences();
 }
 
 void
@@ -347,6 +355,42 @@ void
 PreferencesDialog::on_btnElementResetAll_clicked()
 {
   m_Model->ResetAllElements();
+}
+
+void
+PreferencesDialog::on_btnResetDefaultBehavior_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_DEFAULT_BEHAVIOR);
+}
+
+void
+PreferencesDialog::on_btnResetSliceViewsDisplay_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_SLICE_VIEWS_DISPLAY);
+}
+
+void
+PreferencesDialog::on_btnResetSliceViewsLayout_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_SLICE_VIEWS_LAYOUT);
+}
+
+void
+PreferencesDialog::on_btnResetSmoothing_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_MESH_SMOOTHING);
+}
+
+void
+PreferencesDialog::on_btnResetDecimation_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_MESH_DECIMATION);
+}
+
+void
+PreferencesDialog::on_btnResetTools_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_TOOLS);
 }
 
 // Methods
@@ -437,6 +481,55 @@ PreferencesDialog::onModelUpdate(const EventBucket &bucket)
 
 
 void
+PreferencesDialog::PopulateLanguages()
+{
+  // Keep the English word next to the translated one, so that a user who
+  // can't read the current language can still find this setting
+  QString label = tr("Language:");
+  if (label != QStringLiteral("Language:"))
+    label = QString("%1 (Language)").arg(label);
+  ui->lblLanguage->setText(label);
+
+  // An empty code means the language follows the system settings
+  ui->inLanguage->clear();
+  ui->inLanguage->addItem(tr("System default"), QVariant::fromValue(std::string()));
+
+  // Qt names some languages for the territory it assumes (e.g., "American
+  // English" for en, "español de España" for es), so name these explicitly
+  QMap<QString, QString> names;
+  names["en"] = QStringLiteral("English");
+  names["es"] = QStringLiteral("Español");
+  names["zh_CN"] = QStringLiteral("简体中文");
+
+  // Offer each translation built into ITK-SNAP, named in its own language
+  QStringList files = QDir(":/i18n").entryList(QStringList() << "itksnap_*.qm", QDir::Files, QDir::Name);
+  for (const QString &file : files)
+  {
+    QString code = file.mid(QString("itksnap_").length());
+    code.chop(QString(".qm").length());
+
+    QString name = names.value(code);
+    if (name.isEmpty())
+    {
+      QLocale l(code);
+      name = l.nativeLanguageName();
+      if (code.contains('_'))
+        name += QString(" (%1)").arg(l.nativeTerritoryName());
+      if (name.size())
+        name[0] = name[0].toUpper();
+    }
+
+    ui->inLanguage->addItem(name, QVariant::fromValue(to_utf8(code)));
+  }
+}
+
+void
+PreferencesDialog::on_chkSynchronize_toggled(bool check)
+{
+  ui->wgtSyncOptions->setEnabled(check);
+}
+
+void
 PreferencesDialog::UpdateColorMapPresets()
 {
   ColorMapModel *cmm = m_Model->GetParentModel()->GetColorMapModel();
@@ -464,9 +557,3 @@ PreferencesDialog::append_category_item(QStandardItem *parent, const QString &te
   return item;
 }
 
-
-void
-PreferencesDialog::on_PreferencesDialog_accepted()
-{
-  m_Model->ApplyPreferences();
-}

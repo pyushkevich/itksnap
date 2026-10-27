@@ -5,40 +5,37 @@
 #include "GlobalState.h"
 #include "DefaultBehaviorSettings.h"
 #include "IRISApplication.h"
+#include "SNAPEventListenerCallbacks.h"
 
 GlobalPreferencesModel::GlobalPreferencesModel()
 {
-  // Create all the property containers owned by the model. These hold copies
-  // of the property containers stored in the system.
-  m_DefaultBehaviorSettings = DefaultBehaviorSettings::New();
-  m_GlobalDisplaySettings = GlobalDisplaySettings::New();
-  m_MeshOptions = MeshOptions::New();
+  // Create the copies of the preferences stored for revert. The preferences
+  // themselves belong to the system, and are set in SetParentModel()
+  m_SavedDefaultBehaviorSettings = DefaultBehaviorSettings::New();
+  m_SavedGlobalDisplaySettings = GlobalDisplaySettings::New();
+  m_SavedMeshOptions = MeshOptions::New();
+  for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
+    m_SavedElementAppearance[i] = OpenGLAppearanceElement::New();
 
   m_CheckForUpdateModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetCheckForUpdateValue, &Self::SetCheckForUpdateValue);
-  m_CheckForUpdateModel->RebroadcastFromSourceProperty(
-        m_DefaultBehaviorSettings->GetCheckForUpdatesModel());
 
   // Current appearance element
   m_ActiveUIElement = SNAPAppearanceSettings::CROSSHAIRS;
   m_ActiveUIElementModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetActiveUIElementValue, &Self::SetActiveUIElementValue);
 
-  // All appearance elements
+  // Changes to the appearance of the active element go to the system right away
   m_ActiveUIElementAppearance = OpenGLAppearanceElement::New();
-  for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
-    m_ElementAppearance[i] = OpenGLAppearanceElement::New();
+  AddListener(m_ActiveUIElementAppearance, ChildPropertyChangedEvent(),
+              this, &Self::OnActiveUIElementAppearanceChange);
 
   // Layout labels
   for(int j = 0; j < 3; j++)
     {
     m_LayoutLabelModel[j] = wrapIndexedGetterSetterPairAsProperty(
           this, j, &Self::GetLayoutLabelIndexedValue);
-
-    m_LayoutLabelModel[j]->RebroadcastFromSourceProperty(
-          m_GlobalDisplaySettings->GetSliceLayoutModel());
     }
-
 }
 
 bool GlobalPreferencesModel::GetCheckForUpdateValue(bool &outValue)
@@ -71,16 +68,11 @@ void GlobalPreferencesModel::SetActiveUIElementValue(GlobalPreferencesModel::UIE
 {
   if(m_ActiveUIElement != value)
     {
-    // Locally store the current settings edited by the user
-    if(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
-      m_ElementAppearance[m_ActiveUIElement]->DeepCopy(m_ActiveUIElementAppearance);
-
     // Update the element
     m_ActiveUIElement = value;
 
     // Update the apperance shown to the user (unless this is a bad value)
-    if(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
-      m_ActiveUIElementAppearance->DeepCopy(m_ElementAppearance[m_ActiveUIElement]);
+    this->UpdateActiveUIElementAppearance();
 
     // The state has changed
     this->InvokeEvent(StateMachineChangeEvent());
@@ -119,6 +111,13 @@ bool GlobalPreferencesModel::CheckState(GlobalPreferencesModel::UIState state)
     {
     case GlobalPreferencesModel::UIF_VALID_UI_ELEMENT_SELECTED:
       return m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT;
+    case GlobalPreferencesModel::UIF_UI_LANGUAGE_CHANGED:
+      {
+      std::string selected = m_DefaultBehaviorSettings->GetUILanguage();
+      if (selected.empty())
+        selected = m_SystemUILanguage;
+      return selected != m_ActiveUILanguage;
+      }
     }
   return false;
 }
@@ -126,56 +125,84 @@ bool GlobalPreferencesModel::CheckState(GlobalPreferencesModel::UIState state)
 void GlobalPreferencesModel::SetParentModel(GlobalUIModel *parent)
 {
   m_ParentModel = parent;
+
+  // The preferences shown to the user are the system's preferences
+  GlobalState *gs = m_ParentModel->GetGlobalState();
+  m_DefaultBehaviorSettings = gs->GetDefaultBehaviorSettings();
+  m_GlobalDisplaySettings = m_ParentModel->GetGlobalDisplaySettings();
+  m_MeshOptions = gs->GetMeshOptions();
+
+  m_CheckForUpdateModel->RebroadcastFromSourceProperty(
+        m_DefaultBehaviorSettings->GetCheckForUpdatesModel());
+
+  for(int j = 0; j < 3; j++)
+    m_LayoutLabelModel[j]->RebroadcastFromSourceProperty(
+          m_GlobalDisplaySettings->GetSliceLayoutModel());
+
+  // Choosing a language changes whether a restart is needed
+  Rebroadcast(m_DefaultBehaviorSettings->GetUILanguageModel(),
+              ValueChangedEvent(), StateMachineChangeEvent());
+
+  // Show changes made to the active element elsewhere (e.g., the crosshair
+  // can be hidden from the menu)
+  SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
+  for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
+    AddListener(as->GetUIElement(i), ChildPropertyChangedEvent(),
+                this, &Self::OnUIElementChange);
+
+  this->UpdateActiveUIElementAppearance();
 }
 
-void GlobalPreferencesModel::InitializePreferences()
+void GlobalPreferencesModel::UpdateActiveUIElementAppearance()
 {
-  // Pull the preferences from the system
-  GlobalState *gs = m_ParentModel->GetGlobalState();
-  SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
-
-  // Default behaviors
-  m_DefaultBehaviorSettings->DeepCopy(gs->GetDefaultBehaviorSettings());
-
-  // Global display prefs
-  m_GlobalDisplaySettings->DeepCopy(m_ParentModel->GetGlobalDisplaySettings());
-
-  // Mesh options
-  m_MeshOptions->DeepCopy(gs->GetMeshOptions());
-
-  // Appearance of all the elements
-  for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
-    m_ElementAppearance[i]->DeepCopy(as->GetUIElement(i));
-
-  // Apperance of selected element
   if(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
+    {
+    SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
+    m_SyncingActiveUIElement = true;
     m_ActiveUIElementAppearance->DeepCopy(as->GetUIElement(m_ActiveUIElement));
-
+    m_SyncingActiveUIElement = false;
+    }
 }
 
-void GlobalPreferencesModel::ApplyPreferences()
+void GlobalPreferencesModel::OnActiveUIElementAppearanceChange()
 {
-  // Pull the preferences from the system
-  GlobalState *gs = m_ParentModel->GetGlobalState();
+  if(!m_SyncingActiveUIElement && m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
+    {
+    SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
+    m_SyncingActiveUIElement = true;
+    as->GetUIElement(m_ActiveUIElement)->DeepCopy(m_ActiveUIElementAppearance);
+    m_SyncingActiveUIElement = false;
+    }
+}
+
+void GlobalPreferencesModel::OnUIElementChange(itk::Object *caller, const itk::EventObject &)
+{
+  SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
+  if(!m_SyncingActiveUIElement && m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT
+     && caller == as->GetUIElement(m_ActiveUIElement))
+    this->UpdateActiveUIElementAppearance();
+}
+
+void GlobalPreferencesModel::StorePreferencesForRevert()
+{
   SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
 
-  // Default behaviors
-  gs->GetDefaultBehaviorSettings()->DeepCopy(m_DefaultBehaviorSettings);
-  m_ParentModel->GetDriver()->UpdateHideFileExtensions();
-
-  // Global display prefs
-  m_ParentModel->SetGlobalDisplaySettings(m_GlobalDisplaySettings);
-
-  // Mesh options
-  gs->GetMeshOptions()->DeepCopy(m_MeshOptions);
-
-  // If the current element is valid, accept it
-  if(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
-    m_ElementAppearance[m_ActiveUIElement]->DeepCopy(m_ActiveUIElementAppearance);
-
-  // Appearance of all the elements
+  m_SavedDefaultBehaviorSettings->DeepCopy(m_DefaultBehaviorSettings);
+  m_SavedGlobalDisplaySettings->DeepCopy(m_GlobalDisplaySettings);
+  m_SavedMeshOptions->DeepCopy(m_MeshOptions);
   for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
-    as->GetUIElement(i)->DeepCopy(m_ElementAppearance[i]);
+    m_SavedElementAppearance[i]->DeepCopy(as->GetUIElement(i));
+}
+
+void GlobalPreferencesModel::RevertPreferences()
+{
+  SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
+
+  m_DefaultBehaviorSettings->DeepCopy(m_SavedDefaultBehaviorSettings);
+  m_ParentModel->SetGlobalDisplaySettings(m_SavedGlobalDisplaySettings);
+  m_MeshOptions->DeepCopy(m_SavedMeshOptions);
+  for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
+    as->GetUIElement(i)->DeepCopy(m_SavedElementAppearance[i]);
 }
 
 void GlobalPreferencesModel::ResetCurrentElement()
@@ -183,23 +210,60 @@ void GlobalPreferencesModel::ResetCurrentElement()
   assert(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT);
 
   SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
-  m_ActiveUIElementAppearance->DeepCopy(
+  as->GetUIElement(m_ActiveUIElement)->DeepCopy(
         as->GetUIElementDefaultSettings(m_ActiveUIElement));
 }
 
 void GlobalPreferencesModel::ResetAllElements()
 {
-  assert(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT);
-
   SNAPAppearanceSettings *as = m_ParentModel->GetAppearanceSettings();
   for(int i = 0; i < SNAPAppearanceSettings::ELEMENT_COUNT; i++)
-    {
-    m_ElementAppearance[i]->DeepCopy(as->GetUIElementDefaultSettings(i));
-    }
-
-  if(m_ActiveUIElement != SNAPAppearanceSettings::ELEMENT_COUNT)
-    m_ActiveUIElementAppearance->DeepCopy(m_ElementAppearance[m_ActiveUIElement]);
+    as->GetUIElement(i)->DeepCopy(as->GetUIElementDefaultSettings(i));
 }
 
+void GlobalPreferencesModel::ResetTabToDefaults(PreferencesTab tab)
+{
+  // Settings created with their default values
+  SmartPtr<DefaultBehaviorSettings> dbs = DefaultBehaviorSettings::New();
+  SmartPtr<GlobalDisplaySettings> gds = GlobalDisplaySettings::New();
+  SmartPtr<MeshOptions> mo = MeshOptions::New();
 
-
+  // Copy the settings shown on the tab
+  switch(tab)
+    {
+    case TAB_DEFAULT_BEHAVIOR:
+      m_DefaultBehaviorSettings->DeepCopyProperties(
+            dbs, { "UILanguage", "AutoContrast", "HideFileExtensions", "LinkedZoom",
+                   "ContinuousMeshUpdate", "Synchronization", "SyncCursor", "SyncZoom",
+                   "SyncPan" });
+      break;
+    case TAB_SLICE_VIEWS_DISPLAY:
+      m_GlobalDisplaySettings->DeepCopyProperties(
+            gds, { "GreyInterpolationMode", "LayerLayout", "FlagDisplayZoomThumbnail",
+                   "ZoomThumbnailSizeInPercent", "ZoomThumbnailMaximumSize" });
+      m_DefaultBehaviorSettings->DeepCopyProperties(dbs, { "OverlayColorMapPreset" });
+      break;
+    case TAB_SLICE_VIEWS_LAYOUT:
+      m_GlobalDisplaySettings->DeepCopyProperties(
+            gds, { "SliceLayout", "FlagLayoutPatientAnteriorShownLeft",
+                   "FlagLayoutPatientRightShownLeft", "FlagRemindLayoutSettings" });
+      break;
+    case TAB_MESH_SMOOTHING:
+      m_MeshOptions->DeepCopyProperties(
+            mo, { "UseGaussianSmoothing", "GaussianStandardDeviation", "GaussianError",
+                  "UseMeshSmoothing", "MeshSmoothingIterations",
+                  "MeshSmoothingRelaxationFactor", "MeshSmoothingFeatureAngle",
+                  "MeshSmoothingConvergence", "MeshSmoothingFeatureEdgeSmoothing",
+                  "MeshSmoothingBoundarySmoothing" });
+      break;
+    case TAB_MESH_DECIMATION:
+      m_MeshOptions->DeepCopyProperties(
+            mo, { "UseDecimation", "DecimateTargetReduction", "DecimateMaximumError",
+                  "DecimateFeatureAngle", "DecimatePreserveTopology" });
+      break;
+    case TAB_TOOLS:
+      m_DefaultBehaviorSettings->DeepCopyProperties(
+            dbs, { "PaintbrushDefaultInitialSize", "PaintbrushDefaultMaximumSize" });
+      break;
+    }
+}

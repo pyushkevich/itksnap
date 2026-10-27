@@ -20,6 +20,8 @@
 #include "GenericSliceModel.h"
 #include "SynchronizationModel.h"
 #include "GlobalUIModel.h"
+#include "SystemInterface.h"
+#include "GlobalPreferencesModel.h"
 
 #include "itkObject.h"
 #include "vtkObject.h"
@@ -435,6 +437,47 @@ DecodeFileOrUrl(const std::string &in_string)
   if (IsRemoteImageURL(resolved))
     return resolved;
   return DecodeFilename(resolved);
+}
+
+/**
+ Read the user interface language chosen in the preferences, without reading
+ the rest of the preferences. Returns an empty string if the language follows
+ the system settings or the preferences file can't be read.
+*/
+std::string
+ReadUILanguagePreference()
+{
+  try
+  {
+    std::string fn = SystemInterface::GetUserPreferencesFilePath();
+    if (!itksys::SystemTools::FileExists(fn))
+      return std::string();
+
+    Registry reg;
+    reg.ReadFromXMLFile(fn.c_str());
+    return reg.Entry("UserInterface.DefaultBehavior.UILanguage")[std::string()];
+  }
+  catch (std::exception &exc)
+  {
+    std::cerr << "Could not read the language from the preferences: " << exc.what() << std::endl;
+    return std::string();
+  }
+}
+
+/**
+ Return the code of the ITK-SNAP translation that is loaded for a locale, e.g.,
+ "de" or "zh_CN". Returns "en" if there is none, since the user interface is
+ then shown in English.
+*/
+std::string
+GetTranslationCode(const QLocale &locale)
+{
+  QTranslator probe;
+  if (!probe.load(locale, "itksnap", "_", ":/i18n"))
+    return "en";
+
+  QString name = QFileInfo(probe.filePath()).completeBaseName();
+  return to_utf8(name.mid(QString("itksnap_").length()));
 }
 
 
@@ -1278,6 +1321,19 @@ main(int argc, char *argv[])
       locale = QLocale();
     }
 
+    // Unless a language was given on the command line, use the language chosen
+    // in the preferences. The rest of the preferences file is read later, after
+    // GlobalUIModel has been created, but GlobalUIModel already creates
+    // translated text. Tests ignore this setting, since they check English text
+    std::string pref_language;
+    if (argdata.gui_language.empty() && argdata.xTestId.empty())
+      pref_language = ReadUILanguagePreference();
+    if (pref_language.size())
+    {
+      locale = QLocale(from_utf8(pref_language));
+      qDebug() << "ITK-SNAP using language from preferences:" << locale.name();
+    }
+
     QTranslator translator;
     if(translator.load(locale, "itksnap", "_", ":/i18n"))
     {
@@ -1322,6 +1378,16 @@ main(int argc, char *argv[])
 
     // Create a new UI model
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
+
+    // Tell the preferences which translation is in use, and which one the
+    // system settings select, so that the dialog can tell whether a newly
+    // chosen language needs a restart
+    QLocale system_locale = QLocale::system();
+    if (system_locale.language() == QLocale::Chinese &&
+        system_locale.script() == QLocale::SimplifiedChineseScript)
+      system_locale = QLocale(QLocale::Chinese, QLocale::China);
+    gui->GetGlobalPreferencesModel()->SetActiveUILanguage(GetTranslationCode(locale));
+    gui->GetGlobalPreferencesModel()->SetSystemUILanguage(GetTranslationCode(system_locale));
     IRISApplication        *driver = gui->GetDriver();
 
     // Pass the shared memory interface to its model. Tests run without it

@@ -3,6 +3,7 @@
 
 #include "PropertyModel.h"
 #include "Registry.h"
+#include <vector>
 
 /**
  * A helper class for AbstractPropertyContainerModel. This is a typeless parent
@@ -218,6 +219,13 @@ public:
   FIRES(ChildPropertyChangedEvent)
 
   void DeepCopy(const AbstractPropertyContainerModel *source);
+
+  /**
+   * Copy only the properties with the given keys (as used in the registry)
+   * from a container of the same type, e.g., to reset some of them to defaults
+   */
+  void DeepCopyProperties(const AbstractPropertyContainerModel *source,
+                          const std::vector<std::string> &keys);
 
   virtual bool operator == (const AbstractPropertyContainerModel &source);
 

@@ -121,8 +121,11 @@ public:
 
   irisGetMacro(AppearanceSettings, SNAPAppearanceSettings *)
 
-  /** Get the global display settings (thumbnail properties, etc.) */
-  irisGetMacro(GlobalDisplaySettings, const GlobalDisplaySettings *)
+  /**
+   * Get the global display settings (thumbnail properties, etc.). Changes to
+   * these settings take effect right away, e.g., in the preferences dialog
+   */
+  irisGetMacro(GlobalDisplaySettings, GlobalDisplaySettings *)
 
   /** Update the global display settings (thumbnail properties, etc.) */
   void SetGlobalDisplaySettings(const GlobalDisplaySettings *settings);
@@ -375,6 +378,20 @@ protected:
   SmartPtr<SNAPAppearanceSettings> m_AppearanceSettings;
 
   SmartPtr<GlobalDisplaySettings> m_GlobalDisplaySettings;
+
+  // Apply the display settings that the slice views and image layers use.
+  // Unless forced, only the settings that changed since the last call are
+  // applied, since applying them redraws all the views
+  void ApplyGlobalDisplaySettings(bool force);
+  void OnGlobalDisplaySettingsChange();
+
+  // The display settings last applied, and whether they are being replaced
+  std::string m_AppliedDisplayRAI[3];
+  int m_AppliedInterpolationMode = -1;
+  bool m_CopyingGlobalDisplaySettings = false;
+
+  // Apply a change to the default behaviors that affects loaded layers
+  void OnHideFileExtensionsChange();
 
   // A set of three slice models, representing the UI state of each
   // of the 2D slice panels the user interacts with

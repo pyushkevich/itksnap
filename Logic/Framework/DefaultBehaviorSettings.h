@@ -25,6 +25,11 @@ public:
   // Whether layer nicknames derived from filenames omit the file extension
   irisSimplePropertyAccessMacro(HideFileExtensions, bool)
 
+  // Language of the user interface, e.g., "de" or "zh_CN". An empty string
+  // means the language is chosen from the system settings. This is read from
+  // the preferences file at startup, before any translated text is created
+  irisSimplePropertyAccessMacro(UILanguage, std::string)
+
   // Permissions
   enum UpdateCheckingPermission
   {
@@ -62,6 +67,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_AutoContrastModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_HideFileExtensionsModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_UILanguageModel;
 
   // Permissions
   SmartPtr<ConcretePropertyModel<UpdateCheckingPermission>> m_CheckForUpdatesModel;

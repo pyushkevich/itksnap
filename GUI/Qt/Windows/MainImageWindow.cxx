@@ -2570,6 +2570,13 @@ void MainImageWindow::on_actionCheck_for_Updates_triggered()
   DoUpdateCheck(false);
 }
 
+void MainImageWindow::on_actionLanguage_triggered()
+{
+  // Show the page of the preferences dialog where the language is chosen
+  m_PreferencesDialog->ShowDialog();
+  m_PreferencesDialog->set_page_to_general_default_behavior();
+}
+
 void MainImageWindow::on_actionDocumentation_Home_triggered()
 {
   QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"));

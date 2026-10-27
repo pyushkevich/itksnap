@@ -20,6 +20,19 @@ AbstractPropertyContainerModel::DeepCopy(
     }
 }
 
+void AbstractPropertyContainerModel::DeepCopyProperties(
+    const AbstractPropertyContainerModel *source,
+    const std::vector<std::string> &keys)
+{
+  for(const std::string &key : keys)
+    {
+    PropertyMapCIter itSrc = source->m_Properties.find(key);
+    PropertyMapIter it = m_Properties.find(key);
+    assert(itSrc != source->m_Properties.end() && it != m_Properties.end());
+    it->second->DeepCopy(itSrc->second);
+    }
+}
+
 bool AbstractPropertyContainerModel::operator == (
     const AbstractPropertyContainerModel &source)
 {
