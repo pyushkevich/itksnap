@@ -95,6 +95,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   // Set up the list of languages
   PopulateLanguages();
 
+  // Changes take effect right away, so instead of Apply and Cancel the dialog
+  // has a button that restores the preferences it had when it was opened
+  m_RevertButton = ui->buttonBox->addButton(tr("Revert Changes"), QDialogButtonBox::ResetRole);
+  m_RevertButton->setObjectName("btnRevert");
+  m_RevertButton->setToolTip(tr("Restore the preferences to how they were when this dialog was opened"));
+
   // Create slice layout view icon paths
   for (int i = 0; i < 3; ++i)
     m_SliceLayoutPixmapPaths[i].SetDialog(this);
@@ -247,7 +253,7 @@ PreferencesDialog::ShowDialog()
 {
   if (!this->isVisible())
   {
-    m_Model->InitializePreferences();
+    m_Model->StorePreferencesForRevert();
     ui->listWidget->setCurrentRow(0);
     this->show();
   }
@@ -335,14 +341,8 @@ PreferencesDialog::on_listWidget_itemSelectionChanged()
 void
 PreferencesDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-  if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
-  {
-    m_Model->ApplyPreferences();
-  }
-  else if (button == ui->buttonBox->button(QDialogButtonBox::Ok))
-  {
-    this->accept();
-  }
+  if (button == m_RevertButton)
+    m_Model->RevertPreferences();
 }
 
 void
@@ -355,6 +355,42 @@ void
 PreferencesDialog::on_btnElementResetAll_clicked()
 {
   m_Model->ResetAllElements();
+}
+
+void
+PreferencesDialog::on_btnResetDefaultBehavior_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_DEFAULT_BEHAVIOR);
+}
+
+void
+PreferencesDialog::on_btnResetSliceViewsDisplay_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_SLICE_VIEWS_DISPLAY);
+}
+
+void
+PreferencesDialog::on_btnResetSliceViewsLayout_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_SLICE_VIEWS_LAYOUT);
+}
+
+void
+PreferencesDialog::on_btnResetSmoothing_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_MESH_SMOOTHING);
+}
+
+void
+PreferencesDialog::on_btnResetDecimation_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_MESH_DECIMATION);
+}
+
+void
+PreferencesDialog::on_btnResetTools_clicked()
+{
+  m_Model->ResetTabToDefaults(GlobalPreferencesModel::TAB_TOOLS);
 }
 
 // Methods
@@ -521,9 +557,3 @@ PreferencesDialog::append_category_item(QStandardItem *parent, const QString &te
   return item;
 }
 
-
-void
-PreferencesDialog::on_PreferencesDialog_accepted()
-{
-  m_Model->ApplyPreferences();
-}

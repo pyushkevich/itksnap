@@ -64,6 +64,7 @@
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "SNAPEventListenerCallbacks.h"
 #include "RemoteResourceSettings.h"
 #include "SNAPAppearanceSettings.h"
 #include "ImageIOWizardModel.h"
@@ -218,6 +219,12 @@ GlobalUIModel::GlobalUIModel()
   m_MeshImportModel->SetParentModel(this);
 
   // Global prefs model
+  // Settings edited in the preferences dialog take effect right away
+  AddListener(m_GlobalDisplaySettings, ChildPropertyChangedEvent(),
+              this, &Self::OnGlobalDisplaySettingsChange);
+  AddListener(m_Driver->GetGlobalState()->GetDefaultBehaviorSettings()->GetHideFileExtensionsModel(),
+              ValueChangedEvent(), this, &Self::OnHideFileExtensionsChange);
+
   m_GlobalPreferencesModel = GlobalPreferencesModel::New();
   m_GlobalPreferencesModel->SetParentModel(this);
 
@@ -522,25 +529,43 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
 void GlobalUIModel::SetGlobalDisplaySettings(
     const GlobalDisplaySettings *settings)
 {
-  // Check if the settings affecting the slice RAI codes have changed
-  std::string raiOld[3], raiNew[3];
-  m_GlobalDisplaySettings->GetAnatomyToDisplayTransforms(raiOld[0], raiOld[1], raiOld[2]);
-  settings->GetAnatomyToDisplayTransforms(raiNew[0], raiNew[1], raiNew[2]);
-
-  // Update the global display settings
+  // Copy the settings, then apply them all at once
+  m_CopyingGlobalDisplaySettings = true;
   m_GlobalDisplaySettings->DeepCopy(settings);
+  m_CopyingGlobalDisplaySettings = false;
+
+  this->ApplyGlobalDisplaySettings(true);
+}
+
+void GlobalUIModel::OnGlobalDisplaySettingsChange()
+{
+  if(!m_CopyingGlobalDisplaySettings)
+    this->ApplyGlobalDisplaySettings(false);
+}
+
+void GlobalUIModel::ApplyGlobalDisplaySettings(bool force)
+{
+  // Check if the settings affecting the slice RAI codes have changed
+  std::string raiNew[3];
+  m_GlobalDisplaySettings->GetAnatomyToDisplayTransforms(raiNew[0], raiNew[1], raiNew[2]);
+  bool raiChanged = false;
+  for(int i = 0; i < 3; i++)
+    raiChanged |= (raiNew[i] != m_AppliedDisplayRAI[i]);
 
   // Update the RAI codes in all slice views
-  m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
+  if(force || raiChanged)
+    m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
 
   // Update the interpolation in all wrappers
-  m_Driver->SetInterpolationMode(m_GlobalDisplaySettings->GetGreyInterpolationMode() ==
-                                     GlobalDisplaySettings::LINEAR
-                                   ? ImageWrapperBase::LINEAR
-                                   : ImageWrapperBase::NEAREST);
+  int interp = (int) m_GlobalDisplaySettings->GetGreyInterpolationMode();
+  if(force || interp != m_AppliedInterpolationMode)
+    m_Driver->SetInterpolationMode(m_GlobalDisplaySettings->GetGreyInterpolationMode() ==
+                                       GlobalDisplaySettings::LINEAR
+                                     ? ImageWrapperBase::LINEAR
+                                     : ImageWrapperBase::NEAREST);
 
   // React to the change in RAI codes
-  if(raiOld[0] != raiNew[0] || raiOld[1] != raiNew[1] || raiOld[2] != raiNew[2])
+  if(raiChanged)
     {
     // Update the cursor location
     if(m_Driver->IsMainImageLoaded())
@@ -556,6 +581,15 @@ void GlobalUIModel::SetGlobalDisplaySettings(
       m_SliceCoordinator->ResetViewToFitInAllWindows();
       }
     }
+
+  for(int i = 0; i < 3; i++)
+    m_AppliedDisplayRAI[i] = raiNew[i];
+  m_AppliedInterpolationMode = interp;
+}
+
+void GlobalUIModel::OnHideFileExtensionsChange()
+{
+  m_Driver->UpdateHideFileExtensions();
 }
 
 SystemInterface * GlobalUIModel::GetSystemInterface() const

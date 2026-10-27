@@ -105,6 +105,10 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   DisplayLayoutModel *dlm = m_ParentUI->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
 
+  // Listen to changes in the display settings (e.g., the zoom thumbnail size),
+  // which can be edited in the preferences dialog while the views are shown
+  Rebroadcast(m_ParentUI->GetGlobalDisplaySettings(), ChildPropertyChangedEvent(), ModelUpdateEvent());
+
   // Listen to cursor update events and rebroadcast them for the child model
   m_SliceIndexModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
 
@@ -208,7 +212,8 @@ GenericSliceModel::OnUpdate()
       m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()) ||
       m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()) ||
       m_EventBucket->HasEvent(ValueChangedEvent()) || m_EventBucket->HasEvent(CursorUpdateEvent()) ||
-      m_EventBucket->HasEvent(SliceModelGeometryChangeEvent()))
+      m_EventBucket->HasEvent(SliceModelGeometryChangeEvent()) ||
+      m_EventBucket->HasEvent(ChildPropertyChangedEvent(), m_ParentUI->GetGlobalDisplaySettings()))
   {
     // Viewport geometry pretty much   depends on everything!
     if (m_SliceInitialized && m_ViewZoom > 1.e-7)

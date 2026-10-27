@@ -10,6 +10,7 @@ class PreferencesDialog;
 
 class GlobalPreferencesModel;
 class QAbstractButton;
+class QPushButton;
 class QStandardItem;
 class QTimer;
 
@@ -52,6 +53,13 @@ private slots:
 
   void on_btnElementResetAll_clicked();
 
+  void on_btnResetDefaultBehavior_clicked();
+  void on_btnResetSliceViewsDisplay_clicked();
+  void on_btnResetSliceViewsLayout_clicked();
+  void on_btnResetSmoothing_clicked();
+  void on_btnResetDecimation_clicked();
+  void on_btnResetTools_clicked();
+
   void onModelUpdate(const EventBucket &bucket);
 
   void on_btnASC_toggled(bool check);
@@ -64,7 +72,6 @@ private slots:
   void on_radio_axial_lr_toggled(bool check);
   void on_radio_sagittal_ap_toggled(bool check);
 
-  void on_PreferencesDialog_accepted();
 
   void on_chkSynchronize_toggled(bool check);
 
@@ -72,6 +79,9 @@ private:
   Ui::PreferencesDialog *ui;
 
   GlobalPreferencesModel *m_Model;
+
+  // Button that restores the preferences the dialog was opened with
+  QPushButton *m_RevertButton;
 
   // Fill the color map presets
   void UpdateColorMapPresets();

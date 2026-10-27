@@ -66,9 +66,7 @@ LayoutReminderDialog::SetReminderFlag()
   if (ui->chkNoRemindAgain->isChecked())
   {
     GlobalPreferencesModel *pm = this->m_GlobalUIModel->GetGlobalPreferencesModel();
-    pm->InitializePreferences();
     pm->GetGlobalDisplaySettings()->SetFlagRemindLayoutSettings(false);
-    pm->ApplyPreferences();
   }
 }
 

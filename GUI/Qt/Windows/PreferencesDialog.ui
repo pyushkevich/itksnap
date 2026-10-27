@@ -198,6 +198,33 @@ font-weight:bold;</string>
              </property>
             </spacer>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="lytbtnResetDefaultBehavior">
+             <item>
+              <spacer name="spcbtnResetDefaultBehavior">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetDefaultBehavior">
+               <property name="toolTip">
+                <string>Resets the settings on this tab to their defaults</string>
+               </property>
+               <property name="text">
+                <string>Reset to Defaults</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="tabGeneralPermissions">
@@ -392,6 +419,33 @@ font-weight:bold;</string>
               </size>
              </property>
             </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="lytbtnResetSliceViewsDisplay">
+             <item>
+              <spacer name="spcbtnResetSliceViewsDisplay">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetSliceViewsDisplay">
+               <property name="toolTip">
+                <string>Resets the settings on this tab to their defaults</string>
+               </property>
+               <property name="text">
+                <string>Reset to Defaults</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -1024,6 +1078,33 @@ color:white;</string>
                 </layout>
                </widget>
               </item>
+              <item>
+               <layout class="QHBoxLayout" name="lytbtnResetSliceViewsLayout">
+                <item>
+                 <spacer name="spcbtnResetSliceViewsLayout">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnResetSliceViewsLayout">
+                  <property name="toolTip">
+                   <string>Resets the settings on this tab to their defaults</string>
+                  </property>
+                  <property name="text">
+                   <string>Reset to Defaults</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
              </layout>
             </widget>
            </item>
@@ -1243,6 +1324,19 @@ color:white;</string>
                  </item>
                 </layout>
                </widget>
+              </item>
+              <item>
+               <spacer name="spcAppearanceReset">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
               <item>
                <widget class="QWidget" name="widget_14" native="true">
@@ -1561,6 +1655,33 @@ color:white;</string>
              </property>
             </spacer>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="lytbtnResetSmoothing">
+             <item>
+              <spacer name="spcbtnResetSmoothing">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetSmoothing">
+               <property name="toolTip">
+                <string>Resets the settings on this tab to their defaults</string>
+               </property>
+               <property name="text">
+                <string>Reset to Defaults</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="tabRenderingDecimation">
@@ -1707,6 +1828,33 @@ color:white;</string>
              </property>
             </spacer>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="lytbtnResetDecimation">
+             <item>
+              <spacer name="spcbtnResetDecimation">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetDecimation">
+               <property name="toolTip">
+                <string>Resets the settings on this tab to their defaults</string>
+               </property>
+               <property name="text">
+                <string>Reset to Defaults</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -1808,6 +1956,33 @@ color:white;</string>
              </property>
             </spacer>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="lytbtnResetTools">
+             <item>
+              <spacer name="spcbtnResetTools">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnResetTools">
+               <property name="toolTip">
+                <string>Resets the settings on this tab to their defaults</string>
+               </property>
+               <property name="text">
+                <string>Reset to Defaults</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -1872,7 +2047,7 @@ color:white;</string>
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Close</set>
      </property>
     </widget>
    </item>
