@@ -4,6 +4,11 @@ include("Library");
 // Open the test workspace
 openWorkspace("diffspace.itksnap");
 
+//=== Each layer should report its own orientation (#185)
+engine.validateValue(getLayerResolutionInfo("wgtRowDelegate_0000").orientation, "RPI");
+engine.validateValue(getLayerResolutionInfo("wgtRowDelegate_0001").orientation, "Oblique (closest to RIA)");
+engine.validateValue(getLayerResolutionInfo("wgtRowDelegate_0000").orientation, "RPI");
+
 //=== Set Preferences to use linear interpolation
 engine.trigger("actionPreferences");
 var prefDialog = engine.findChild(mainwin, "PreferencesDialog");
