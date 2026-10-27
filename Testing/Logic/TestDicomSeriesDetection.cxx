@@ -8,6 +8,11 @@
  * a DICOM series directory, and only a series with several images at each
  * position is read as 4D CTA.
  *
+ * The first file of series 3 writes SliceThickness as "2.000000" and the
+ * others as "2.0" (#128). This used to split the series in two; now the parts
+ * are merged, and the ID of the smaller part still loads the whole series, as
+ * a workspace saved before the fix may refer to it.
+ *
  * The test exam (Testing/TestData/dicom_ct_exam, see make_dicom_ct_exam.py)
  * has two 3D series and one 4D CTA series. Voxel intensity encodes the series,
  * slice and frame, so reading the wrong series, slice or frame order shows up.
@@ -25,6 +30,8 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <utility>
+#include <vector>
 
 static int g_Failures = 0;
 
@@ -109,8 +116,24 @@ TestParse(const std::string &dir)
   }
 }
 
+// The ID of the part of series 3 that has a different SliceThickness string
+static std::string
+FindSeriesAlias(const GuidedNativeImageIO::DicomDirectoryParseResult &pr)
+{
+  CHECK(pr.SeriesAliases.size() == 1,
+        "found " << pr.SeriesAliases.size() << " series aliases, expected 1");
+  if (pr.SeriesAliases.size() != 1)
+    return std::string();
+
+  auto it = pr.SeriesAliases.begin();
+  CHECK(it->second == FindSeries(pr, "Axial 3D B"),
+        "series alias " << it->first << " maps to " << it->second << ", expected 'Axial 3D B'");
+  return it->first;
+}
+
 // Load each series, starting from a file of another series, as the GUI does
-// when a file is dropped and then a series is picked from the list
+// when a file is dropped and then a series is picked from the list. Series 3
+// is loaded both by its ID and by the alias
 static void
 TestLoad(const std::string &dir)
 {
@@ -118,13 +141,22 @@ TestLoad(const std::string &dir)
   parser->ParseDicomDirectory(dir);
   auto pr = parser->GetLastDicomParseResult();
 
+  std::vector<std::pair<std::string, const SeriesSpec *>> to_load;
   for (auto &s : g_Series)
   {
     std::string id = FindSeries(pr, s.desc);
-    if (id.empty())
-      continue;
+    if (id.size())
+      to_load.push_back(std::make_pair(id, &s));
+  }
+  std::string alias = FindSeriesAlias(pr);
+  if (alias.size())
+    to_load.push_back(std::make_pair(alias, &g_Series[1]));
 
-    std::string tag = std::string("[") + s.desc + "] ";
+  for (auto &item : to_load)
+  {
+    std::string       id = item.first;
+    const SeriesSpec &s = *item.second;
+    std::string       tag = std::string("[") + s.desc + (id == alias ? " by alias" : "") + "] ";
     Registry    hints;
     hints["DICOM.SeriesId"] << id;
 

@@ -120,6 +120,10 @@ public:
     // Filenames of the images for each series ID
     SeriesMapType SeriesMap;
 
+    // IDs of series that were merged into another series, mapped to the ID
+    // of that series
+    std::map<std::string, std::string> SeriesAliases;
+
     void Reset();
   };
 
