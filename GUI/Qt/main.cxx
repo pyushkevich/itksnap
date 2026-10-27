@@ -13,6 +13,7 @@
 #include "QtIPCManager.h"
 #include "QtCursorOverride.h"
 #include "QtReporterDelegates.h"
+#include "QtTranslationLocale.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
 #include "SegmentationAutosave.h"
@@ -1321,17 +1322,35 @@ main(int argc, char *argv[])
       locale = QLocale();
     }
 
+    // The translation that "System default" selects: the first of the user's
+    // preferred UI languages that has a translation. The default locale is not
+    // used for this, since it can follow the region instead, e.g., German for
+    // an English speaker in Germany (#210)
+    QLocale system_locale =
+      SelectTranslationLocale(GetPreferredUILanguages(), [](const QLocale &l) {
+        QTranslator probe;
+        return probe.load(l, "itksnap", "_", ":/i18n");
+      });
+
     // Unless a language was given on the command line, use the language chosen
-    // in the preferences. The rest of the preferences file is read later, after
-    // GlobalUIModel has been created, but GlobalUIModel already creates
-    // translated text. Tests ignore this setting, since they check English text
-    std::string pref_language;
-    if (argdata.gui_language.empty() && argdata.xTestId.empty())
-      pref_language = ReadUILanguagePreference();
-    if (pref_language.size())
+    // in the preferences, or else the system default. The rest of the
+    // preferences file is read later, after GlobalUIModel has been created, but
+    // GlobalUIModel already creates translated text. Tests ignore this setting,
+    // since they check English text
+    if (argdata.gui_language.empty())
     {
-      locale = QLocale(from_utf8(pref_language));
-      qDebug() << "ITK-SNAP using language from preferences:" << locale.name();
+      std::string pref_language;
+      if (argdata.xTestId.empty())
+        pref_language = ReadUILanguagePreference();
+      if (pref_language.size())
+      {
+        locale = QLocale(from_utf8(pref_language));
+        qDebug() << "ITK-SNAP using language from preferences:" << locale.name();
+      }
+      else
+      {
+        locale = system_locale;
+      }
     }
 
     QTranslator translator;
@@ -1382,10 +1401,6 @@ main(int argc, char *argv[])
     // Tell the preferences which translation is in use, and which one the
     // system settings select, so that the dialog can tell whether a newly
     // chosen language needs a restart
-    QLocale system_locale = QLocale::system();
-    if (system_locale.language() == QLocale::Chinese &&
-        system_locale.script() == QLocale::SimplifiedChineseScript)
-      system_locale = QLocale(QLocale::Chinese, QLocale::China);
     gui->GetGlobalPreferencesModel()->SetActiveUILanguage(GetTranslationCode(locale));
     gui->GetGlobalPreferencesModel()->SetSystemUILanguage(GetTranslationCode(system_locale));
     IRISApplication        *driver = gui->GetDriver();
