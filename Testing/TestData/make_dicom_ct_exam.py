@@ -3,6 +3,9 @@ Write the synthetic CT exam in dicom_ct_exam/ used by the DicomSeriesDetection
 tests (#218): two 3D series and one 4D CTA series (several time frames at each
 slice position), all from a GE scanner, in one directory.
 
+In series 3, the first file has SliceThickness "2.000000" and the others "2.0",
+as some scanners write it (#128). It must still be read as a single series.
+
   Series 2 "Axial 3D A":  8 slices,               intensity 1000 + slice
   Series 3 "Axial 3D B":  6 slices,               intensity 2000 + slice
   Series 4 "Dynamic CTA": 5 slices x 3 frames,    intensity 100 * frame + slice
@@ -42,7 +45,8 @@ def write_series(number, desc, n_pos, n_frames, base, size=16):
             ds.ImagePositionPatient = [0.0, 0.0, float(z) * 2.0]
             ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
             ds.SliceLocation = float(z) * 2.0
-            ds.SliceThickness = 2.0; ds.PixelSpacing = [1.0, 1.0]
+            ds.SliceThickness = "2.000000" if (number == 3 and inst == 1) else "2.0"
+            ds.PixelSpacing = [1.0, 1.0]
             ds.Rows = size; ds.Columns = size
             ds.SamplesPerPixel = 1; ds.PhotometricInterpretation = "MONOCHROME2"
             ds.BitsAllocated = 16; ds.BitsStored = 16; ds.HighBit = 15

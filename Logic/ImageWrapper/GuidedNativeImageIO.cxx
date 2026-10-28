@@ -519,6 +519,11 @@ GuidedNativeImageIO
 
     // Select which series
     std::string SeriesID = m_Hints["DICOM.SeriesId"][""];
+
+    // The series may have been merged with another one
+    auto it_alias = m_LastDicomParseResult.SeriesAliases.find(SeriesID);
+    if(it_alias != m_LastDicomParseResult.SeriesAliases.end())
+      SeriesID = it_alias->second;
     if(SeriesID.length() == 0)
       {
       // There must be at least one series
@@ -2345,6 +2350,10 @@ GuidedNativeImageIO
   // The distinct image positions in each series, used to detect 4D series
   std::map<std::string, std::set<std::string>> positions;
 
+  // For each series, the same tags with SliceThickness compared as a number.
+  // Some scanners format it differently in some files of a series (#128)
+  std::map<std::string, std::string> merge_keys;
+
   // Clear the information about the last parse
   m_LastDicomParseResult.Reset();
   m_LastDicomParseResult.Directory = dir;
@@ -2378,12 +2387,29 @@ GuidedNativeImageIO
     // Start with the ID being the UID
     std::string uid = sf.ToString(m_tagSeriesInstanceUID);
     std::string full_id = uid;
+    std::string merge_key = uid;
 
     // Iterate over the tags in the refine list
 		for(size_t iTag = 0u; iTag < tags_refine.size(); iTag++)
       {
       // Read the tag value
       std::string s = sf.ToString(tags_refine[iTag]);
+
+      // Slice thickness goes into the merge key as a number, if it is one
+      std::string s_key = s;
+      itk::StringTools::Trim(s_key);
+      if(tags_refine[iTag] == m_tagSliceThickness)
+        {
+        char *end;
+        double value = strtod(s_key.c_str(), &end);
+        if(!s_key.empty() && *end == 0)
+          {
+          char buf[32];
+          snprintf(buf, sizeof(buf), "%.6g", value);
+          s_key = buf;
+          }
+        }
+      merge_key += "|" + s_key;
 
       // This code is from gdcmSerieHelper
       if( full_id == uid && !s.empty() )
@@ -2413,6 +2439,7 @@ GuidedNativeImageIO
 
     // The registry for the current series
     Registry &r = series_info.MetaData;
+    merge_keys[full_id] = merge_key;
 
     // Have we found this ID before?
     if(r.IsEmpty())
@@ -2470,6 +2497,46 @@ GuidedNativeImageIO
         "Error: DICOM series not found. "
         "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
 
+  // Merge series that differ only in how SliceThickness is formatted. The
+  // series keeps the ID of its largest part, and the IDs of the other parts
+  // become aliases, so that workspaces that refer to them still load
+  auto &series_map = m_LastDicomParseResult.SeriesMap;
+  std::map<std::string, std::vector<std::string>> parts;
+  for(auto &it : series_map)
+    parts[merge_keys[it.first]].push_back(it.first);
+
+  for(auto &it : parts)
+    {
+    std::vector<std::string> &ids = it.second;
+    if(ids.size() < 2)
+      continue;
+
+    // Ties go to the smallest ID, so that the choice does not depend on the
+    // order of the files in the directory
+    std::string target = ids.front();
+    for(auto &id : ids)
+      if(series_map[id].FileList.size() > series_map[target].FileList.size())
+        target = id;
+
+    auto &target_info = series_map[target];
+    for(auto &id : ids)
+      {
+      if(id == target)
+        continue;
+      auto &files = series_map[id].FileList;
+      target_info.FileList.insert(target_info.FileList.end(), files.begin(), files.end());
+      positions[target].insert(positions[id].begin(), positions[id].end());
+      series_map.erase(id);
+      m_LastDicomParseResult.SeriesAliases[id] = target;
+      }
+
+    Registry &r = target_info.MetaData;
+    r["NumberOfImages"] << (int) target_info.FileList.size();
+    ostringstream oss;
+    oss << r["Rows"][0] << " x " << r["Columns"][0] << " x " << r["NumberOfImages"][0];
+    r["Dimensions"] << oss.str();
+    }
+
   // Find the 4D CTA series: CT series from GE or Siemens with several images
   // at each position, i.e., several time frames
   for(auto &it : m_LastDicomParseResult.SeriesMap)
@@ -2501,6 +2568,7 @@ void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()
 {
   Directory.clear();
   SeriesMap.clear();
+  SeriesAliases.clear();
 }
 
 GuidedNativeImageIO::IOBasePointer
