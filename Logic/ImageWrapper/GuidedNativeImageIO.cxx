@@ -534,6 +534,12 @@ GuidedNativeImageIO
     // Obtain the filename for this series
     m_DICOMFiles = m_LastDicomParseResult.SeriesMap[SeriesID].FileList;
 
+    // A CT series with several images at each position is read as a 4D CTA
+    // series, i.e., as a series of 3D frames
+    if(m_FileFormat == FORMAT_DICOM_DIR
+       && m_LastDicomParseResult.SeriesMap[SeriesID].MetaData["Is4DCTA"][false])
+      m_FileFormat = FORMAT_DICOM_DIR_4DCTA;
+
     // Read the information from the first filename
     if(m_DICOMFiles.size() == 0)
       throw IRISException("Error: DICOM series not found. "
@@ -2229,9 +2235,6 @@ GuidedNativeImageIO::GuessFormatForFileName(
       gdcm::Tag tag_manuf(0x0008, 0x0070); // manufacturer
       tags.insert(tag_manuf);
 
-			gdcm::Tag tag_modality(0x0008,0x0060); // modality
-			tags.insert(tag_modality);
-
       reader.ReadSelectedTags(tags, true);
 
       gdcm::StringFilter sf;
@@ -2245,20 +2248,10 @@ GuidedNativeImageIO::GuessFormatForFileName(
       if (!manuf.compare("PMS QLAB CART EXPORT"))
         return FORMAT_ECHO_CARTESIAN_DICOM;
 
-			// 4DCTA test
-			std::string modality = sf.ToString(tag_modality);
-			std::transform(modality.begin(), modality.end(), modality.begin(), ::toupper);
-			itk::StringTools::Trim(modality);
-			if (!modality.compare("CT"))
-				{
-        bool hasSiemens = manuf.find("SIEMENS") != std::string::npos;
-        if (hasSiemens ||
-						!manuf.compare("GE MEDICAL SYSTEMS"))
-					return FORMAT_DICOM_DIR_4DCTA;
-				}
-
       // PY: Now that I cleaned up the DICOM reader, we should never default
-      // to single DICOM file anymore. That's just too annoying
+      // to single DICOM file anymore. That's just too annoying. Whether a
+      // series is a 4D CTA series is decided once the series is chosen, since
+      // a directory can hold several series (#218)
       return FORMAT_DICOM_DIR;
       }
 
@@ -2310,6 +2303,9 @@ const gdcm::Tag GuidedNativeImageIO::m_tagAcquisitionNumber(0x0020,0x0012);
 const gdcm::Tag GuidedNativeImageIO::m_tagInstanceNumber(0x0020,0x0013);
 const gdcm::Tag GuidedNativeImageIO::m_tagSequenceName(0x0018, 0x0024);
 const gdcm::Tag GuidedNativeImageIO::m_tagSliceThickness(0x0018, 0x0050);
+const gdcm::Tag GuidedNativeImageIO::m_tagModality(0x0008, 0x0060);
+const gdcm::Tag GuidedNativeImageIO::m_tagManufacturer(0x0008, 0x0070);
+const gdcm::Tag GuidedNativeImageIO::m_tagImagePositionPatient(0x0020, 0x0032);
 
 
 #include "gdcmDirectory.h"
@@ -2342,10 +2338,12 @@ GuidedNativeImageIO
   tags_all.insert(tags_refine.begin(), tags_refine.end());
   tags_all.insert(m_tagDesc);
   tags_all.insert(m_tagSeriesInstanceUID);
+  tags_all.insert(m_tagModality);
+  tags_all.insert(m_tagManufacturer);
+  tags_all.insert(m_tagImagePositionPatient);
 
-  //--Dev: Add to read list
-  std::set<std::string> sliceLocSet;
-  std::map<std::string, std::set<std::string>> sliceMap;
+  // The distinct image positions in each series, used to detect 4D series
+  std::map<std::string, std::set<std::string>> positions;
 
   // Clear the information about the last parse
   m_LastDicomParseResult.Reset();
@@ -2429,11 +2427,28 @@ GuidedNativeImageIO
       r["Rows"] << std::atoi(sf.ToString(m_tagRows).c_str());
       r["Columns"] << std::atoi(sf.ToString(m_tagCols).c_str());
       r["NumberOfImages"] << 1;
+
+      // Read the modality and manufacturer
+      std::string modality = sf.ToString(m_tagModality);
+      std::string manuf = sf.ToString(m_tagManufacturer);
+      r["Modality"] << itk::StringTools::Trim(modality);
+      r["Manufacturer"] << itk::StringTools::Trim(manuf);
       }
     else
       {
       // Increement the number of images
       r["NumberOfImages"] << r["NumberOfImages"][0] + 1;
+      }
+
+    // Record the image position, rounded so that differences in formatting
+    // (e.g., trailing zeros) don't count as different positions
+    double ipp[3];
+    std::string ipp_str = sf.ToString(m_tagImagePositionPatient);
+    if(sscanf(ipp_str.c_str(), "%lf\\%lf\\%lf", ipp, ipp + 1, ipp + 2) == 3)
+      {
+      char ipp_key[96];
+      snprintf(ipp_key, sizeof(ipp_key), "%.3f %.3f %.3f", ipp[0], ipp[1], ipp[2]);
+      positions[full_id].insert(ipp_key);
       }
 
     // Update the dimensions string
@@ -2454,6 +2469,32 @@ GuidedNativeImageIO
     throw IRISException(
         "Error: DICOM series not found. "
         "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
+
+  // Find the 4D CTA series: CT series from GE or Siemens with several images
+  // at each position, i.e., several time frames
+  for(auto &it : m_LastDicomParseResult.SeriesMap)
+    {
+    Registry &r = it.second.MetaData;
+    std::string manuf = r["Manufacturer"][""];
+    std::transform(manuf.begin(), manuf.end(), manuf.begin(), ::toupper);
+    bool vendor = manuf.find("SIEMENS") != std::string::npos || manuf == "GE MEDICAL SYSTEMS";
+    std::string modality = r["Modality"][""];
+    std::transform(modality.begin(), modality.end(), modality.begin(), ::toupper);
+
+    int n_images = r["NumberOfImages"][0];
+    int n_positions = (int) positions[it.first].size();
+    bool is4DCTA = modality == "CT" && vendor && n_positions > 0 && n_positions < n_images;
+    r["Is4DCTA"] << is4DCTA;
+
+    // Show the dimensions of a 4D series as slices by frames
+    if(is4DCTA && n_images % n_positions == 0)
+      {
+      ostringstream oss;
+      oss << r["Rows"][0] << " x " << r["Columns"][0] << " x " << n_positions
+          << " x " << n_images / n_positions;
+      r["Dimensions"] << oss.str();
+      }
+    }
 }
 
 void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()

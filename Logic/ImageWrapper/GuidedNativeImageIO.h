@@ -483,6 +483,9 @@ protected:
   static const gdcm::Tag m_tagInstanceNumber;
   static const gdcm::Tag m_tagSequenceName;
   static const gdcm::Tag m_tagSliceThickness;
+  static const gdcm::Tag m_tagModality;
+  static const gdcm::Tag m_tagManufacturer;
+  static const gdcm::Tag m_tagImagePositionPatient;
 
   /** Flags for delegate specific configurations */
   bool m_LoadMultiComponentAs4D = false;

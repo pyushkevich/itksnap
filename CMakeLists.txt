@@ -1399,6 +1399,7 @@ SET(GUI_TESTS
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
+  DicomSeriesSelection
   LabelSmoothing
   PreferencesDialog
   ProbeIntensity
@@ -1670,6 +1671,14 @@ TARGET_LINK_LIBRARIES(TestNrrdSequenceIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
+
+# Test: choosing one series in a directory of DICOM series, incl. 4D CTA (#218)
+ADD_EXECUTABLE(TestDicomSeriesDetection
+    Testing/Logic/TestDicomSeriesDetection.cxx)
+TARGET_LINK_LIBRARIES(TestDicomSeriesDetection ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestDicomSeriesDetection PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestDicomSeriesDetection COMMAND TestDicomSeriesDetection ${TESTDATA_DIR})
 
 # Test: remote file cache stores, evicts and locks its metadata correctly
 ADD_EXECUTABLE(TestRemoteFileCache

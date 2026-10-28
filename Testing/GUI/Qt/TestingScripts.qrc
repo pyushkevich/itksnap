@@ -19,6 +19,7 @@
         <file>Scripts/test_4DReplayWithMeshUpdate.js</file>
         <file>Scripts/test_LabelSmoothing.js</file>
         <file>Scripts/test_EchoCartesianDicomLoading.js</file>
+        <file>Scripts/test_DicomSeriesSelection.js</file>
         <file>Scripts/test_PreferencesDialog.js</file>
         <file>Scripts/test_MeshImport.js</file>
         <file>Scripts/test_MeshWorkspace.js</file>

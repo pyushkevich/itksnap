@@ -451,6 +451,7 @@ DICOMPage::DICOMPage(QWidget *parent)
 {
   // Set up a table widget
   m_Table = new DICOMListingTable();
+  m_Table->setObjectName("tableDICOMSeries");
   QVBoxLayout *lo = new QVBoxLayout(this);
   lo->addWidget(m_Table);
   lo->addWidget(m_OutMessage);
