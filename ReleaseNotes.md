@@ -12,6 +12,7 @@
   - Downloaded files are kept in a local cache, so reopening a remote file is fast
   - Remote images and workspaces appear in the recent-file lists, marked with a badge on the startup page, and their display settings are remembered like those of local files
   - The [ITK-SNAP Launcher extension for VS Code](https://marketplace.visualstudio.com/items?itemName=pyushkevich.itksnap-launcher) opens images and workspaces from VS Code in ITK-SNAP, including files on remote machines that VS Code is connected to
+  - The [ITK-SNAP launcher app for Flywheel](https://github.com/pyushkevich/fw-itksnap-launcher-app) is a viewer extension that opens the selected Flywheel file in ITK-SNAP; a site or project administrator hosts it and registers it in Flywheel
   - See `Documentation/Developer/RemoteURLs.md` for the URL formats
 - Several ITK-SNAP windows work together:
   - The new Window menu lists all running ITK-SNAP instances
