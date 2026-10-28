@@ -1582,32 +1582,12 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
-# The test clears the cache, so it gets an application data directory of its
-# own (see below).
-
 # Test: the history and the per-image settings of an image loaded from a URL
 # use the URL, so the settings come back when it is opened again.
 add_test(NAME RemoteImageLoadTest_URLKeys
   COMMAND remote_image_load_test
     --test-url-keys
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz?x=1")
-
-# These tests clear the cache or write settings, so each gets its own
-# application data directory, away from the user's profile and from the other
-# remote tests running in parallel. The directory comes from APPDATA on
-# Windows and HOME on Linux; on macOS the test's delegate puts it in the
-# working directory.
-foreach(_test RemoteImageLoadTest_Cache RemoteImageLoadTest_URLKeys)
-  set(_home "${CMAKE_CURRENT_BINARY_DIR}/Testing/${_test}_Home")
-  file(MAKE_DIRECTORY ${_home})
-  IF(WIN32)
-    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "APPDATA=${_home}")
-  ELSEIF(APPLE)
-    set_tests_properties(${_test} PROPERTIES WORKING_DIRECTORY "${_home}")
-  ELSE()
-    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "HOME=${_home}")
-  ENDIF()
-endforeach()
 
 # Test: save a workspace containing a layer loaded from a URL, check that the
 # URL is stored as-is, and reopen it.
@@ -1623,18 +1603,36 @@ add_test(NAME RemoteImageLoadTest_Cancel
     --test-cancel
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
-# Remote tests require network access; tag them so CI can skip them easily.
-set_tests_properties(
+set(SNAP_REMOTE_TESTS
   RemoteImageLoadTest_SingleImage
   RemoteImageLoadTest_EncodedURL
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
   RemoteImageLoadTest_Cancel
-  RemoteImageLoadTest_URLKeys
-  PROPERTIES
-    LABELS "Remote"
-    TIMEOUT 120)
+  RemoteImageLoadTest_URLKeys)
+
+# Remote tests require network access; tag them so CI can skip them easily.
+set_tests_properties(${SNAP_REMOTE_TESTS} PROPERTIES
+  LABELS "Remote"
+  TIMEOUT 120)
+
+# Each remote test gets an application data directory of its own, away from
+# the user's profile and from the other remote tests running in parallel: they
+# all write to the download cache, and some clear it or write settings. The
+# directory comes from APPDATA on Windows and HOME on Linux; on macOS the
+# test's delegate puts it in the working directory.
+foreach(_test ${SNAP_REMOTE_TESTS})
+  set(_home "${CMAKE_CURRENT_BINARY_DIR}/Testing/${_test}_Home")
+  file(MAKE_DIRECTORY ${_home})
+  IF(WIN32)
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "APPDATA=${_home}")
+  ELSEIF(APPLE)
+    set_tests_properties(${_test} PROPERTIES WORKING_DIRECTORY "${_home}")
+  ELSE()
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "HOME=${_home}")
+  ENDIF()
+endforeach()
 
 # Test: offline check of the fw:// URL grammar. No network, no API key. HOME
 # is pointed at an empty directory so a developer's ~/.fw/config.yml is not
