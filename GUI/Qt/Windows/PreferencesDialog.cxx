@@ -189,6 +189,17 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // Couple the list of apperance elements. First we m
   makeCoupling((QAbstractItemView *)ui->treeVisualElements, m_Model->GetActiveUIElementModel());
 
+  // For the line type, we need to add all of the line types to the combo box manually
+  // which allows for translation. This must be done before the coupling: adding the
+  // first item selects it, and the coupling would then set the line type of the
+  // active element (the crosshair) to "No Line"
+  ui->inElementLineType->addItem(tr("No Line"), QVariant(vtkPen::NO_PEN));
+  ui->inElementLineType->addItem(tr("Solid Line"), QVariant(vtkPen::SOLID_LINE));
+  ui->inElementLineType->addItem(tr("Dashed Line"), QVariant(vtkPen::DASH_LINE));
+  ui->inElementLineType->addItem(tr("Dotted Line"), QVariant(vtkPen::DOT_LINE));
+  ui->inElementLineType->addItem(tr("Dash-Dot Line"), QVariant(vtkPen::DASH_DOT_LINE));
+  ui->inElementLineType->addItem(tr("Dash-Dot-Dot Line"), QVariant(vtkPen::DASH_DOT_DOT_LINE));
+
   // Hook up the appearance widgets
   OpenGLAppearanceElement *elt = m_Model->GetActiveUIElementAppearance();
   QtCouplingOptions        opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
@@ -198,15 +209,6 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);
   makeCoupling(ui->inElementLineType, elt->GetLineTypeModel(), opts_elt);
   makeCoupling(ui->inElementFontSize, elt->GetFontSizeModel(), opts_elt);
-
-  // For the line type, we need to add all of the line types to the combo box manually
-  // which allows for translation
-  ui->inElementLineType->addItem(tr("No Line"), QVariant(vtkPen::NO_PEN));
-  ui->inElementLineType->addItem(tr("Solid Line"), QVariant(vtkPen::SOLID_LINE));
-  ui->inElementLineType->addItem(tr("Dashed Line"), QVariant(vtkPen::DASH_LINE));
-  ui->inElementLineType->addItem(tr("Dotted Line"), QVariant(vtkPen::DOT_LINE));
-  ui->inElementLineType->addItem(tr("Dash-Dot Line"), QVariant(vtkPen::DASH_DOT_LINE));
-  ui->inElementLineType->addItem(tr("Dash-Dot-Dot Line"), QVariant(vtkPen::DASH_DOT_DOT_LINE));
 
   // Make sure the labels are activated along with the widgets
   activateOnFlag(ui->labelElementColor, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);

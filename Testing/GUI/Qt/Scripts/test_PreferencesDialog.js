@@ -6,6 +6,15 @@ engine.trigger("actionPreferences");
 
 // Get Preferences Dialog
 var prefDialog = engine.findChild(mainwin, "PreferencesDialog");
+
+// The crosshair (the element shown first) must keep its line type when the
+// dialog is set up; filling the line type list used to set it to No Line
+//=== Check the crosshair line type
+engine.invoke(prefDialog, "set_page_to_appearance");
+engine.sleep(500);
+var lineType = engine.getChildProperty(prefDialog, "inElementLineType", "currentText");
+if (lineType == "No Line")
+    engine.testFailed("Crosshair line type was changed to No Line at startup");
 engine.invoke(prefDialog, "set_page_to_slice_views_layout")
 
 // Toggle the radio buttons
