@@ -240,8 +240,9 @@ RESTClient<ServerTraits>::CurlMultiPerform()
     // Make a callback at this time interval for smooth behavior, even when CURL
     // reports nothing (e.g., while the server computes a response). Repeat the
     // last progress CURL reported, so that the progress shown does not jump.
+    // Not once the transfer has ended: it may have been cancelled by the callback.
     auto now = std::chrono::steady_clock::now();
-    if (m_CallbackInfo.fn &&
+    if (still_running && m_CallbackInfo.fn &&
         std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
     {
       callback_time = now;
