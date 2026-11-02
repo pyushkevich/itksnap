@@ -96,6 +96,10 @@ public:
   /** Compute the world coordinates of a click and a ray pointing inward (not normalized) */
   void ComputeRayFromClick(int x, int y, Vector3d &point, Vector3d &ray, Vector3d &dx, Vector3d &dy);
 
+  // Place the mesh actors where the image is displayed (it may be rotated), or,
+  // with in_image_space, in the image's own space, which is how meshes are exported
+  void UpdateMeshTransform(bool in_image_space = false);
+
 protected:
   Generic3DRenderer();
   virtual ~Generic3DRenderer() {}

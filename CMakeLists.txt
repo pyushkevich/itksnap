@@ -1515,6 +1515,14 @@ add_test(NAME RLEImageTestCropped COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg-hi
 # ITK's iterator tests, run on RLE images
 add_test(NAME RLEIteratorTests COMMAND iteratorTests)
 
+# Test: the full-extent region (cursor range, zoom to fit) in the reference space
+ADD_EXECUTABLE(FullExtentRegionTest
+    Testing/Logic/FullExtentRegionTest.cxx)
+TARGET_LINK_LIBRARIES(FullExtentRegionTest ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(FullExtentRegionTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME FullExtentRegion COMMAND FullExtentRegionTest ${TEMP})
+
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test
     Testing/Logic/IRISApplicationTest.cxx)
@@ -1920,6 +1928,14 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
 )
 
 TARGET_INCLUDE_DIRECTORIES(Test_OrientationWidget PUBLIC ${SNAP_INCLUDE_DIRS})
+
+# Test: the 3D view follows image free rotation (#229)
+ADD_EXECUTABLE(FreeRotation3DTest
+    Testing/GUI/Model/FreeRotation3DTest.cxx)
+TARGET_LINK_LIBRARIES(FreeRotation3DTest ${SNAP_EXTERNAL_LIBS} itksnapui_model itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(FreeRotation3DTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME FreeRotation3D COMMAND FreeRotation3DTest ${TEMP})
 
 # SSH tunnel test
 SET(SSH_TUNNEL_TEST_CXX

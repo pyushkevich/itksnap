@@ -65,6 +65,10 @@ public:
 
   void Initialize(LabelImageWrapper *segImg, MeshOptions* meshOptions);
 
+  /** The segmentation from which the meshes are computed */
+  LabelImageWrapper *GetSegmentationImage() const
+  { return m_ImagePointer; }
+
   /** Add a new blank segmentation mesh assembly to the assembly map*/
   void CreateNewAssembly(unsigned int timepoint);
 

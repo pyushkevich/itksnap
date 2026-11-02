@@ -1809,6 +1809,15 @@ void SnakeWizardModel::TrainClassifier()
   // Get the classification engine
   IRISApplication::RFEngine *rfengine = m_Driver->GetClassificationEngine();
 
+  // The engine exists only between EnterRandomForestPreprocessingMode() and
+  // LeaveRandomForestPreprocessingMode(). Being called outside that window is a
+  // caller bug, so assert in debug builds -- but assert() is compiled out under
+  // NDEBUG, and a null engine here segfaults a release build on a plain button
+  // click. Guard for real as well.
+  assert(rfengine);
+  if(!rfengine)
+    return;
+
   // Perform the classification
   rfengine->TrainClassifier();
 

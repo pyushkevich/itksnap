@@ -2854,13 +2854,18 @@ IRISApplication::LeaveRandomForestPreprocessingMode()
 
   // Before deleting the classification engine, we store the classifier
   // The smart pointer mechanism makes sure the classifier lives on
-  // even if the engine is deleted
-  m_LastUsedRFClassifier = m_ClassificationEngine->GetClassifier();
-  m_LastUsedRFClassifierComponents = m_ClassificationEngine->GetNumberOfComponents();
+  // even if the engine is deleted.
+  // Leaving a mode we never fully entered (or leaving it twice) leaves the
+  // engine null; dereferencing it here would crash on an ordinary cancel.
+  if(m_ClassificationEngine)
+    {
+    m_LastUsedRFClassifier = m_ClassificationEngine->GetClassifier();
+    m_LastUsedRFClassifierComponents = m_ClassificationEngine->GetNumberOfComponents();
 
-  // Update the m_time on the classifier, so in the future we can test
-  // if it is current
-  m_LastUsedRFClassifier->Modified();
+    // Update the m_time on the classifier, so in the future we can test
+    // if it is current
+    m_LastUsedRFClassifier->Modified();
+    }
 
   // TODO: delete this code
   // m_RandomForestPreviewWrapper->SetParameters(NULL);

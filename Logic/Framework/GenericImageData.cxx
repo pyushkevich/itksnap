@@ -161,14 +161,17 @@ GenericImageData::GetLayerRegionInReferenceSpace(ImageWrapperBase *layer)
   auto *tran_ref = ref->GetITKTransform();
   auto *tran_layer = layer->GetITKTransform();
 
-  // Extents of the region box
+  // Extents of the region box: voxel i spans [i - 0.5, i + 0.5]
   Vector3d ext_layer[] = {
-    to_double(layer->GetBufferedRegion().GetIndex()) - 0.4999,
-    to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.4999
+    to_double(layer->GetBufferedRegion().GetIndex()) - 0.5,
+    to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.5
   };
 
-  // Map the eight corners of the region box into reference space
-  RegionType rgn_layer_ref_space;
+  // Map the eight corners of the region box into the continuous index of the
+  // reference space, and take their bounding box. Corners must not be rounded
+  // one at a time: the reference voxel nearest to a corner can have its centre
+  // outside the box, which made the region one voxel too large.
+  Vector3d ci_min, ci_max;
   for(unsigned int corner = 0; corner < 8; ++corner)
   {
     Vector3d corner_point = { ext_layer[(corner & 1) ? 1 : 0][0],
@@ -181,8 +184,31 @@ GenericImageData::GetLayerRegionInReferenceSpace(ImageWrapperBase *layer)
     auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
     auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
 
-    // Expand region to include this point
-    expand_region(rgn_layer_ref_space, ci_ref);
+    for(unsigned int i = 0; i < 3; i++)
+    {
+      ci_min[i] = (corner == 0) ? ci_ref[i] : std::min(ci_min[i], ci_ref[i]);
+      ci_max[i] = (corner == 0) ? ci_ref[i] : std::max(ci_max[i], ci_ref[i]);
+    }
+  }
+
+  // The layer covers the reference voxels whose centres (integer continuous
+  // index) lie in that box. The tolerance keeps a voxel whose centre is exactly
+  // on the edge of the box, which happens whenever one grid is a multiple of the
+  // other; without it, rounding error decides. For an oblique layer the box is
+  // that of its corners, so it may add a few voxels near the corners. A layer
+  // thinner than one reference voxel covers no centre along that axis; it then
+  // gets the voxel nearest to the middle of the box, so the region is never empty.
+  const double tol = 1.0e-6;
+  RegionType rgn_layer_ref_space;
+  for(unsigned int i = 0; i < 3; i++)
+  {
+    using IndexValueType = itk::IndexValueType;
+    IndexValueType lo = (IndexValueType) std::ceil(ci_min[i] - tol);
+    IndexValueType hi = (IndexValueType) std::floor(ci_max[i] + tol);
+    if(hi < lo)
+      lo = hi = (IndexValueType) std::floor(0.5 * (ci_min[i] + ci_max[i]) + 0.5);
+    rgn_layer_ref_space.SetIndex(i, lo);
+    rgn_layer_ref_space.SetSize(i, hi - lo + 1);
   }
 
   return rgn_layer_ref_space;

@@ -84,10 +84,15 @@ public:
   { m_FileFormat = fmt; }
 
   /**
-   * Compute intersection between this mesh layer and one of the slicing planes
+   * Compute intersection between this mesh layer and one of the slicing planes.
+   * The matrix mesh_to_ref maps the mesh's NIFTI coordinates to the reference
+   * space, in which the slicing plane is defined (see
+   * ImageMeshLayers::GetMeshToReferenceNiftiTransform). The returned intersection
+   * is in the mesh's own coordinates, so it must be drawn through that matrix too.
    */
   vtkPolyData *GetIntersectionWithSlicePlane(DisplaySliceIndex                  index,
                                              const DisplayViewportGeometryType *geometry,
+                                             const vnl_matrix_fixed<double, 4, 4> &mesh_to_ref,
                                              vtkDataArraySelection *point_data_selection,
                                              vtkDataArraySelection *cell_data_selection);
 
@@ -306,11 +311,16 @@ public:
   /** Get mesh for a timepoint and id */
   PolyDataWrapper *GetMesh(unsigned int timepoint, LabelType id);
 
-  /** Compute intersection between a mesh and a slice plane */
+  /**
+   * Compute intersection between a mesh and a slice plane. As in
+   * PolyDataWrapper::GetIntersectionWithSlicePlane, the result is in the
+   * mesh's own coordinates, and mesh_to_ref maps them to the reference space.
+   */
   vtkPolyData *GetIntersectionWithSlicePlane(unsigned int      timepoint,
                                              LabelType         id,
                                              DisplaySliceIndex index,
-                                             bool              only_pass_active_property);
+                                             bool              only_pass_active_property,
+                                             const vnl_matrix_fixed<double, 4, 4> &mesh_to_ref);
 
   /**
     Helper method to merge two data property map

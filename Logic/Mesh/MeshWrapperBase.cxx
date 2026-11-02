@@ -14,6 +14,7 @@
 #include <vtkStripper.h>
 #include <vtkDataArraySelection.h>
 #include <vtkPassSelectedArrays.h>
+#include <vnl/vnl_inverse.h>
 
 // ========================================
 //  PolyDataWrapper Implementation
@@ -35,6 +36,7 @@ PolyDataWrapper::GetPolyData()
 vtkPolyData *
 PolyDataWrapper::GetIntersectionWithSlicePlane(DisplaySliceIndex            index,
                                                const DisplayViewportGeometryType *geometry,
+                                               const vnl_matrix_fixed<double, 4, 4> &mesh_to_ref,
                                                vtkDataArraySelection *point_data_selection,
                                                vtkDataArraySelection *cell_data_selection)
 {
@@ -69,12 +71,21 @@ PolyDataWrapper::GetIntersectionWithSlicePlane(DisplaySliceIndex            inde
 
   // auto origin_lps = geometry->GetOrigin();
   // plane->SetOrigin(-origin_lps[0], -origin_lps[1], origin_lps[2]);
-  plane->SetOrigin(-lps0[0], -lps0[1], lps0[2]);
+  Vector3d origin_ras(-lps0[0], -lps0[1], lps0[2]);
 
   // The normal is just the z direction
   vnl_vector_fixed<double, 3> n_lps(lps1[0] - lps0[0], lps1[1] - lps0[1], lps1[2] - lps0[2]);
   n_lps.normalize();
-  plane->SetNormal(-n_lps[0], -n_lps[1], n_lps[2]);
+  Vector3d normal_ras(-n_lps[0], -n_lps[1], n_lps[2]);
+
+  // Map the plane from the reference space into the mesh's own coordinates, which
+  // differ when the image is rotated or registered. The normal is a covariant
+  // vector, so it is transformed by the transpose of the mesh to reference matrix.
+  Vector3d origin_mesh = affine_transform_point(vnl_inverse(mesh_to_ref), origin_ras);
+  Vector3d normal_mesh = mesh_to_ref.extract(3, 3).transpose() * normal_ras;
+  normal_mesh.normalize();
+  plane->SetOrigin(origin_mesh.data_block());
+  plane->SetNormal(normal_mesh.data_block());
 
   /*
   auto dir_lps = geometry->GetDirection().GetVnlMatrix().get_row(2);
@@ -314,7 +325,8 @@ vtkPolyData *
 MeshWrapperBase::GetIntersectionWithSlicePlane(unsigned int      timepoint,
                                                LabelType         id,
                                                DisplaySliceIndex index,
-                                               bool              only_pass_active_property)
+                                               bool              only_pass_active_property,
+                                               const vnl_matrix_fixed<double, 4, 4> &mesh_to_ref)
 {
   // Get the mesh for this timepoint and this label
   auto *mesh = this->GetMesh(timepoint, id);
@@ -347,7 +359,7 @@ MeshWrapperBase::GetIntersectionWithSlicePlane(unsigned int      timepoint,
   }
 
   // Return the result
-  return mesh->GetIntersectionWithSlicePlane(index, geom, point_data_selection, cell_data_selection);
+  return mesh->GetIntersectionWithSlicePlane(index, geom, mesh_to_ref, point_data_selection, cell_data_selection);
 
 }
 

@@ -15,6 +15,7 @@ class Generic3DRenderer;
 class vtkPolyData;
 class MeshExportSettings;
 class ImageMeshLayers;
+class ImageWrapperBase;
 
 namespace itk
 {
@@ -120,8 +121,17 @@ public:
   // Position cursor at the screen position under the cursor
   bool PickSegmentationVoxelUnderMouse(int px, int py);
 
+  // Position cursor at the first visible segmentation voxel along a ray given in
+  // world coordinates. This is what a click does once the camera has made the ray.
+  bool PickSegmentationVoxelAlongRay(const Vector3d &x_world, const Vector3d &d_world);
+
   // Add a spraypaint bubble at the screen position under the cursor
   bool SpraySegmentationVoxelUnderMouse(int px, int py);
+
+  // Relabel the selected segmentation on one side of a plane given in world
+  // coordinates by a point and a normal, as the scalpel does. Returns the number
+  // of voxels changed.
+  int RelabelSegmentationWithCutPlane(const Vector3d &x_world, const Vector3d &n_world);
 
   // Set the endpoints of the scalpel line
   void SetScalpelStartPoint(int px, int py);
@@ -147,6 +157,16 @@ public:
 
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
+
+  // Get the transform from the voxel space of an image layer to world coordinates.
+  // Unlike GetWorldMatrix(), it follows the layer's registration or free rotation,
+  // so that the 3D view shows the layer where the slice views show it.
+  Mat4d GetImageVoxelToWorldMatrix(ImageWrapperBase *layer);
+
+  // Get the transform from the VTK coordinates in which a layer is volume rendered
+  // to world coordinates. Like GetImageVoxelToWorldMatrix, it follows the layer's
+  // registration or free rotation.
+  Mat4d GetVolumeToWorldMatrix(ImageWrapperBase *layer);
 
   // Get the center of rotation for the 3D window
   Vector3d GetCenterOfRotation();
@@ -176,6 +196,15 @@ protected:
 
   // Find the labeled voxel under the cursor
   bool IntersectSegmentation(int vx, int vy, Vector3i &hit);
+
+  // Find the labeled voxel along a ray in world coordinates. The hit is a voxel
+  // index in the image that is ray-cast (see GetRayCastLayer), which is not the
+  // reference space index when the image is rotated.
+  bool IntersectSegmentation(const Vector3d &x_world, const Vector3d &ray_world, Vector3i &hit);
+
+  // The layer that clicks in the 3D view are ray-cast against: the level set in
+  // snake mode, the selected segmentation otherwise
+  ImageWrapperBase *GetRayCastLayer();
 
   // Find the labeled voxels under the cursor within a radius
   bool IntersectSegmentation(int vx, int vy, double v_radius, int n_samples, std::set<Vector3i> &hits);

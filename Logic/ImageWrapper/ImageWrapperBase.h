@@ -590,6 +590,17 @@ public:
   virtual ImageBaseType* GetReferenceSpace() const = 0;
 
   /**
+   * Get the 4x4 matrix that maps NIFTI (RAS) coordinates in this image's own
+   * physical space to NIFTI coordinates in the reference space, i.e., to where
+   * the image is displayed. This is the inverse of the ITK transform, which maps
+   * the other way (reference to image) because that is the direction used for
+   * resampling. Objects defined in the image's physical space, such as meshes,
+   * must be placed with this matrix to line up with the image in the slice views
+   * when the image is registered or rotated (Tools > Image Free Rotation).
+   */
+  TransformType GetImageToReferenceNiftiTransform() const;
+
+  /**
     Cast the internally stored image to a floating point image. The returned
     image is connected to the internally stored image by a mini-pipeline that
     may include a cast filter or a scale/shift filter, depending on the internal

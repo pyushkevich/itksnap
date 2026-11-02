@@ -1,6 +1,8 @@
 #include "ImageWrapperBase.h"
 #include "itkImageBase.h"
 #include "IRISException.h"
+#include "AffineTransformHelper.h"
+#include <vnl/vnl_inverse.h>
 
 vnl_matrix_fixed<double, 4, 4>
 ImageWrapperBase ::ConstructNiftiSform(vnl_matrix<double> m_dir,
@@ -47,6 +49,15 @@ ImageWrapperBase ::ConstructVTKtoNiftiTransform(vnl_matrix<double> m_dir,
     vtk2vox(i, 3) = -v_origin[i] / v_spacing[i];
   }
   return vox2nii * vtk2vox;
+}
+
+vnl_matrix_fixed<double, 4, 4>
+ImageWrapperBase::GetImageToReferenceNiftiTransform() const
+{
+  // The ITK transform maps a point in the reference space to the point in the
+  // image that is displayed there (see NonOrthogonalSlicer). Its RAS matrix
+  // therefore maps reference to image, and we want the inverse.
+  return vnl_inverse(AffineTransformHelper::GetRASMatrix(this->GetITKTransform()));
 }
 
 bool

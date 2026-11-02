@@ -113,6 +113,15 @@ public:
   /** Return the mesh layer for an image. */
   MeshWrapperBase *GetMeshForImage(unsigned long image_id);
 
+  /**
+   * Get the 4x4 matrix that maps NIFTI coordinates of a mesh to NIFTI coordinates
+   * in the reference space, i.e., to where the mesh is displayed. A mesh computed
+   * from a segmentation lives in that segmentation's physical space, and any other
+   * mesh (e.g., loaded from a file) is taken to live in the main image's. Either
+   * way the mesh moves with the image when the image is rotated or registered.
+   */
+  vnl_matrix_fixed<double, 4, 4> GetMeshToReferenceNiftiTransform(MeshWrapperBase *mesh) const;
+
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;
 

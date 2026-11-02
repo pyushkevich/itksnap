@@ -282,6 +282,21 @@ ImageMeshLayers
   return ret;
 }
 
+vnl_matrix_fixed<double, 4, 4>
+ImageMeshLayers
+::GetMeshToReferenceNiftiTransform(MeshWrapperBase *mesh) const
+{
+  // Find the image whose physical space the mesh is in
+  auto *seg_mesh = dynamic_cast<SegmentationMeshWrapper *>(mesh);
+  ImageWrapperBase *image = seg_mesh ? seg_mesh->GetSegmentationImage() : nullptr;
+  if (!image && m_ImageData && m_ImageData->IsMainLoaded())
+    image = m_ImageData->GetMain();
+
+  vnl_matrix_fixed<double, 4, 4> identity;
+  identity.set_identity();
+  return image ? image->GetImageToReferenceNiftiTransform() : identity;
+}
+
 
 SegmentationMeshWrapper*
 ImageMeshLayers::

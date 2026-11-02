@@ -169,6 +169,46 @@ Generic3DModel::Mat4d &Generic3DModel::GetWorldMatrix()
   return m_WorldMatrix;
 }
 
+Generic3DModel::Mat4d Generic3DModel::GetImageVoxelToWorldMatrix(ImageWrapperBase *layer)
+{
+  // Voxel to NIFTI coordinates in the layer's own physical space...
+  auto  *image = layer->GetImageBase();
+  Mat4d  vox2nii = ImageWrapperBase::ConstructNiftiSform(image->GetDirection().GetVnlMatrix().as_matrix(),
+                                                         image->GetOrigin().GetVnlVector(),
+                                                         image->GetSpacing().GetVnlVector());
+
+  // ...and from there to where the layer is displayed
+  return layer->GetImageToReferenceNiftiTransform() * vox2nii;
+}
+
+Generic3DModel::Mat4d Generic3DModel::GetVolumeToWorldMatrix(ImageWrapperBase *layer)
+{
+  // A layer is volume rendered from its default scalar image, in VTK coordinates
+  // (origin and spacing, no direction). Map those to NIFTI coordinates in the
+  // image's own physical space, and from there to where the image is displayed.
+  auto  *sw = layer->GetDefaultScalarRepresentation();
+  auto  *image = sw->GetImageBase();
+  Mat4d  vtk2nii = ImageWrapperBase::ConstructVTKtoNiftiTransform(image->GetDirection().GetVnlMatrix().as_matrix(),
+                                                                  image->GetOrigin().GetVnlVector(),
+                                                                  image->GetSpacing().GetVnlVector());
+  return sw->GetImageToReferenceNiftiTransform() * vtk2nii;
+}
+
+int Generic3DModel::RelabelSegmentationWithCutPlane(const Vector3d &x_world, const Vector3d &n_world)
+{
+  // Map the plane into the voxel coordinates of the segmentation
+  LabelImageWrapper *seg = m_Driver->GetSelectedSegmentationLayer();
+  Mat4d vox2world = this->GetImageVoxelToWorldMatrix(seg);
+  Vector3d xi = affine_transform_point(vnl_inverse(vox2world), x_world);
+
+  // Normal is a covariant tensor and has to be transformed by (M^-1)'
+  vnl_matrix<double> Madj = vox2world.extract(3,3).transpose();
+  Vector3d ni = Madj * n_world;
+
+  // Use the driver to relabel the plane
+  return m_Driver->RelabelSegmentationWithCutPlane(ni, dot_product(xi, ni));
+}
+
 
 Vector3d Generic3DModel::GetCenterOfRotation()
 {
@@ -213,7 +253,12 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetFileName(settings.GetMeshFileName().c_str());
     exporter->SetRenderWindow(m_Renderer->GetRenderWindow());
+
+    // The exporter writes the meshes as they are drawn. Like the other formats,
+    // write them in the image's own space, even when the image is rotated.
+    m_Renderer->UpdateMeshTransform(true);
     exporter->Update();
+    m_Renderer->UpdateMeshTransform(false);
     return;
     }
 
@@ -373,19 +418,9 @@ bool Generic3DModel::AcceptAction()
     }
   else if(mode == SCALPEL_MODE && m_ScalpelStatus == SCALPEL_LINE_COMPLETED)
     {
-    // Get the plane origin and normal in world coordinates
-    Vector3d xw = m_Renderer->GetScalpelPlaneOrigin();
-    Vector3d nw = m_Renderer->GetScalpelPlaneNormal();
-
-    // Map these properties into the image coordinates
-    Vector3d xi = affine_transform_point(m_WorldMatrixInverse, xw);
-
-    // Normal is a covariant tensor and has to be transformed by (M^-1)'
-    vnl_matrix<double> Madj = m_WorldMatrix.extract(3,3).transpose();
-    Vector3d ni = Madj * nw;
-
-    // Use the driver to relabel the plane
-    int nMod = app->RelabelSegmentationWithCutPlane(ni, dot_product(xi, ni));
+    // Relabel on one side of the plane, given in world coordinates
+    int nMod = this->RelabelSegmentationWithCutPlane(
+          m_Renderer->GetScalpelPlaneOrigin(), m_Renderer->GetScalpelPlaneNormal());
 
     // Reset the scalpel state, but only if the operation was successful
     if(nMod > 0)
@@ -466,9 +501,24 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
   Vector3d x_world, ray_world, dx_world, dy_world;
   m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
 
-  // Convert these to image coordinates
-  Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
-  Vector3d d_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
+  return this->IntersectSegmentation(x_world, ray_world, hit);
+}
+
+ImageWrapperBase *Generic3DModel::GetRayCastLayer()
+{
+  if(m_Driver->IsSnakeModeLevelSetActive())
+    return m_Driver->GetSNAPImageData()->GetSnake();
+  else
+    return m_Driver->GetSelectedSegmentationLayer();
+}
+
+bool Generic3DModel::IntersectSegmentation(const Vector3d &x_world, const Vector3d &ray_world, Vector3i &hit)
+{
+  // Convert these to the voxel coordinates of the image being ray-cast. When the
+  // image is rotated, these differ from the reference space coordinates (#229).
+  Mat4d world2vox = vnl_inverse(this->GetImageVoxelToWorldMatrix(this->GetRayCastLayer()));
+  Vector3d x_image = affine_transform_point(world2vox, x_world);
+  Vector3d d_image = affine_transform_vector(world2vox, ray_world);
 
   int result = 0;
   if(m_Driver->IsSnakeModeLevelSetActive())
@@ -557,14 +607,31 @@ Generic3DModel::GetColorBarVisibleValue(bool &value)
 
 bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
 {
-  // Find the voxel under the cursor
+  // World coordinate of the click position and direction
+  Vector3d x_world, ray_world, dx_world, dy_world;
+  m_Renderer->ComputeRayFromClick(px, py, x_world, ray_world, dx_world, dy_world);
+
+  return this->PickSegmentationVoxelAlongRay(x_world, ray_world);
+}
+
+bool Generic3DModel::PickSegmentationVoxelAlongRay(const Vector3d &x_world, const Vector3d &d_world)
+{
+  // Find the voxel along the ray
   Vector3i hit;
-  if(this->IntersectSegmentation(px, py, hit))
+  if(this->IntersectSegmentation(x_world, d_world, hit))
     {
+    // The hit is in the voxel space of the ray-cast image. The cursor is in the
+    // reference space, where the slice views show that voxel.
+    Mat4d hit2ref = m_WorldMatrixInverse * this->GetImageVoxelToWorldMatrix(this->GetRayCastLayer());
+    Vector3d x_ref = affine_transform_point(hit2ref, to_double(hit));
+    Vector3i cursor;
+    for(unsigned int d = 0; d < 3; d++)
+      cursor[d] = static_cast<int>(std::floor(x_ref[d] + 0.5));
+
     itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
-    if(region.IsInside(to_itkIndex(hit)))
+    if(region.IsInside(to_itkIndex(cursor)))
       {
-      m_Driver->SetCursorPosition(hit);
+      m_Driver->SetCursorPosition(cursor);
       return true;
       }
     }
@@ -578,7 +645,8 @@ bool Generic3DModel::SpraySegmentationVoxelUnderMouse(int px, int py)
   Vector3i hit;
   if(this->IntersectSegmentation(px, py, hit))
     {
-    itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+    // The hit is a voxel of the ray-cast image, not of the reference space
+    itk::ImageRegion<3> region = this->GetRayCastLayer()->GetImageBase()->GetBufferedRegion();
     if(region.IsInside(to_itkIndex(hit)))
       {
       m_SprayPoints->GetPoints()->InsertNextPoint(hit[0], hit[1], hit[2]);

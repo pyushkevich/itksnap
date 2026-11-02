@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PaintbrushSettingsModel.h"
 #include "StandaloneMeshWrapper.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
+#include <itkTransform.h>
 #include <vtkCellData.h>
 #include <vtkLookupTable.h>
 #include <vtkPointData.h>
@@ -353,11 +354,17 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
     SmartPtr<ContourSet2D> stored_contour =
       dynamic_cast<ContourSet2D *>(layer->GetUserData(layer_key));
 
+    // Where the mesh is displayed: it moves with the main image when the image
+    // is rotated or registered
+    vnl_matrix_fixed<double, 4, 4> mesh_to_ref = ml->GetMeshToReferenceNiftiTransform(layer);
+
     // Check the update times of all the inputs that affect the rendering of the mesh
     // This is a bit clunky because this is not a proper ITK pipeline
     auto mtime = layer->GetDeepMTime();
     mtime = std::max(mtime, layer->GetDisplayViewportGeometry(index)->GetMTime());
     mtime = std::max(mtime, layer->GetMeshDisplayMappingPolicy()->GetDeepMTime());
+    if (m_Model->GetImageData()->IsMainLoaded() && m_Model->GetImageData()->GetMain()->GetITKTransform())
+      mtime = std::max(mtime, m_Model->GetImageData()->GetMain()->GetITKTransform()->GetMTime());
     for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       if (layer->GetMesh(tp, i))
       {
@@ -377,7 +384,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
       for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       {
         auto         t0 = clk.now();
-        vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index, true);
+        vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index, true, mesh_to_ref);
         auto         t1 = clk.now();
 
         // Transform the polydata into slice coordinates that we are rendering
@@ -402,7 +409,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
           for (unsigned int i = 0; i < 3; i++)
             vox_offset(i,3) = 0.5;
           vnl_matrix_fixed<double, 4, 4> img_to_disp = m_Model->GetImageToDisplayTransform()->ComputeHomogeneousMatrix();
-          vnl_matrix_fixed<double, 4, 4> phys_to_screen = img_to_disp * vox_offset * inv_sform;
+          vnl_matrix_fixed<double, 4, 4> phys_to_screen = img_to_disp * vox_offset * inv_sform * mesh_to_ref;
 
           vtkNew<vtkTransformPolyDataFilter> transform_filter;
           vtkNew<vtkTransform>               transform;

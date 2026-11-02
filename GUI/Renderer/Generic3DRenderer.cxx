@@ -61,7 +61,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <IntensityCurveInterface.h>
 #include <ColorMap.h>
-#include <AffineTransformHelper.h>
 #include <itkTransform.h>
 
 #include <vnl/vnl_cross.h>
@@ -328,9 +327,33 @@ Generic3DRenderer::UpdateMeshAssembly()
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
     m_Renderer->AddActor(it->second);
 
+  UpdateMeshTransform();
+
   ApplyDisplayMappingPolicyChange();
 
   m_Renderer->Modified();
+}
+
+void
+Generic3DRenderer::UpdateMeshTransform(bool in_image_space)
+{
+  if (m_CrntActorMapLayerId == 0) // no layer activated yet
+    return;
+
+  // The meshes are in the physical space of an image, which is displayed through
+  // that image's registration or free rotation transform (#229)
+  ImageMeshLayers *layers = m_Model->GetMeshLayers();
+  auto            *layer = layers->GetLayer(m_CrntActorMapLayerId).GetPointer();
+  if (!layer)
+    return;
+
+  vtkNew<vtkMatrix4x4> tran;
+  if (!in_image_space)
+    tran->DeepCopy(layers->GetMeshToReferenceNiftiTransform(layer).data_block());
+
+  auto actorMap = m_ActorPool->GetActorMap();
+  for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
+    it->second->SetUserMatrix(tran);
 }
 
 void
@@ -580,8 +603,10 @@ Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
     ColorLabel cdl = app->GetColorLabelTable()->GetColorLabel(dl);
     m_SprayProperty->SetColor(cdl.GetRGBAsDoubleVector().data_block());
 
-    // Set the spray transform
-    vnl_matrix_fixed<double, 4, 4> vox2nii = ref->GetNiftiSform();
+    // Set the spray transform. Spray points are voxels of the segmentation.
+    LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
+    vnl_matrix_fixed<double, 4, 4> vox2nii =
+      seg ? m_Model->GetImageVoxelToWorldMatrix(seg) : ref->GetNiftiSform();
     m_SprayTransform->SetMatrix(vox2nii.data_block());
   }
 }
@@ -628,6 +653,9 @@ Generic3DRenderer::UpdateCamera(bool reset)
             ctr[i] = (bounds[2 * i] + bounds[2 * i + 1]) / 2.0;
             dim[i] = bounds[2 * i + 1] - bounds[2 * i];
           }
+
+          // The bounds are in the mesh's own space; move the center to where the mesh is displayed
+          ctr = affine_transform_point(m_Model->GetMeshLayers()->GetMeshToReferenceNiftiTransform(layer), ctr);
         }
         else
         {
@@ -850,15 +878,11 @@ void
 Generic3DRenderer::UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va)
 {
   auto *sw = layer->GetDefaultScalarRepresentation();
-  auto  dir = sw->GetImageBase()->GetDirection().GetVnlMatrix().as_matrix();
-  auto  spc = sw->GetImageBase()->GetSpacing().GetVnlVector();
-  auto  org = sw->GetImageBase()->GetOrigin().GetVnlVector();
 
-  // Transform applied to the volume is the product of the registration matrix and the
-  // image to physical transform
-  vnl_matrix_fixed<double, 4, 4> vtk2nii =
-    AffineTransformHelper::GetRASMatrix(sw->GetITKTransform()) *
-    ImageWrapperBase::ConstructVTKtoNiftiTransform(dir, org, spc);
+  // Transform applied to the volume is the image to physical transform, followed by
+  // the map from the image's physical space to where it is displayed, which is the
+  // inverse of the registration matrix
+  vnl_matrix_fixed<double, 4, 4> vtk2nii = m_Model->GetVolumeToWorldMatrix(layer);
 
   vtkNew<vtkMatrix4x4> tran;
   tran->DeepCopy(vtk2nii.data_block());
@@ -1094,7 +1118,7 @@ Generic3DRenderer::OnUpdate()
   }
 
   else if (cursor_moved || ref_space_changed ||
-           (mesh_content_updated && focal_point_active_mesh_layer_center))
+           ((mesh_content_updated || layer_mapping_changed) && focal_point_active_mesh_layer_center))
   {
     UpdateCamera(false);
     need_render = true;
@@ -1105,6 +1129,15 @@ Generic3DRenderer::OnUpdate()
   {
     UpdateSprayGlyphAppearanceAndShape();
     UpdateScalpelPlaneAppearance();
+    need_render = true;
+  }
+
+  // A change in an image's transform (registration, free rotation) moves the
+  // meshes and the spray paint along with the image
+  if (layer_mapping_changed || seg_layer_changed)
+  {
+    UpdateMeshTransform();
+    UpdateSprayGlyphAppearanceAndShape();
     need_render = true;
   }
 
