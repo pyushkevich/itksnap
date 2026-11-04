@@ -59,7 +59,9 @@
 - Fixed an error when pressing Update in the 3D view in snake mode before the contour was initialized
 - Fixed polygon drawing on slices outside the segmentation, and the adaptive brush on segmentations with a different grid
 - Fixed the slice slider range and slice numbers when the scene extends beyond the active segmentation
+- When a segmentation has a different voxel size, position or orientation from the main image, the cursor could be moved one slice past the images, and "Zoom to fit" included that empty slice
 - Fixed segmentation statistics, registration reslicing, annotations and the snake ROI when the segmentation grid differs from the main image
+- Image Free Rotation (Tools > Image Free Rotation...): the 3D view now turns with the image. Meshes, mesh outlines in the slice views and volume rendering match the slice views, and a click on a mesh with the 3D crosshair lands on the same spot in the slice views
 - Large images (over 1024 voxels in any direction), including large 2D images:
   - 2D overlays slightly off the slice were shown and probed too dark, and the edges of obliquely sliced images faded
   - Segmentations on another grid showed labels one voxel past their lower edges
@@ -76,6 +78,7 @@
 - DICOM:
   - A CT exam from GE or Siemens with several series was read as a single 4D CTA series, and the first series was always loaded. Now the series can be chosen, and only a series with several images at each position is read as 4D CTA
   - A series whose files write the slice thickness differently (e.g. `0.625000` and `0.625`) is no longer split in two
+  - In a 4D CTA series where one file writes a value differently (e.g. a gantry tilt of `0.000000` in the first file and `0` in the others), one time point was loaded upside down and the whole image was shifted
   - Fixed a hang when opening some DICOM files
 - Fixed memory leaks in mesh and layer handling and the network code
 - The Layer Inspector shows the orientation of the selected layer, not always that of the main image
