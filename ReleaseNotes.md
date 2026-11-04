@@ -81,11 +81,14 @@
   - In a 4D CTA series where one file writes a value differently (e.g. a gantry tilt of `0.000000` in the first file and `0` in the others), one time point was loaded upside down and the whole image was shifted
   - Fixed a hang when opening some DICOM files
 - Fixed memory leaks in mesh and layer handling and the network code
+- Fixed a crash when replaying a 4D image with continuous mesh update turned on
+- In 4D images, meshes drawn in the slice views now change with the time point; before, they could keep showing the previous time point
 - The Layer Inspector shows the orientation of the selected layer, not always that of the main image
 - Label description files with Windows line endings or without the header line can be dropped on the main window and imported
 - Errors while painting with the brush are reported, instead of making ITK-SNAP quit
 - Fixed a crash when a drop contains no files
 - Windows:
+  - ITK-SNAP refused to start when the user name contained non-ASCII characters (e.g. `ü` or `日本`); now it starts. On Windows 10 version 1903 or later, file paths with such characters can also be given on the command line
   - NRRD images were read with wrong spacing when the system uses a decimal comma
   - ITK-SNAP quit silently when a file given on the command line didn't exist; now it reports the missing file
   - The installer shows the right name, version and publisher in Apps & Features, and the executables carry version information
