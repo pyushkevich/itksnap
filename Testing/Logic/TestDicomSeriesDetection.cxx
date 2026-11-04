@@ -13,6 +13,11 @@
  * are merged, and the ID of the smaller part still loads the whole series, as
  * a workspace saved before the fix may refer to it.
  *
+ * The first file of series 4 writes GantryDetectorTilt as "0.000000" and the
+ * others as "0.0" (#128). gdcm::IPPSorter refused the first frame because of
+ * this, so the frame was left in the opposite slice order: it loaded upside
+ * down, and the whole 4D image was shifted along Z.
+ *
  * The test exam (Testing/TestData/dicom_ct_exam, see make_dicom_ct_exam.py)
  * has two 3D series and one 4D CTA series. Voxel intensity encodes the series,
  * slice and frame, so reading the wrong series, slice or frame order shows up.

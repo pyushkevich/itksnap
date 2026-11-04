@@ -1,5 +1,6 @@
 #include "MultiFrameDicomSeriesSorter.h"
 
+#include <algorithm>
 #include <sstream>
 #include <exception>
 
@@ -7,7 +8,6 @@
 #include "gdcmElement.h"
 #include "gdcmTag.h"
 #include "gdcmStringFilter.h"
-#include "gdcmIPPSorter.h"
 #include "itksys/SystemTools.hxx"
 #include "IRISException.h"
 
@@ -121,35 +121,19 @@ int
 MFOrderByIPPStrategy
 ::Apply(DicomFilesList &dflist)
 {
-	std::vector<std::string> filenames;
-	std::map<std::string, DicomFile> DicomFileToFilenameMap;
+	// Order the slices of a frame from the highest Z position to the lowest.
+	// The 4D CTA reader in GuidedNativeImageIO flips the slice axis after
+	// loading, and takes the geometry of all frames from the first one; both
+	// assume that every frame is in this order.
+	//
+	// Do not use gdcm::IPPSorter here: it compares the text of tags such as
+	// GantryDetectorTilt, so it refuses a frame where one file writes
+	// "0.000000" and the others "0", as some GE scanners do (#128).
+	std::stable_sort(dflist.begin(), dflist.end(),
+		[](const DicomFile &left, const DicomFile &right)
+		{ return left.m_IPP[2] > right.m_IPP[2]; });
 
-	for (auto &df : dflist)
-		{
-		filenames.push_back(df.m_Filename);
-		DicomFileToFilenameMap.insert(std::pair<std::string, DicomFile>(df.m_Filename, df));
-		}
-
-	gdcm::IPPSorter ippSorter;
-	if (ippSorter.Sort(filenames))
-		{
-		DicomFilesList sorted;
-
-		for (auto &fn : filenames)
-			sorted.push_back(DicomFileToFilenameMap.at(fn));
-
-		// for some reason itk series reader always read image to RAI regardless of the order
-		// so we are reversing the slice order here and
-		// will flip it back from RAI to RAS after itk loading
-		std::reverse(sorted.begin(), sorted.end());
-
-		dflist.clear();
-		dflist = sorted; // copy the sorted list back
-
-		return EXIT_SUCCESS;
-		}
-	else
-		return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
 
 //===================================================
