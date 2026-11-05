@@ -59,7 +59,9 @@
 - Fixed an error when pressing Update in the 3D view in snake mode before the contour was initialized
 - Fixed polygon drawing on slices outside the segmentation, and the adaptive brush on segmentations with a different grid
 - Fixed the slice slider range and slice numbers when the scene extends beyond the active segmentation
+- Fixed the cursor moving one slice past the images, and "Zoom to fit" including that empty slice, when a segmentation has a different voxel size, position or orientation from the main image
 - Fixed segmentation statistics, registration reslicing, annotations and the snake ROI when the segmentation grid differs from the main image
+- Image Free Rotation (Tools > Image Free Rotation...): the 3D view now turns with the image. Meshes, mesh outlines in the slice views and volume rendering match the slice views, and a click on a mesh with the 3D crosshair lands on the same spot in the slice views
 - Large images (over 1024 voxels in any direction), including large 2D images:
   - 2D overlays slightly off the slice were shown and probed too dark, and the edges of obliquely sliced images faded
   - Segmentations on another grid showed labels one voxel past their lower edges
@@ -76,13 +78,17 @@
 - DICOM:
   - A CT exam from GE or Siemens with several series was read as a single 4D CTA series, and the first series was always loaded. Now the series can be chosen, and only a series with several images at each position is read as 4D CTA
   - A series whose files write the slice thickness differently (e.g. `0.625000` and `0.625`) is no longer split in two
+  - Fixed one time point of a 4D CTA series loading upside down, with the whole image shifted, when one file writes a value differently (e.g. a gantry tilt of `0.000000` in the first file and `0` in the others)
   - Fixed a hang when opening some DICOM files
 - Fixed memory leaks in mesh and layer handling and the network code
+- Fixed a crash when replaying a 4D image with continuous mesh update turned on
+- In 4D images, meshes drawn in the slice views now change with the time point; before, they could keep showing the previous time point
 - The Layer Inspector shows the orientation of the selected layer, not always that of the main image
 - Label description files with Windows line endings or without the header line can be dropped on the main window and imported
 - Errors while painting with the brush are reported, instead of making ITK-SNAP quit
 - Fixed a crash when a drop contains no files
 - Windows:
+  - ITK-SNAP refused to start when the user name contained non-ASCII characters (e.g. `ü` or `日本`); now it starts. On Windows 10 version 1903 or later, file paths with such characters can also be given on the command line
   - NRRD images were read with wrong spacing when the system uses a decimal comma
   - ITK-SNAP quit silently when a file given on the command line didn't exist; now it reports the missing file
   - The installer shows the right name, version and publisher in Apps & Features, and the executables carry version information
