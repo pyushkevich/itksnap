@@ -90,6 +90,7 @@
 // Platform-specific headers for available memory query (used in image size check)
 #if defined(__APPLE__)
 #  include <mach/mach.h>
+#  include <sys/sysctl.h>
 #elif defined(__linux__)
 #  include <fstream>
 #  include <limits>
@@ -1015,16 +1016,32 @@ GuidedNativeImageIO::GetAvailableMemory()
 {
   size_t availableRAM = 0;
 #if defined(__APPLE__)
-  mach_port_t host = mach_host_self();
-  vm_size_t pageSize = 0;
-  host_page_size(host, &pageSize);
-  vm_statistics64_data_t vmStats;
-  mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
-  if(host_statistics64(host, HOST_VM_INFO64,
-                       reinterpret_cast<host_info64_t>(&vmStats),
-                       &count) == KERN_SUCCESS)
-    availableRAM = static_cast<size_t>(vmStats.free_count +
-                                       vmStats.inactive_count) * pageSize;
+  // The share of memory that macOS counts as free, in percent: the number the
+  // memory_pressure tool reports. Unlike the free and inactive page counts, it
+  // includes memory the system can reclaim, such as file cache and pages it
+  // can compress, so images that would fit are not refused.
+  int level = 0;
+  uint64_t physical = 0;
+  size_t len_level = sizeof(level), len_physical = sizeof(physical);
+  if(sysctlbyname("kern.memorystatus_level", &level, &len_level, nullptr, 0) == 0 &&
+     sysctlbyname("hw.memsize", &physical, &len_physical, nullptr, 0) == 0 &&
+     level > 0 && level <= 100)
+    availableRAM = static_cast<size_t>(physical / 100 * level);
+
+  // If that query fails, count the free and inactive pages instead
+  if(availableRAM == 0)
+    {
+    mach_port_t host = mach_host_self();
+    vm_size_t pageSize = 0;
+    host_page_size(host, &pageSize);
+    vm_statistics64_data_t vmStats;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if(host_statistics64(host, HOST_VM_INFO64,
+                         reinterpret_cast<host_info64_t>(&vmStats),
+                         &count) == KERN_SUCCESS)
+      availableRAM = static_cast<size_t>(vmStats.free_count +
+                                         vmStats.inactive_count) * pageSize;
+    }
 #elif defined(__linux__)
   // Each line is "Key: value kB" (a few have no unit), so read the key and the
   // value, then skip the rest of the line.
