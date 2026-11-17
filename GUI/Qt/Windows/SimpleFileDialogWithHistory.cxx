@@ -9,7 +9,8 @@ SimpleFileDialogWithHistory::SimpleFileDialogWithHistory(QWidget *parent) :
   ui(new Ui::SimpleFileDialogWithHistory)
 {
   // Use parent's double buffering attributes
-  this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
+  if(parent)
+    this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
 
   // Set an object name for scripting
   this->setObjectName("dlgSimpleFile");

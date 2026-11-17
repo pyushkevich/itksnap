@@ -12,7 +12,8 @@ MeshImportWizard::MeshImportWizard(QWidget *parent) :
   this->setObjectName("wizMeshImport");
 
   // Use parent's double buffering attributes
-  this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
+  if(parent)
+    this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
 
   ui->setupUi(this);
 
