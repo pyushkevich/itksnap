@@ -418,7 +418,8 @@ bool IsRemoteImageURL(const std::string &path)
 
 bool CanSaveToURL(const std::string &url)
 {
-  return url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://";
+  return url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://" ||
+         url.substr(0, 5) == "fw://";
 }
 
 std::string SiblingURL(const std::string &url, const std::string &filename)
@@ -579,7 +580,7 @@ SaveRemoteFile(const std::string &url,
   SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
   if (!src->CanUpload())
     throw IRISException("Files cannot be saved to this kind of URL: %s. "
-                        "Please save to a local file, or to an scp:// or sftp:// URL.",
+                        "Please save to a local file, or to an scp://, sftp:// or fw:// URL.",
                         url.c_str());
 
   if (ctx.connectionPool)

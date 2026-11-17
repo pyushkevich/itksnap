@@ -475,8 +475,19 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   // The cookie JAR
   SetupCookies(m_ReceiveCookieMode);
 
-  // Use the new mime interface
-  curl_mime *mime = curl_mime_init(m_Curl);
+  // Use the new mime interface. The mime structure is freed when this
+  // function returns or throws
+  struct MimeGuard
+  {
+    CURL *curl;
+    curl_mime *mime;
+    ~MimeGuard()
+    {
+      curl_easy_setopt(curl, CURLOPT_MIMEPOST, nullptr);
+      curl_mime_free(mime);
+    }
+  } mime_guard{ m_Curl, curl_mime_init(m_Curl) };
+  curl_mime *mime = mime_guard.mime;
 
   // Add the file
   for(auto &mp : data->m_Parts)
@@ -484,9 +495,14 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
     auto *part = curl_mime_addpart(mime);
     curl_mime_name(part, mp.first.c_str());
     curl_mime_type(part, mp.second.mime_type.c_str());
-    if(mp.second.filename.size())
-      curl_mime_filename(part, mp.second.filename.c_str());
-    if(mp.second.byte_array_size > 0)
+    if(mp.second.file_path.size())
+    {
+      // Streamed from the file; this also sets the part's file name, which
+      // the explicit file name below replaces
+      if(curl_mime_filedata(part, mp.second.file_path.c_str()) != CURLE_OK)
+        throw IRISException("Cannot read file %s for upload", mp.second.file_path.c_str());
+    }
+    else if(mp.second.byte_array_size > 0)
     {
       curl_mime_data(part, mp.second.byte_array, mp.second.byte_array_size);
     }
@@ -494,10 +510,23 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
     {
       curl_mime_data(part, mp.second.value.c_str(), CURL_ZERO_TERMINATED);
     }
+    if(mp.second.filename.size())
+      curl_mime_filename(part, mp.second.filename.c_str());
   }
 
   // Set the mime request
   curl_easy_setopt(m_Curl, CURLOPT_MIMEPOST, mime);
+
+  // Apply any extra request headers (e.g. Authorization). The list is freed
+  // when this function returns or throws
+  RESTClient_internal::CurlRequestLists lists(m_Curl);
+  for (auto &kv : m_ExtraRequestHeaders)
+    {
+    std::string h = kv.first + ": " + kv.second;
+    lists.headers = curl_slist_append(lists.headers, h.c_str());
+    }
+  if (lists.headers)
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, lists.headers);
 
   // Capture output
   m_Output.clear();
@@ -530,9 +559,6 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
            "%.1f Mb in %.1f s",
            upload_size / 1.0e6,
            upload_time);
-
-  /* then cleanup the formpost chain */
-  curl_mime_free(mime);
 
   // Capture the response code
   m_HTTPCode = 0L;

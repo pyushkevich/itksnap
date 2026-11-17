@@ -145,6 +145,7 @@ int main()
   std::cout << "CanSaveToURL / SiblingURL:" << std::endl;
   Check(CanSaveToURL("sftp://user@host/a/b.nii.gz"), "sftp can be saved to");
   Check(CanSaveToURL("scp://host:2222/a.nii"), "scp can be saved to");
+  Check(CanSaveToURL("fw://site.flywheel.io/acquisitions/x/files/a.nii.gz"), "fw can be saved to");
   Check(!CanSaveToURL("https://h/f.nii.gz"), "https cannot be saved to");
   Check(!CanSaveToURL("http://h/f.nii.gz"), "http cannot be saved to");
   Check(!CanSaveToURL("/data/img.nii.gz"), "a local path is not a URL to save to");

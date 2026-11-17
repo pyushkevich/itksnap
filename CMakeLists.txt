@@ -1725,6 +1725,50 @@ IF(Python3_Interpreter_FOUND)
        "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
        "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_Cancel_Server/sftp/MRIcrop-seg.gipl.gz"
        "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz")
+
+  # Saving to the mock Flywheel server, with a direct URL and a find/ URL
+  # (resolved by label to the acquisition a0001). The key in the client's
+  # config has the host with its port, "127.0.0.1:<port>:<secret>".
+  set(_fw_find "find/testgroup/TestProject/sub-01/ses-01/acquisitions/T1w")
+  foreach(_case "FlywheelDirect;8958;acquisitions/a0001;uploaded.nii.gz"
+                "FlywheelFind;8961;${_fw_find};uploaded_find.nii.gz")
+    list(GET _case 0 _name)
+    list(GET _case 1 _port)
+    list(GET _case 2 _container)
+    list(GET _case 3 _file)
+    math(EXPR _fw_port "${_port} + 2")
+    add_remote_server_test(RemoteSaveTest_${_name} ${_port}
+      -- $<TARGET_FILE:remote_image_load_test>
+         --test-upload "fw://127.0.0.1:${_fw_port}/${_container}/files/${_file}"
+         "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz" "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz"
+         "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_${_name}_Server/fw/acquisitions/a0001/${_file}")
+  endforeach()
+
+  # A wrong Flywheel API key is reported, not ignored
+  add_remote_server_test(RemoteSaveTest_FlywheelBadKey 8964 --fw-config-key wrongkey
+    -- $<TARGET_FILE:remote_image_load_test>
+       --test-upload-refused "fw://127.0.0.1:8966/acquisitions/a0001/files/uploaded.nii.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
+  # A cancelled Flywheel upload leaves the file as it was
+  add_remote_server_test(RemoteSaveTest_FlywheelCancel 8967
+    -- $<TARGET_FILE:remote_image_load_test>
+       --test-upload-cancel "fw://127.0.0.1:8969/acquisitions/a0001/files/MRIcrop-seg.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
+       "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_FlywheelCancel_Server/fw/acquisitions/a0001/MRIcrop-seg.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz")
+
+  # Downloads from the mock Flywheel server, by ID and by label
+  foreach(_case "Direct;8970;acquisitions/a0001" "Find;8973;${_fw_find}")
+    list(GET _case 0 _name)
+    list(GET _case 1 _port)
+    list(GET _case 2 _container)
+    math(EXPR _fw_port "${_port} + 2")
+    add_remote_server_test(RemoteImageLoadTest_Flywheel${_name} ${_port}
+      -- $<TARGET_FILE:remote_image_load_test>
+         --regression-test -g "fw://127.0.0.1:${_fw_port}/${_container}/files/MRIcrop-orig.gipl.gz"
+         "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+  endforeach()
 ENDIF()
 
 # Saving to an http(s) URL is refused before any connection is made

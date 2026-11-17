@@ -270,7 +270,7 @@ bool IsRemoteImageURL(const std::string &path);
 
 /**
  * Whether files can be saved to @p url: true for the schemes that support
- * uploads (scp://, sftp://), false for read-only ones (http://, https://),
+ * uploads (scp://, sftp://, fw://), false for read-only ones (http://, https://),
  * unknown schemes and local paths.
  */
 bool CanSaveToURL(const std::string &url);

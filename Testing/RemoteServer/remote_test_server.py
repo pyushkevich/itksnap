@@ -3,7 +3,8 @@
 
 Usage: remote_test_server.py --root DIR [--data SRC]
                              [--sftp-port P] [--http-port P] [--fw-port P]
-                             [--fw-key KEY] [--sftp-write-delay SECONDS]
+                             [--fw-key KEY] [--fw-config-key KEY]
+                             [--sftp-write-delay SECONDS]
                              -- <command> [args...]
        remote_test_server.py --root DIR --self-test
 
@@ -202,6 +203,10 @@ def make_flywheel_handler(root, api_key):
             ctype = self.headers.get('Content-Type', '')
             length = int(self.headers.get('Content-Length', '0'))
             body = self.rfile.read(length)
+            if len(body) < length:
+                # The client gave up (e.g. a cancelled upload): store nothing
+                log('flywheel: upload aborted after %d of %d bytes' % (len(body), length))
+                return
             msg = email.parser.BytesParser(policy=email.policy.HTTP).parsebytes(
                 b'Content-Type: ' + ctype.encode() + b'\r\n\r\n' + body)
             saved = []
@@ -401,7 +406,7 @@ async def run(args):
 
     root = os.path.realpath(args.root)
     dirs = prepare_root(root, args.data)
-    write_fw_config(dirs['home'], args.fw_port, args.fw_key)
+    write_fw_config(dirs['home'], args.fw_port, args.fw_config_key or args.fw_key)
 
     sftp = await start_sftp(asyncssh, args.sftp_port, dirs['sftp'], dirs['ssh'],
                             args.sftp_write_delay)
@@ -437,7 +442,10 @@ def main():
     p.add_argument('--sftp-port', type=int, default=8930)
     p.add_argument('--http-port', type=int, default=8931)
     p.add_argument('--fw-port', type=int, default=8932)
-    p.add_argument('--fw-key', default='itksnaptestkey')
+    p.add_argument('--fw-key', default='itksnaptestkey',
+                   help='the API key that the mock Flywheel server accepts')
+    p.add_argument('--fw-config-key',
+                   help='the key written to the client\'s config.yml, if not --fw-key')
     p.add_argument('--sftp-write-delay', type=float, default=0.0,
                    help='seconds to wait on every SFTP write request')
     p.add_argument('--self-test', action='store_true')
