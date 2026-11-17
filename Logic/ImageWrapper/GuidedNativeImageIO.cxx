@@ -92,6 +92,7 @@
 #  include <mach/mach.h>
 #elif defined(__linux__)
 #  include <fstream>
+#  include <limits>
 #  include <string>
 #elif defined(_WIN32)
 #  include <windows.h>
@@ -1025,10 +1026,15 @@ GuidedNativeImageIO::GetAvailableMemory()
     availableRAM = static_cast<size_t>(vmStats.free_count +
                                        vmStats.inactive_count) * pageSize;
 #elif defined(__linux__)
+  // Each line is "Key: value kB" (a few have no unit), so read the key and the
+  // value, then skip the rest of the line.
   std::ifstream meminfo("/proc/meminfo");
   std::string key; size_t val;
   while(meminfo >> key >> val)
+    {
     if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
+    meminfo.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
 #elif defined(_WIN32)
   MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
   if(GlobalMemoryStatusEx(&ms))
