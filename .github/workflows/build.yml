@@ -430,6 +430,20 @@ jobs:
           rm mesa.7z
           echo "MESA_DIR=$(cygpath -w "$PWD")" >> $GITHUB_ENV
 
+      # The remote save and load tests serve SFTP with the asyncssh module (they are skipped
+      # without it). Install it for the Python that CMake found and runs the test server with:
+      # Python3_EXECUTABLE if it was set, else FindPython's internal _Python3_EXECUTABLE.
+      - name: Install Python modules for the remote IO tests
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          PYTHON=$(sed -n 's/^_\{0,1\}Python3_EXECUTABLE:[A-Z]*=//p' CMakeCache.txt | head -n 1)
+          echo "Python used by the tests: ${PYTHON:-none}"
+          if [ -n "$PYTHON" ]; then
+            "$PYTHON" -m pip install asyncssh || echo "::warning::Could not install asyncssh; the remote server tests will be skipped"
+          fi
+
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
         if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}

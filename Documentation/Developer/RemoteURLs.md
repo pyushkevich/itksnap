@@ -1,9 +1,10 @@
 # Remote URLs in ITK-SNAP
 
 ITK-SNAP can open images and workspaces directly from remote sources by
-passing a URL wherever a local file path is accepted. This document describes
-the supported URL schemes, how authentication works for each, and the several
-ways a URL can be handed to ITK-SNAP.
+passing a URL wherever a local file path is accepted, and can save image
+layers back to SSH and Flywheel URLs. This document describes the supported
+URL schemes, how authentication works for each, the several ways a URL can be
+handed to ITK-SNAP, and how to test the remote code locally.
 
 ---
 
@@ -53,6 +54,10 @@ sftp://[user@]host[:port]/absolute/path/to/file.nii.gz
 **Authentication**: ITK-SNAP attempts public-key authentication first (using
 keys in `~/.ssh`). If that fails it prompts for a password or key passphrase
 via a dialog. Credentials are not stored between sessions.
+
+The environment variable `ITKSNAP_SSH_DIR` replaces `~/.ssh` as the folder
+where keys, `known_hosts` and `config` are read. The tests use it so that they
+never touch the user's own SSH files.
 
 **Example**:
 ```
@@ -202,6 +207,66 @@ Any hyperlink using an `itksnap-*://` scheme will trigger the OS handler:
 The browser will show a confirmation dialog before launching ITK-SNAP. The
 `itksnap-*` schemes are registered during installation on both macOS
 (via `Info.plist`) and Windows (via NSIS registry entries under `HKCR`).
+
+---
+
+## Saving to URLs
+
+Image layers (main image, overlays and segmentations) can be saved to
+`scp://`, `sftp://` and `fw://` URLs. `http(s)://` URLs are read-only.
+Workspaces and meshes are always saved to local files.
+
+- **Save** (e.g. Ctrl-S for the segmentation) on a layer opened from an
+  `scp`, `sftp` or `fw` URL uploads it back to that URL, without a dialog.
+  A layer opened from an `http(s)` URL opens the Save As wizard instead, with
+  just the file name suggested.
+- **Save As** shows the layer's URL in the filename box, with the file name
+  selected. Edit it to save under another name, or type a local path. The
+  Browse button is disabled while the box holds a URL, since remote folders
+  cannot be browsed. An `http(s)` URL is refused and Finish is disabled.
+- The image is written to a temporary local folder and then uploaded. Formats
+  that write two files (e.g. `.mhd` with `.raw`, `.hdr` with `.img`) upload
+  both, to the same remote folder or container; the file the URL names goes
+  last.
+- The layer only counts as saved once the upload has succeeded. A failed or
+  cancelled upload leaves it marked as modified.
+- Saving to a URL drops that URL from the download cache, so reopening it
+  downloads the new version.
+
+**SSH / SFTP**: the file is written to a temporary name
+(`.<name>.itksnap-upload`) in the target folder and then renamed over the
+target, so a failed or cancelled upload never leaves a partial file under the
+real name. If the server cannot rename over an existing file (SFTP version 3),
+the old file is deleted first; if the rename then still fails, the error names
+the temporary file that holds the upload.
+
+**Flywheel**: the file is uploaded to the container the URL names, with
+`POST /api/<type>/<id>/files`. Both the direct and the `find/` form work. An
+upload under an existing file name makes a new version of that file in
+Flywheel. A `401` response clears the cached API key; a `403` means the key's
+user may not write to the container.
+
+---
+
+## Testing with local servers
+
+`Testing/RemoteServer/remote_test_server.py` runs a command while serving
+files over SFTP (with the `asyncssh` Python module), HTTP and a mock Flywheel
+API, all on `127.0.0.1`. The `RemoteSaveTest_*`, `RemoteImageLoadTest_SFTPServer`,
+`RemoteImageLoadTest_Flywheel*` and `RemoteSaveSFTP` (GUI) tests use it. They
+need no internet access; without `asyncssh` (`pip install asyncssh`) they are
+skipped. The script's docstring describes the folders it serves and the test
+user and API key.
+
+The server sets two environment variables for the command:
+
+| Variable | Effect |
+|----------|--------|
+| `ITKSNAP_SSH_DIR` | Read SSH keys, `known_hosts` and `config` from this folder instead of `~/.ssh` |
+| `ITKSNAP_FW_TEST_ALLOW_HTTP=1` | Use plain `http://` for `fw://` URLs, but only when the host is `localhost` or `127.0.0.1` |
+
+The server also sets `HOME` to a folder holding a Flywheel CLI `config.yml`
+with its API key.
 
 ---
 
