@@ -13,8 +13,12 @@
 #include "WorkspaceAPI.h"
 #include "HistoryManager.h"
 #include "SystemInterface.h"
+#include "GuidedNativeImageIO.h"
+#include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -125,6 +129,10 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
   std::cerr << "  " << prog << " --test-cancel <remote-url>  cancel an HTTP download from the progress callback" << std::endl;
   std::cerr << "  " << prog << " --test-url-keys <remote-url>  history and per-image settings use the URL" << std::endl;
+  std::cerr << "  " << prog << " --test-upload <url> <ref1> <ref2> <server-file>  save images to a URL" << std::endl;
+  std::cerr << "  " << prog << " --test-upload-multifile <url> <ref> <server-file> <companion>  save a two-file format" << std::endl;
+  std::cerr << "  " << prog << " --test-upload-cancel <url> <local-file> <server-file> <original>  cancel uploads" << std::endl;
+  std::cerr << "  " << prog << " --test-upload-refused <url> <ref>  saving to a read-only URL fails" << std::endl;
   std::cerr << "  " << prog << " --test-fw-url-forms  check the fw:// URL grammar offline" << std::endl;
 }
 
@@ -710,6 +718,297 @@ static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
 
 
 // -----------------------------------------------------------------------
+//  --test-upload
+// -----------------------------------------------------------------------
+
+// Load a local image, open it, and return its main layer
+static ImageWrapperBase *OpenMain(IRISApplication *app, const std::string &fn)
+{
+  IRISWarningList warnings;
+  app->OpenImage(fn.c_str(), MAIN_ROLE, warnings);
+  return app->GetCurrentImageData()->GetMain();
+}
+
+// Save the main layer of @p app to @p url through the save delegate, as the
+// GUI does
+static void SaveMain(IRISApplication *app, const std::string &url)
+{
+  SmartPtr<AbstractSaveImageDelegate> del =
+    app->CreateSaveDelegateForLayer(app->GetCurrentImageData()->GetMain(), MAIN_ROLE);
+  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+  Registry reg;
+  IRISWarningList warnings;
+  del->SaveImage(url, io, reg, warnings);
+}
+
+// Compare the image at @p url, opened in a new application, with @p ref
+static bool MatchesReference(const std::string &url, const std::string &ref,
+                             const char *what)
+{
+  IRISWarningList warnings;
+  auto app = MakeApp();
+  auto ref_app = MakeApp();
+  app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+  ref_app->OpenImage(ref.c_str(), MAIN_ROLE, warnings);
+  std::string msg;
+  if (!CompareSnapshots(SnapshotLayer(app->GetCurrentImageData()->GetMain()),
+                        SnapshotLayer(ref_app->GetCurrentImageData()->GetMain()), msg))
+    {
+    std::cerr << "FAIL: " << what << ": the image at the URL differs from "
+              << ref << ": " << msg << std::endl;
+    return false;
+    }
+  return true;
+}
+
+// Save images to @p url and check what the server received. @p server_file
+// is the server's local path of the file that the URL names. @p ref1 and
+// @p ref2 are two different images.
+static int TestUpload(const std::string &url, const std::string &ref1,
+                      const std::string &ref2, const std::string &server_file)
+{
+  try
+    {
+    // ── 1. Save an image to the URL ─────────────────────────────────────
+    std::cout << "Saving " << ref1 << " to " << url << std::endl;
+    auto app = MakeApp();
+    ImageWrapperBase *layer = OpenMain(app, ref1);
+    SaveMain(app, url);
+
+    if (!itksys::SystemTools::FileExists(server_file, true))
+      {
+      std::cerr << "FAIL: the server has no file " << server_file << std::endl;
+      return 1;
+      }
+    if (layer->GetFileName() != url || layer->GetRemoteURL() != url)
+      {
+      std::cerr << "FAIL: after saving, the layer's file name is '" << layer->GetFileName()
+                << "' and its URL '" << layer->GetRemoteURL() << "', expected the URL"
+                << std::endl;
+      return 1;
+      }
+    if (layer->HasUnsavedChanges())
+      {
+      std::cerr << "FAIL: the layer has unsaved changes after saving" << std::endl;
+      return 1;
+      }
+
+    // No temporary file may be left next to the uploaded one
+    std::string server_dir = itksys::SystemTools::GetFilenamePath(server_file);
+    itksys::Directory dir;
+    dir.Load(server_dir);
+    for (unsigned long i = 0; i < dir.GetNumberOfFiles(); i++)
+      if (std::string(dir.GetFile(i)).find(".itksnap-upload") != std::string::npos)
+        {
+        std::cerr << "FAIL: temporary upload file left on the server: "
+                  << dir.GetFile(i) << std::endl;
+        return 1;
+        }
+
+    // ── 2. Open it from the URL; this puts it in the download cache ─────
+    if (!MatchesReference(url, ref1, "first upload"))
+      return 1;
+
+    std::string data_dir = app->GetSystemInterface()->GetApplicationDataDirectory();
+    RemoteFileCache cache;
+    cache.Initialize(data_dir, app->GetGlobalState()->GetRemoteResourceSettings());
+    if (cache.Lookup(url, 0, 0).empty())
+      std::cout << "Note: the download was not cached" << std::endl;
+
+    // ── 3. Replace it with another image: the cached copy must go ───────
+    std::cout << "Saving " << ref2 << " to " << url << std::endl;
+    auto app2 = MakeApp();
+    OpenMain(app2, ref2);
+    SaveMain(app2, url);
+    if (!cache.Lookup(url, 0, 0).empty())
+      {
+      std::cerr << "FAIL: the download cache still has the old copy of " << url << std::endl;
+      return 1;
+      }
+    if (!MatchesReference(url, ref2, "second upload"))
+      return 1;
+
+    // ── 4. A failed upload leaves the layer unsaved ──────────────────────
+    ImageWrapperBase *layer2 = app2->GetCurrentImageData()->GetMain();
+    layer2->GetImage4DBase()->Modified();
+    if (!layer2->HasUnsavedChanges())
+      {
+      std::cerr << "FAIL: the test could not mark the layer as modified" << std::endl;
+      return 1;
+      }
+    std::string bad_url = SiblingURL(url, "no-such-directory") + "/x.nii.gz";
+    bool threw = false;
+    try
+      {
+      SaveMain(app2, bad_url);
+      }
+    catch (std::exception &exc)
+      {
+      threw = true;
+      std::cout << "Expected error: " << exc.what() << std::endl;
+      }
+    if (!threw)
+      {
+      std::cerr << "FAIL: saving to " << bad_url << " did not fail" << std::endl;
+      return 1;
+      }
+    if (!layer2->HasUnsavedChanges())
+      {
+      std::cerr << "FAIL: after a failed upload the layer is marked as saved" << std::endl;
+      return 1;
+      }
+    if (layer2->GetFileName() != url)
+      {
+      std::cerr << "FAIL: after a failed upload the layer's file name changed to '"
+                << layer2->GetFileName() << "'" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  std::cout << "PASS: images saved to " << url << std::endl;
+  return 0;
+}
+
+// Save an image in a format that writes two files (e.g. .mhd and .raw) to
+// @p url. Both must reach the server, as @p server_file and @p companion.
+// The server's copy is opened from its local path: opening such a format from
+// a URL only downloads the file that the URL names.
+static int TestUploadMultiFile(const std::string &url, const std::string &ref,
+                               const std::string &server_file,
+                               const std::string &companion)
+{
+  try
+    {
+    auto app = MakeApp();
+    OpenMain(app, ref);
+    SaveMain(app, url);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  for (const std::string &f : { server_file, companion })
+    if (!itksys::SystemTools::FileExists(f, true))
+      {
+      std::cerr << "FAIL: the server has no file " << f << std::endl;
+      return 1;
+      }
+
+  try
+    {
+    if (!MatchesReference(server_file, ref, "multi-file upload"))
+      return 1;
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: cannot open the uploaded files: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  std::cout << "PASS: both files saved to " << url << std::endl;
+  return 0;
+}
+
+// Whether two files have the same contents
+static bool SameContents(const std::string &a, const std::string &b)
+{
+  std::ifstream fa(a, std::ios::binary), fb(b, std::ios::binary);
+  if (!fa || !fb)
+    return false;
+  return std::string(std::istreambuf_iterator<char>(fa), {}) ==
+         std::string(std::istreambuf_iterator<char>(fb), {});
+}
+
+// Upload @p local_file to @p url, which names the existing server file
+// @p server_file, and cancel the upload: at the first progress callback, and
+// after data has been sent. The server file must stay as it was (the same as
+// @p original), and no temporary file may be left next to it.
+static int TestUploadCancel(const std::string &url, const std::string &local_file,
+                            const std::string &server_file, const std::string &original)
+{
+  if (!SameContents(server_file, original))
+    {
+    std::cerr << "FAIL: the server file " << server_file << " is not a copy of "
+              << original << " to begin with" << std::endl;
+    return 1;
+    }
+
+  for (std::size_t min_bytes : { std::size_t(0), std::size_t(1) })
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+    src->SetProgressCallback([min_bytes](std::size_t done, std::size_t) {
+      return done < min_bytes;
+    });
+    bool cancelled = false;
+    try
+      {
+      src->Upload(local_file, url);
+      }
+    catch (IRISUserCancelException &)
+      {
+      cancelled = true;
+      }
+    catch (std::exception &exc)
+      {
+      std::cerr << "FAIL: unexpected error: " << exc.what() << std::endl;
+      return 1;
+      }
+    if (!cancelled)
+      {
+      std::cerr << "FAIL: the upload was not cancelled (min_bytes=" << min_bytes << ")"
+                << std::endl;
+      return 1;
+      }
+    if (!SameContents(server_file, original))
+      {
+      std::cerr << "FAIL: a cancelled upload changed " << server_file << std::endl;
+      return 1;
+      }
+    itksys::Directory dir;
+    dir.Load(itksys::SystemTools::GetFilenamePath(server_file));
+    for (unsigned long i = 0; i < dir.GetNumberOfFiles(); i++)
+      if (std::string(dir.GetFile(i)).find(".itksnap-upload") != std::string::npos)
+        {
+        std::cerr << "FAIL: a cancelled upload left " << dir.GetFile(i) << std::endl;
+        return 1;
+        }
+    std::cout << "PASS: upload cancelled after " << min_bytes << " bytes" << std::endl;
+    }
+  return 0;
+}
+
+// Saving to a URL whose scheme is read-only must fail with a clear message
+static int TestUploadRefused(const std::string &url, const std::string &ref)
+{
+  auto app = MakeApp();
+  try
+    {
+    OpenMain(app, ref);
+    SaveMain(app, url);
+    }
+  catch (IRISException &exc)
+    {
+    std::cout << "PASS: saving to " << url << " refused: " << exc.what() << std::endl;
+    return 0;
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: unexpected error: " << exc.what() << std::endl;
+    return 1;
+    }
+  std::cerr << "FAIL: saving to " << url << " did not fail" << std::endl;
+  return 1;
+}
+
+
+// -----------------------------------------------------------------------
 //  --test-url-keys
 // -----------------------------------------------------------------------
 
@@ -934,6 +1233,50 @@ int main(int argc, char *argv[])
       }
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestURLKeys(url);
+    }
+
+  // ── --test-upload ────────────────────────────────────────────────────
+  if (cmd == "--test-upload")
+    {
+    if (argc < 6)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestUpload(ResolveITKSnapURL(argv[2]), argv[3], argv[4], argv[5]);
+    }
+
+  // ── --test-upload-multifile ──────────────────────────────────────────
+  if (cmd == "--test-upload-multifile")
+    {
+    if (argc < 6)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestUploadMultiFile(ResolveITKSnapURL(argv[2]), argv[3], argv[4], argv[5]);
+    }
+
+  // ── --test-upload-cancel ─────────────────────────────────────────────
+  if (cmd == "--test-upload-cancel")
+    {
+    if (argc < 6)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestUploadCancel(ResolveITKSnapURL(argv[2]), argv[3], argv[4], argv[5]);
+    }
+
+  // ── --test-upload-refused ────────────────────────────────────────────
+  if (cmd == "--test-upload-refused")
+    {
+    if (argc < 4)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestUploadRefused(ResolveITKSnapURL(argv[2]), argv[3]);
     }
 
   // ── --test-fw-url-forms ──────────────────────────────────────────────

@@ -464,6 +464,21 @@ RemoteFileCache::StoreHTTP(const std::string &url,
   return StoreEntry(temp_path, e);
 }
 
+void RemoteFileCache::Invalidate(const std::string &url)
+{
+  MetadataLock lock(m_LockPath);
+  LoadMetadata();
+
+  std::string key = MakeKey(url);
+  auto it = m_Entries.find(key);
+  if (it == m_Entries.end() || it->second.url != url)
+    return;
+
+  RemoveEntryFiles(key);
+  m_Entries.erase(it);
+  SaveMetadata();
+}
+
 uint64_t RemoteFileCache::GetTotalSize()
 {
   MetadataLock lock(m_LockPath);

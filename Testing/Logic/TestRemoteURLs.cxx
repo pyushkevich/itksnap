@@ -8,6 +8,7 @@
 //   5. RemoteFilenameFromURL: query, fragment, encoded characters, and URLs
 //      without a filename
 //   6. GuessFormatForFileName on URLs with a query, fragment or encoded dot
+//   7. CanSaveToURL, and SiblingURL for the second file of formats like .mhd
 //
 // Usage: TestRemoteURLs
 #include "ImageIORemote.h"
@@ -139,6 +140,21 @@ int main()
   Check(guess("https://h/MRIcrop-orig.gipl%2Egz") == GuidedNativeImageIO::FORMAT_GIPL, "GIPL URL with encoded dot");
   Check(guess("/data/img.nii.gz") == GuidedNativeImageIO::FORMAT_NIFTI, "local NIfTI");
   Check(guess("https://h/data/") == GuidedNativeImageIO::FORMAT_COUNT, "URL with no filename");
+
+  // ── 7. Saving to URLs ──────────────────────────────────────────────────
+  std::cout << "CanSaveToURL / SiblingURL:" << std::endl;
+  Check(CanSaveToURL("sftp://user@host/a/b.nii.gz"), "sftp can be saved to");
+  Check(CanSaveToURL("scp://host:2222/a.nii"), "scp can be saved to");
+  Check(!CanSaveToURL("https://h/f.nii.gz"), "https cannot be saved to");
+  Check(!CanSaveToURL("http://h/f.nii.gz"), "http cannot be saved to");
+  Check(!CanSaveToURL("/data/img.nii.gz"), "a local path is not a URL to save to");
+  Check(!CanSaveToURL("itksnap-sftp://host/a.nii"), "an itksnap- URL must be resolved first");
+  CheckEqual(SiblingURL("sftp://u@h:22/data/img.mhd", "img.raw"), "sftp://u@h:22/data/img.raw",
+             "sibling in the same directory");
+  CheckEqual(SiblingURL("sftp://h/data/img.mhd?x=1#f", "my img.raw"), "sftp://h/data/my%20img.raw?x=1#f",
+             "sibling keeps query and fragment, and is encoded");
+  CheckEqual(SiblingURL("sftp://h/data/img.mhd", "a/b"), "sftp://h/data/a%2Fb",
+             "a slash in the name cannot add a directory");
 
   std::cout << (n_failures ? "FAILED: " : "PASSED: ") << n_failures << " failure(s)" << std::endl;
   return n_failures ? 1 : 0;

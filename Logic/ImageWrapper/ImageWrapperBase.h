@@ -523,9 +523,19 @@ public:
   virtual void SetIOHints(const Registry &io_hints) = 0;
 
   /**
-   * Write the image to disk with the help of the GuidedNativeImageIO object
+   * Write the image to disk with the help of the GuidedNativeImageIO object,
+   * and mark it as saved (WriteImageFile() followed by MarkAsSaved())
    */
   virtual void WriteToFile(const char *filename, Registry &hints) = 0;
+
+  /**
+   * Write the image to disk without marking it as saved. Used when the file
+   * is only a step towards saving, such as a copy that is then uploaded.
+   */
+  virtual void WriteImageFile(const char *filename, Registry &hints) = 0;
+
+  /** Record that the image as it is now has been saved */
+  virtual void MarkAsSaved() = 0;
 
   /**
    * Check if the image has unsaved changes

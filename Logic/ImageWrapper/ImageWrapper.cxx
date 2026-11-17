@@ -2287,6 +2287,19 @@ void
 ImageWrapper<TTraits>
 ::WriteToFile(const char *filename, Registry &hints)
 {
+  this->WriteImageFile(filename, hints);
+
+  // Store the filename
+  this->m_FileName = itksys::SystemTools::GetFilenamePath(filename);
+
+  this->MarkAsSaved();
+}
+
+template<class TTraits>
+void
+ImageWrapper<TTraits>
+::WriteImageFile(const char *filename, Registry &hints)
+{
   // What kind of mapping are we using
   if(this->GetNativeMapping().IsIdentity())
     {
@@ -2298,10 +2311,13 @@ ImageWrapper<TTraits>
     // The image should be converted to float before writing it
     this->WriteToFileAsFloat(filename, hints);
     }
+}
 
-  // Store the filename
-  this->m_FileName = itksys::SystemTools::GetFilenamePath(filename);
-
+template<class TTraits>
+void
+ImageWrapper<TTraits>
+::MarkAsSaved()
+{
   // Store the timestamp when the filename was written
   for(ImagePointer img : m_ImageTimePoints)
     if(m_ImageSaveTime < img->GetTimeStamp())

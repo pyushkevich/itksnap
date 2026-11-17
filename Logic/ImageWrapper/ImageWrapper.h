@@ -662,6 +662,10 @@ public:
    */
   virtual void WriteToFile(const char *filename, Registry &hints) override;
 
+  virtual void WriteImageFile(const char *filename, Registry &hints) override;
+
+  virtual void MarkAsSaved() override;
+
   /**
    * Create a thumbnail from the image and write it to a .png file
    */

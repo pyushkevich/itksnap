@@ -400,7 +400,13 @@ void ImageIOWizardModel::SaveImage(std::string filename)
 void ImageIOWizardModel::SaveCurrentTPSegmentationIn3D(std::string filename)
 {
   auto seg_layer = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
-  seg_layer->WriteCurrentTPImageToFile(filename.c_str());
+  if (IsRemoteImageURL(filename))
+    SaveRemoteFile(filename, m_Parent->GetDriver()->GetRemoteIOContext(),
+                   [seg_layer](const std::string &local_file) {
+                     seg_layer->WriteCurrentTPImageToFile(local_file.c_str());
+                   });
+  else
+    seg_layer->WriteCurrentTPImageToFile(filename.c_str());
 }
 
 bool ImageIOWizardModel::CheckImageValidity()

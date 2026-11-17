@@ -1695,7 +1695,43 @@ IF(Python3_Interpreter_FOUND)
     -- $<TARGET_FILE:remote_image_load_test>
        --regression-test -g "sftp://testuser@127.0.0.1:8943/MRIcrop-orig.gipl.gz"
        "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
+  # Saving images to a URL: the server's copy, reopening it, replacing it (the
+  # cached copy must go), and a failed upload
+  foreach(_case "SFTP;8946;sftp;uploaded.nii.gz"
+                "SCP;8949;scp;uploaded_scp.nii.gz")
+    list(GET _case 0 _name)
+    list(GET _case 1 _port)
+    list(GET _case 2 _scheme)
+    list(GET _case 3 _file)
+    add_remote_server_test(RemoteSaveTest_${_name} ${_port}
+      -- $<TARGET_FILE:remote_image_load_test>
+         --test-upload "${_scheme}://testuser@127.0.0.1:${_port}/${_file}"
+         "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz" "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz"
+         "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_${_name}_Server/sftp/${_file}")
+  endforeach()
+
+  # A format that writes two files: both must be uploaded
+  set(_srv "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_MHD_Server/sftp")
+  add_remote_server_test(RemoteSaveTest_MHD 8952
+    -- $<TARGET_FILE:remote_image_load_test>
+       --test-upload-multifile "sftp://testuser@127.0.0.1:8952/uploaded.mhd"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz" "${_srv}/uploaded.mhd" "${_srv}/uploaded.raw")
+
+  # A cancelled upload leaves the file on the server as it was
+  add_remote_server_test(RemoteSaveTest_Cancel 8955
+    -- $<TARGET_FILE:remote_image_load_test>
+       --test-upload-cancel "sftp://testuser@127.0.0.1:8955/MRIcrop-seg.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
+       "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_Cancel_Server/sftp/MRIcrop-seg.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz")
 ENDIF()
+
+# Saving to an http(s) URL is refused before any connection is made
+add_test(NAME RemoteSaveTest_HTTPRefused
+  COMMAND remote_image_load_test
+    --test-upload-refused "https://127.0.0.1:1/uploaded.nii.gz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
 
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
