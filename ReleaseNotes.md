@@ -71,6 +71,7 @@
 
 - Fixed crashes when closing or reloading the active segmentation, and in snake mode classification
 - Fixed a crash on a mouse click in a slice view right after closing an image (e.g. with Cmd-W)
+- Fixed a crash when saving a workspace opened from a URL from the unsaved changes prompt (e.g. on exit). It now asks for a local file, as Save Workspace does.
 - Fixed the snake ROI index and size boxes, which changed the size on every axis when the index was edited
 - Fixed an error when pressing Update in the 3D view in snake mode before the contour was initialized
 - Fixed polygon drawing on slices outside the segmentation, and the adaptive brush on segmentations with a different grid

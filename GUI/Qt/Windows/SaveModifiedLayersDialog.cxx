@@ -17,18 +17,22 @@ class QtSaveModifiedLayersInteractionDelegate
 {
 public:
 
+  // The dialogs opened for saving are children of this widget
+  void SetParent(QWidget *parent) { m_Parent = parent; }
+
   virtual bool SaveImageLayer(
       GlobalUIModel *model, ImageWrapperBase *wrapper, LayerRole role)
   {
-    return ::SaveImageLayer(model, wrapper, role);
+    return ::SaveImageLayer(model, wrapper, role, false, m_Parent);
   }
 
   virtual bool SaveProject(GlobalUIModel *model)
   {
-    // TODO: passing NULL here makes this dialog unscriptable!
-    return ::SaveWorkspace(NULL, model, false, NULL);
+    return ::SaveWorkspace(m_Parent, model, false, m_Parent);
   }
 
+private:
+  QWidget *m_Parent = nullptr;
 };
 
 
@@ -40,6 +44,10 @@ SaveModifiedLayersDialog::SaveModifiedLayersDialog(QWidget *parent) :
 
   // Give the dialog a name
   this->setObjectName("dlgSaveModified");
+
+  // Name the buttons for scripting
+  ui->buttonBox->button(QDialogButtonBox::Save)->setObjectName("btnSave");
+  ui->buttonBox->button(QDialogButtonBox::SaveAll)->setObjectName("btnSaveAll");
 
   // Resize the table to contents
 #if QT_VERSION >= 0x050000
@@ -130,6 +138,7 @@ bool SaveModifiedLayersDialog
 
   // Configure the dialog
   SaveModifiedLayersDialog *dialog = new SaveModifiedLayersDialog(parent);
+  cb_delegate.SetParent(dialog);
   dialog->SetModel(saveModel);
   dialog->setModal(true);
   dialog->SetOptions(opts);

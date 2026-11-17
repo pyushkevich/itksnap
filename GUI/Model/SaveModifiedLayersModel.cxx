@@ -5,6 +5,7 @@
 #include "GenericImageData.h"
 #include "IRISImageData.h"
 #include "ImageIODelegates.h"
+#include "ImageIORemote.h"
 
 
 bool AbstractSaveableItem::IsSaveable()
@@ -94,7 +95,10 @@ bool WorkspaceSaveableItem::Save(AbstractSaveModifiedLayersInteractionDelegate *
 
 bool WorkspaceSaveableItem::RequiresInteraction()
 {
-  return this->GetFilename().size() == 0;
+  // A workspace opened from a URL cannot be saved back to it, so the user
+  // must choose a local file
+  std::string fn = this->GetFilename();
+  return fn.size() == 0 || IsRemoteImageURL(fn);
 }
 
 

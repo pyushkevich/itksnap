@@ -2030,6 +2030,13 @@ IF(Python3_Interpreter_FOUND)
   IF(WIN32)
     SET_PROPERTY(TEST RemoteSaveSFTPNewSeg APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
   ENDIF()
+
+  # Saving a workspace opened from a URL from the unsaved changes dialog asks
+  # for a local file (this used to crash)
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8922 0 --)
+  ADD_SNAP_GUI_TEST(RemoteWorkspaceUnsaved
+    -w "http://127.0.0.1:8922/MRIcrop-with-mesh.itksnap")
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 
