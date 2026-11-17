@@ -1656,6 +1656,47 @@ set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES
   ENVIRONMENT "HOME=${FW_URLFORMS_HOME}"
   TIMEOUT 60)
 
+# Tests against remote_test_server.py, which serves the test data over SFTP,
+# HTTP and a mock Flywheel API on local ports while it runs the test command.
+# They need no internet, so they are not labelled "Remote". The server exits
+# with 77 when the Python module asyncssh is missing, and the test is skipped.
+# Each test passes a first port; the servers use it and the next two ports.
+FIND_PACKAGE(Python3 COMPONENTS Interpreter QUIET)
+IF(Python3_Interpreter_FOUND)
+  function(add_remote_server_test name first_port)
+    math(EXPR _http_port "${first_port} + 1")
+    math(EXPR _fw_port "${first_port} + 2")
+    set(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/${name}_Server")
+    add_test(NAME ${name}
+      COMMAND ${Python3_EXECUTABLE}
+        ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+        --root ${_root} --data ${TESTDATA_DIR}
+        --sftp-port ${first_port} --http-port ${_http_port} --fw-port ${_fw_port}
+        ${ARGN})
+    # The application data directory of the test is the working directory on
+    # macOS (see the SNAP_REMOTE_TESTS loop above) and HOME elsewhere, which
+    # the server sets
+    set(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/${name}_Work")
+    file(MAKE_DIRECTORY ${_work})
+    set_tests_properties(${name} PROPERTIES
+      WORKING_DIRECTORY ${_work}
+      SKIP_RETURN_CODE 77
+      TIMEOUT 120)
+    IF(WIN32)
+      set_tests_properties(${name} PROPERTIES ENVIRONMENT "APPDATA=${_work}")
+    ENDIF()
+  endfunction()
+
+  # The servers themselves, checked with Python clients
+  add_remote_server_test(RemoteServerSelfTest 8940 --self-test)
+
+  # Downloads from the test server with key login and a known host key
+  add_remote_server_test(RemoteImageLoadTest_SFTPServer 8943
+    -- $<TARGET_FILE:remote_image_load_test>
+       --regression-test -g "sftp://testuser@127.0.0.1:8943/MRIcrop-orig.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+ENDIF()
+
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
     Testing/Logic/TestLargeImageCheck.cxx)

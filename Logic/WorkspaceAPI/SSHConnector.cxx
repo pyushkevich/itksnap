@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mutex>
@@ -54,10 +55,17 @@ LocalUsername()
   return user;
 }
 
-// Apply the SSH config file (empty = ~/.ssh/config plus the system one)
+// Apply the SSH config file (empty = ~/.ssh/config plus the system one).
+// ITKSNAP_SSH_DIR replaces ~/.ssh as the directory of the config file,
+// known_hosts and the default keys. The tests use it so that they never read
+// or write the user's ~/.ssh: libssh finds the home directory through the
+// password database, so changing HOME does not do that.
 void
 ParseConfig(ssh_session session, const std::string &config_file)
 {
+  if (const char *ssh_dir = getenv("ITKSNAP_SSH_DIR"))
+    if (*ssh_dir)
+      ssh_options_set(session, SSH_OPTIONS_SSH_DIR, ssh_dir);
   ssh_options_parse_config(session, config_file.empty() ? nullptr : config_file.c_str());
 }
 
