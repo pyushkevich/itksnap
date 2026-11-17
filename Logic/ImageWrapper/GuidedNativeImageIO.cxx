@@ -2187,7 +2187,7 @@ CastNativeImage<TOutputImage,TCastFunctor>
   // input element will be replaced by one or more output elements. But if the
   // native image is smaller, we want to proceed from the end of the memory
   // block in a descending order, so that the native data is not overridden
-  unsigned long nval =  nvoxels * ncomp;
+  size_t nval =  nvoxels * ncomp;
   if(szTarget > szNative)
     {
     TNative *pn = ib + nval - 1;
