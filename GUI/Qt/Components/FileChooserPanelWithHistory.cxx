@@ -11,6 +11,10 @@
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <SNAPQtCommon.h>
+#include <ImageIORemote.h>
+#include <QtLineEditCoupling.h>
+#include <QtWidgetActivator.h>
+#include <PropertyValueCondition.h>
 
 
 FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
@@ -29,6 +33,15 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // Set up an event filter
   ui->inFilename->installEventFilter(this);
+
+  // Remote folders cannot be browsed, so the browse button is disabled while
+  // the filename is a URL
+  m_FilenameModel = NewSimpleConcreteProperty(std::string());
+  makeCoupling(ui->inFilename, m_FilenameModel.GetPointer());
+  new QtWidgetActivator(
+        ui->btnBrowse, QList<QObject *>({ui->btnBrowse}),
+        PropertyValueCondition<ConcreteSimpleStringProperty>::New(
+          m_FilenameModel, [](const std::string &text) { return !IsRemoteImageURL(text); }));
 
   // Connect up the format selector to the filename
   connect(ui->inFormat, SIGNAL(textActivated(QString)), this, SLOT(setActiveFormat(QString)));
@@ -141,11 +154,16 @@ QString FileChooserPanelWithHistory::fixExtension() const
         m_SelectedFiles.first() : ui->inFilename->text();
   QString filenameAbs = this->absoluteFilenameKeepExtension(filename);
 
+  // A URL with a query or fragment does not end in the filename
+  bool url = isURL(filename);
+  bool url_with_query = url && (filename.contains('?') || filename.contains('#'));
+
   // Cases when we don't append the extension
   if(filename.length() == 0 ||                  // No filename entered
+     url_with_query ||                          // URL does not end in the filename
      m_defaultFormat.length() == 0 ||           // No current format selected
      m_Filter[m_defaultFormat].size() == 0 ||   // Current format does not have any extensions
-     QFileInfo(filenameAbs).isDir() ||          // Selected filename is a directory
+     (!url && QFileInfo(filenameAbs).isDir()) ||// Selected filename is a directory
      m_forceExtension == false)                 // User asked not to do this
     return filename;
 
@@ -293,13 +311,15 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
 
 void FileChooserPanelWithHistory::highlightFilename()
 {
-  // Select the part of the filename minus the extension
+  // Select the part of the filename minus the extension. For a URL, select
+  // just the name of the file, not the server and folder.
   QString text = ui->inFilename->text();
+  int start = isURL(text) ? text.lastIndexOf('/') + 1 : 0;
   foreach(QString ext, m_Filter[m_defaultFormat])
     {
-    if(text.endsWith(ext, Qt::CaseInsensitive))
+    if(text.endsWith(ext, Qt::CaseInsensitive) && text.length() - (1+ext.length()) > start)
       {
-      ui->inFilename->setSelection(0, text.length() - (1+ext.length()));
+      ui->inFilename->setSelection(start, text.length() - (1+ext.length()) - start);
       return;
       }
     }
@@ -325,6 +345,16 @@ void FileChooserPanelWithHistory::onHistorySelection()
 
 void FileChooserPanelWithHistory::updateFilename(QString filename)
 {
+  // A URL is shown as it is, and does not change the working directory
+  if(isURL(filename))
+    {
+    if(filename == ui->inFilename->text())
+      on_inFilename_textChanged(filename);
+    else
+      ui->inFilename->setText(filename);
+    return;
+    }
+
   QFileInfo fi(filename);
   QString new_file;
 
@@ -361,6 +391,9 @@ void FileChooserPanelWithHistory::updateFilename(QString filename)
 QString FileChooserPanelWithHistory::absoluteFilename() const
 {
   QString fix_ext = this->fixExtension();
+  if(isURL(fix_ext))
+    return fix_ext;
+
   QFileInfo fi(fix_ext);
   if(fi.isAbsolute())
     return fi.absoluteFilePath();
@@ -376,6 +409,9 @@ void FileChooserPanelWithHistory::setFilename(QString filename)
 
 QString FileChooserPanelWithHistory::absoluteFilenameKeepExtension(const QString &text) const
 {
+  if(isURL(text))
+    return text;
+
   QFileInfo fi(text);
   if(fi.isAbsolute())
     return fi.absoluteFilePath();
@@ -406,6 +442,10 @@ void FileChooserPanelWithHistory::setAllowCreateDir(bool value)
 
 void FileChooserPanelWithHistory::onFilenameAccept()
 {
+  // The folder of a URL is not a local folder to remember
+  if(isURL(this->absoluteFilename()))
+    return;
+
   QDir myDir = QFileInfo(this->absoluteFilename()).absoluteDir();
   if(myDir.exists())
     UpdateFileDialogPathForCategory(m_historyCategory.toStdString().c_str(),
@@ -630,6 +670,11 @@ void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
 #endif
 }
 
+bool FileChooserPanelWithHistory::isURL(const QString &text)
+{
+  return IsRemoteImageURL(to_utf8(text));
+}
+
 bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &text)
 {
 #ifdef WIN32
@@ -687,6 +732,24 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
   // Clear the output messages
   ui->outSavePath->clear();
   ui->outError->clear();
+
+  // A URL cannot be checked like a local file. Only some kinds of URLs can be
+  // saved to.
+  if(isURL(file_ext))
+    {
+    if(m_openMode)
+      {
+      if(ui->inFormat->currentIndex() == -1)
+        ui->outError->setText(tr("Unable to recognize file format"));
+      }
+    else if(!CanSaveToURL(to_utf8(file_ext)))
+      {
+      ui->outError->setText(tr("Files cannot be saved to this kind of URL. "
+                               "Use an scp://, sftp:// or fw:// URL, or a local file."));
+      }
+    emit absoluteFilenameChanged(absoluteFilename());
+    return;
+    }
 
   // Changes to the text box will be used to populate the error text
   if(m_openMode)

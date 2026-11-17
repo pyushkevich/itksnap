@@ -648,6 +648,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/PaintbrushSettingsModel.h
   GUI/Model/PolygonSettingsModel.h
   GUI/Model/PolygonDrawingModel.h
+  GUI/Model/PropertyValueCondition.h
   GUI/Model/RegistrationModel.h
   GUI/Model/ReorientImageModel.h
   GUI/Model/SaveModifiedLayersModel.h
@@ -1991,6 +1992,26 @@ IF(Python3_Interpreter_FOUND)
   SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8921 0 --)
   ADD_SNAP_GUI_TEST(GettingStartedLinks)
+
+  # Saving a segmentation opened from an sftp:// URL: plain Save uploads it
+  # back, and Save As shows the URL. Run under the test server of the
+  # RemoteSaveTest_* tests (ports 8979-8981), skipped without asyncssh.
+  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Server")
+  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Work")
+  FILE(MAKE_DIRECTORY ${_work})
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+    --root ${_root} --data ${TESTDATA_DIR}
+    --sftp-port 8979 --http-port 8980 --fw-port 8981 --)
+  ADD_SNAP_GUI_TEST(RemoteSaveSFTP
+    -g "sftp://testuser@127.0.0.1:8979/MRIcrop-orig.gipl.gz"
+    -s "sftp://testuser@127.0.0.1:8979/MRIcrop-seg.gipl.gz")
+  SET_TESTS_PROPERTIES(RemoteSaveSFTP PROPERTIES
+    WORKING_DIRECTORY ${_work}
+    SKIP_RETURN_CODE 77)
+  IF(WIN32)
+    SET_PROPERTY(TEST RemoteSaveSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+  ENDIF()
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 

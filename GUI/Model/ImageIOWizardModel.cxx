@@ -58,9 +58,9 @@ ImageIOWizardModel ::InitializeForSave(GlobalUIModel             *parent,
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_Overlay = false;
 
-  // A layer loaded from a remote URL cannot be saved back to it, so only
+  // A layer loaded from an http(s) URL cannot be saved back to it, so only
   // suggest its file name, to be saved to a local folder of the user's choice
-  if (IsRemoteImageURL(m_SuggestedFilename))
+  if (IsRemoteImageURL(m_SuggestedFilename) && !CanSaveToURL(m_SuggestedFilename))
     m_SuggestedFilename = itksys::SystemTools::GetFilenameName(m_SuggestedFilename);
   m_LoadedImage = NULL;
   m_SaveCurrentTPIn3D = saveCrntTP;

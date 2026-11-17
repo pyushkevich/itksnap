@@ -137,6 +137,13 @@ public slots:
 
   void print(QString text);
 
+  // Value of an environment variable, or an empty string
+  QString getEnv(QString name);
+
+  // Last modification time of a file in ms since the epoch, or -1 if the file
+  // does not exist (e.g. to check that a test server received an upload)
+  double fileModifiedTime(QString filename);
+
   void printChildren(QObject *parent);
 
   void printChildren(QObject *parent, QString className);

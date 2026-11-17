@@ -741,6 +741,35 @@ static void SaveMain(IRISApplication *app, const std::string &url)
   del->SaveImage(url, io, reg, warnings);
 }
 
+// Whether two layers have the same size and the same voxel values. Unlike
+// CompareSnapshots, which uses approximate quantiles, this is exact.
+static bool SameVoxels(ImageWrapperBase *a, ImageWrapperBase *b, std::string &msg)
+{
+  Vector3ui size = a->GetSize();
+  if (size != b->GetSize() || a->GetNumberOfComponents() != b->GetNumberOfComponents())
+    {
+    msg = "size or component count mismatch";
+    return false;
+    }
+
+  vnl_vector<double> va, vb;
+  itk::Index<3> idx;
+  for (idx[2] = 0; idx[2] < size[2]; idx[2]++)
+    for (idx[1] = 0; idx[1] < size[1]; idx[1]++)
+      for (idx[0] = 0; idx[0] < size[0]; idx[0]++)
+        {
+        a->SampleIntensityAtReferenceIndex(idx, 0, true, va);
+        b->SampleIntensityAtReferenceIndex(idx, 0, true, vb);
+        if (va != vb)
+          {
+          msg = "voxel (" + std::to_string(idx[0]) + "," + std::to_string(idx[1]) + ","
+                + std::to_string(idx[2]) + ") differs";
+          return false;
+          }
+        }
+  return true;
+}
+
 // Compare the image at @p url, opened in a new application, with @p ref
 static bool MatchesReference(const std::string &url, const std::string &ref,
                              const char *what)
@@ -751,8 +780,8 @@ static bool MatchesReference(const std::string &url, const std::string &ref,
   app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
   ref_app->OpenImage(ref.c_str(), MAIN_ROLE, warnings);
   std::string msg;
-  if (!CompareSnapshots(SnapshotLayer(app->GetCurrentImageData()->GetMain()),
-                        SnapshotLayer(ref_app->GetCurrentImageData()->GetMain()), msg))
+  if (!SameVoxels(app->GetCurrentImageData()->GetMain(),
+                  ref_app->GetCurrentImageData()->GetMain(), msg))
     {
     std::cerr << "FAIL: " << what << ": the image at the URL differs from "
               << ref << ": " << msg << std::endl;
