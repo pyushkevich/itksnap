@@ -2012,6 +2012,24 @@ IF(Python3_Interpreter_FOUND)
   IF(WIN32)
     SET_PROPERTY(TEST RemoteSaveSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
   ENDIF()
+
+  # A new segmentation over a main image from an sftp:// URL: Save suggests a
+  # file next to the main image on the server (ports 8982-8984)
+  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Server")
+  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Work")
+  FILE(MAKE_DIRECTORY ${_work})
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+    --root ${_root} --data ${TESTDATA_DIR}
+    --sftp-port 8982 --http-port 8983 --fw-port 8984 --)
+  ADD_SNAP_GUI_TEST(RemoteSaveSFTPNewSeg
+    -g "sftp://testuser@127.0.0.1:8982/MRIcrop-orig.gipl.gz")
+  SET_TESTS_PROPERTIES(RemoteSaveSFTPNewSeg PROPERTIES
+    WORKING_DIRECTORY ${_work}
+    SKIP_RETURN_CODE 77)
+  IF(WIN32)
+    SET_PROPERTY(TEST RemoteSaveSFTPNewSeg APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+  ENDIF()
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 

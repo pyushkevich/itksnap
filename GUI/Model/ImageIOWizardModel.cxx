@@ -62,6 +62,16 @@ ImageIOWizardModel ::InitializeForSave(GlobalUIModel             *parent,
   // suggest its file name, to be saved to a local folder of the user's choice
   if (IsRemoteImageURL(m_SuggestedFilename) && !CanSaveToURL(m_SuggestedFilename))
     m_SuggestedFilename = itksys::SystemTools::GetFilenameName(m_SuggestedFilename);
+
+  // A new layer (e.g. a new segmentation) has no file name. If the main image
+  // came from a URL that can be saved to, suggest a file next to it, as the
+  // main image's folder is suggested for a local main image.
+  if (m_SuggestedFilename.empty() && parent->GetDriver()->IsMainImageLoaded())
+    {
+    std::string main_fn = parent->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName();
+    if (IsRemoteImageURL(main_fn) && CanSaveToURL(main_fn))
+      m_SuggestedFilename = SiblingURL(main_fn, "Untitled.nii.gz");
+    }
   m_LoadedImage = NULL;
   m_SaveCurrentTPIn3D = saveCrntTP;
 

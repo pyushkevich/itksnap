@@ -220,6 +220,10 @@ Workspaces and meshes are always saved to local files.
   `scp`, `sftp` or `fw` URL uploads it back to that URL, without a dialog.
   A layer opened from an `http(s)` URL opens the Save As wizard instead, with
   just the file name suggested.
+- A new layer (e.g. a new segmentation) has no file name, so Save opens the
+  wizard. If the main image came from an `scp`, `sftp` or `fw` URL, the
+  wizard suggests `Untitled.nii.gz` next to it on the server, as it suggests
+  the main image's folder for a local main image.
 - **Save As** shows the layer's URL in the filename box, with the file name
   selected. Edit it to save under another name, or type a local path. The
   Browse button is disabled while the box holds a URL, since remote folders

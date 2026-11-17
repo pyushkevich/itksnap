@@ -38,6 +38,7 @@
         <file>Scripts/test_DeformationGrid.js</file>
         <file>Scripts/test_RemoteSaveLayer.js</file>
         <file>Scripts/test_RemoteSaveSFTP.js</file>
+        <file>Scripts/test_RemoteSaveSFTPNewSeg.js</file>
         <file>Scripts/test_RemoteSaveWorkspace.js</file>
         <file>Scripts/test_SnakeROIPanel.js</file>
         <file>Scripts/test_ReloadSegmentation.js</file>

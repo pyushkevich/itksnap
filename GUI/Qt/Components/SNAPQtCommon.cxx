@@ -496,10 +496,11 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
   SmartPtr<ImageIOWizardModel> wiz_model =
       model->CreateIOWizardModelForSave(wrapper, role, currentTPOnly);
 
-  // Interactive or not? A layer loaded from an http(s) URL cannot be saved
+  // Interactive or not? A layer without a file name needs one, even if the
+  // wizard suggests one. A layer loaded from an http(s) URL cannot be saved
   // back to it, so the user must choose a local file. Other URLs are uploaded.
   std::string fn = wrapper->GetFileName();
-  if(force_interactive || wiz_model->GetSuggestedFilename().size() == 0 ||
+  if(force_interactive || fn.empty() || wiz_model->GetSuggestedFilename().size() == 0 ||
      (IsRemoteImageURL(fn) && !CanSaveToURL(fn)))
     {
     // Execute the IO wizard
