@@ -6,7 +6,8 @@ MeshExportWizard::MeshExportWizard(QWidget *parent) :
   ui(new Ui::MeshExportWizard)
 {
   // Use parent's double buffering attributes
-  this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
+  if(parent)
+    this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
 
   ui->setupUi(this);
   this->setWizardStyle(QWizard::ClassicStyle);
