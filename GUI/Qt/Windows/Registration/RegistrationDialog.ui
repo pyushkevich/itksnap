@@ -135,6 +135,16 @@ color: dimgray;</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QCheckBox" name="inRotateAllLayers">
+         <property name="toolTip">
+          <string>Rotate the additional images together with the main image and segmentations</string>
+         </property>
+         <property name="text">
+          <string>Rotate all layers</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>

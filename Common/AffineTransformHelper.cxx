@@ -54,6 +54,36 @@ void AffineTransformHelper::GetMatrixAndOffset(
     }
 }
 
+SmartPtr<AffineTransformHelper::ITKTransformMOTB>
+AffineTransformHelper::Compose(const ITKTransformBase *first, const ITKTransformBase *then)
+{
+  // then(first(x)) = M2 (M1 x + o1) + o2
+  ITKMatrix m1, m2;
+  ITKVector o1, o2;
+  GetMatrixAndOffset(first, m1, o1);
+  GetMatrixAndOffset(then, m2, o2);
+
+  SmartPtr<ITKTransformMOTB> result = ITKTransformMOTB::New();
+  result->SetMatrix(m2 * m1);
+  result->SetOffset(m2 * o1 + o2);
+  return result;
+}
+
+SmartPtr<AffineTransformHelper::ITKTransformMOTB>
+AffineTransformHelper::Inverse(const ITKTransformBase *t)
+{
+  // x = M^-1 (y - o)
+  ITKMatrix m;
+  ITKVector o;
+  GetMatrixAndOffset(t, m, o);
+  ITKMatrix m_inv(m.GetInverse());
+
+  SmartPtr<ITKTransformMOTB> result = ITKTransformMOTB::New();
+  result->SetMatrix(m_inv);
+  result->SetOffset(-(m_inv * o));
+  return result;
+}
+
 bool AffineTransformHelper::IsIdentity(const ITKTransformBase *t, double tol)
 {
   // Get matrix and offset

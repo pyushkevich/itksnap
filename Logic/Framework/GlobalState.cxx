@@ -126,6 +126,7 @@ GlobalState
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
   m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
+  m_RotateAllLayersModel = NewSimpleConcreteProperty(true);
 
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
 

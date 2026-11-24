@@ -89,6 +89,13 @@ public:
   // Get the RAS matrix
   static Mat44 GetRASMatrix(const ITKTransformBase *t);
 
+  // The transform that applies 'first' and then 'then', i.e., x -> then(first(x))
+  static SmartPtr<ITKTransformMOTB> Compose(const ITKTransformBase *first,
+                                            const ITKTransformBase *then);
+
+  // The inverse of an affine transform
+  static SmartPtr<ITKTransformMOTB> Inverse(const ITKTransformBase *t);
+
 
 protected:
 

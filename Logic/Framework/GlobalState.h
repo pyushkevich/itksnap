@@ -386,6 +386,9 @@ public:
   /** Set/Get the current 3D toolbar mode */
   irisSimplePropertyAccessMacro(ToolbarMode3D,ToolbarMode3DType)
 
+  /** Whether Image Free Rotation rotates the overlays with the main image */
+  irisSimplePropertyAccessMacro(RotateAllLayers, bool)
+
   /** Set/Get the layout of multiple layers in slice views */
   irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
 
@@ -506,6 +509,9 @@ private:
 
   // The current 3D toolbar mode
   SmartPtr<ConcretePropertyModel<ToolbarMode3DType> > m_ToolbarMode3DModel;
+
+  // Whether free rotation also rotates the overlays
+  SmartPtr<ConcreteSimpleBooleanProperty> m_RotateAllLayersModel;
 
   // Slice view layout model
   SmartPtr<ConcretePropertyModel<LayerLayout> > m_SliceViewLayerLayoutModel;

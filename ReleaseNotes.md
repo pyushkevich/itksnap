@@ -14,10 +14,13 @@
   - Layers and workspaces opened from `http(s)://` URLs are still saved to local files
 - Recent files that no longer exist are marked on the startup page, in the Recent menus and in the history lists of file dialogs (#314). The check runs in the background, so a slow network drive does not delay the startup page. Clicking a missing file on the startup page offers to remove it from the list
 
+- Image Free Rotation rotates the additional images together with the main image and segmentations, so they stay aligned (#228). The new "Rotate all layers" checkbox, on by default, turns this off
+
 ### Bug Fixes
 
 - Flywheel API keys for servers with a port number (e.g. `host:8443:secret`) were sent with the port as part of the key, and rejected
 - Error messages from saving an image no longer show just "std::exception"
+- Opening Image Free Rotation no longer resets the registration of additional images made in Registration mode, and a workspace saved while rotated keeps that registration
 
 ## Version 4.6.0 (in development)
 
