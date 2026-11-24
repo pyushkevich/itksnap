@@ -102,6 +102,9 @@ public:
   typedef IRISSlicer<TInputImage, TOutputImage, TPreviewImage> OrthogonalSlicerType;
   typedef NonOrthogonalSlicer<TInputImage, TOutputImage>       NonOrthogonalSlicerType;
 
+  /** The mask output: 255 where the slice is inside the image, 0 outside */
+  typedef typename NonOrthogonalSlicerType::MaskImageType MaskImageType;
+
   /** Reference space for non-orthogonal slicing */
   typedef typename itk::ImageBase<InputImageDimension> NonOrthogonalSliceReferenceSpace;
 
@@ -160,6 +163,17 @@ public:
   /** Access the internal oblique slicer */
   itkGetMacro(ObliqueSlicer, NonOrthogonalSlicerType *)
 
+  /**
+   * The mask of the slice (output 1): 255 where the slice is inside the image,
+   * 0 outside. It comes from the oblique slicer; an orthogonal slice is
+   * always inside the image, so its mask is all 255 (#193).
+   */
+  MaskImageType *GetMaskOutput();
+
+  /** Create the slice (index 0) and the mask (index 1) outputs */
+  using Superclass::MakeOutput;
+  virtual itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx) ITK_OVERRIDE;
+
 protected:
   AdaptiveSlicingPipeline();
   ~AdaptiveSlicingPipeline();
@@ -180,6 +194,10 @@ protected:
   itk::SmartPointer<const NonOrthogonalSliceReferenceSpace> m_ObliqueReferenceImage;
 
   bool m_UseOrthogonalSlicing;
+
+  // The mask used for orthogonal slicing, all 255. It is kept between updates
+  // and only reallocated when the size of the slice changes
+  itk::SmartPointer<MaskImageType> m_FullMask;
 
   IndexType m_SliceIndex;
 

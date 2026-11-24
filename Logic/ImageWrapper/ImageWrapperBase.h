@@ -140,6 +140,9 @@ public:
   typedef itk::Image<DisplayPixelType,2>                      DisplaySliceType;
   typedef SmartPtr<DisplaySliceType>                       DisplaySlicePointer;
 
+  // Mask of a slice: 255 where the slice is inside the image, 0 outside (#193)
+  typedef itk::Image<unsigned char, 2>                           SliceMaskType;
+
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
   typedef itk::ImageBase<4> Image4DBaseType;
@@ -378,6 +381,14 @@ public:
 
   /** Get a display slice correpsponding to the current index */
   virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) = 0;
+
+  /**
+   * Get the mask of the slice in a given direction: 255 where the slice is
+   * inside the image, 0 where it is outside of it, i.e., where an obliquely
+   * sliced image does not cover the slice. The intensity of the slice there
+   * is a placeholder, and should not be shown (#193).
+   */
+  virtual SliceMaskType *GetSliceMask(DisplaySliceIndex index) = 0;
 
   /** For each slicer, find out which image dimension does is slice along */
   virtual unsigned int GetDisplaySliceImageAxis(unsigned int slice) = 0;

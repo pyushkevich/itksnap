@@ -132,6 +132,7 @@ public:
   // Display slice type - inherited
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::SliceMaskType                     SliceMaskType;
   typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
   // Slicer type
@@ -491,6 +492,9 @@ public:
    * Get a slice of the image in a given direction
    */
   virtual SliceType *GetSlice(DisplaySliceIndex index);
+
+  /** Get the mask of the slice in a given direction (see ImageWrapperBase) */
+  virtual SliceMaskType *GetSliceMask(DisplaySliceIndex index) override;
 
   /**
    * This method exposes the scalar pointer in the image

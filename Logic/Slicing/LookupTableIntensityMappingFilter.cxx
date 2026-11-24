@@ -28,34 +28,25 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
   itk::ImageRegionIterator<TOutputImage> outputIt(output, region);
 
-  // Does zero map out of the LUT's range? We may get inputs of zero from
-  // the non-orthogonal slicer (data outside of image range) that would fall
-  // outside of the colormap. This is really a poor way to handle this but
-  // there is not a good alternative solution right now.
-  // TODO: fix this.
-  bool zero_out_of_range = !lut->CheckRange(0);
-
-  // Perform the intensity mapping using the LUT
-  while( !inputIt.IsAtEnd() )
+  // The mask, if any, marks the pixels outside of the image
+  const MaskImageType *mask = this->GetMaskInput();
+  if(mask)
     {
-    // Get the input intensity
-    InputPixelType xin = inputIt.Get();
-    OutputPixelType xout;
-
-    if(zero_out_of_range && xin == 0)
+    itk::ImageRegionConstIterator<MaskImageType> maskIt(mask, region);
+    for( ; !inputIt.IsAtEnd(); ++inputIt, ++outputIt, ++maskIt)
       {
-      // Special case: intensity is actually outside of the min/max range
-      xout.Fill(0);
+      OutputPixelType xout;
+      if(maskIt.Get())
+        xout = lut->MapIntensityToDisplay(inputIt.Get());
+      else
+        xout.Fill(0);
+      outputIt.Set(xout);
       }
-    else
-      {
-      xout = lut->MapIntensityToDisplay(xin);
-      }
-
-    outputIt.Set(xout);
-
-    ++inputIt;
-    ++outputIt;
+    }
+  else
+    {
+    for( ; !inputIt.IsAtEnd(); ++inputIt, ++outputIt)
+      outputIt.Set(lut->MapIntensityToDisplay(inputIt.Get()));
     }
 }
 
@@ -68,23 +59,9 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
   lut->Update();
 
-  // Get the input intensity
-  OutputPixelType xout;
-
-  // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
-  // better than this, i.e., via a special value reserved for such voxels.
-  // Right now, defaulting to zero is a DISASTER!
-  if(xin == 0 && !lut->CheckRange(0))
-    {
-    // Special case: intensity is actually outside of the min/max range
-    xout.Fill(0);
-    }
-  else
-    {
-    xout = lut->MapIntensityToDisplay(xin);
-    }
-
-  return xout;
+  // Map the intensity. This is used for single values (e.g., under the
+  // cursor), which have no mask
+  return lut->MapIntensityToDisplay(xin);
 }
 
 // Template instantiation

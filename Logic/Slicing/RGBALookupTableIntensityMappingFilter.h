@@ -35,6 +35,9 @@ public:
   typedef ColorLookupTable<InputPixelType, OutputComponentType> LookupTableType;
   typedef typename Superclass::OutputImageRegionType    OutputImageRegionType;
 
+  // Optional mask of the input slices: 255 inside the image, 0 outside
+  typedef itk::Image<unsigned char, InputImageType::ImageDimension> MaskImageType;
+
   // This is necessary to use itkGet/SetInputMacros to avoid gcc compiling error
   using ProcessObject = itk::ProcessObject;
 
@@ -46,6 +49,14 @@ public:
 
   /** Get the intensity remapping curve - for contrast adjustment */
   itkGetInputMacro(LookupTable, LookupTableType)
+
+  /**
+   * Set the mask of the input slices (optional). Pixels where the mask is 0
+   * are outside of the image (see NonOrthogonalSlicer) and are made fully
+   * transparent, whatever their intensities (#193).
+   */
+  itkSetInputMacro(MaskInput, MaskImageType)
+  itkGetInputMacro(MaskInput, MaskImageType)
 
   /** Set the mapping mode to two-channel HSV */
   void SetMappingModeToTwoChannelHueValue();
@@ -66,10 +77,10 @@ protected:
   virtual ~RGBALookupTableIntensityMappingFilter() {}
   void MapPixelXYZtoRGB(
       InputPixelType xin0, InputPixelType xin1, InputPixelType xin2,
-      const LookupTableType *lut, bool zero_out_of_range, OutputPixelType &xout);
+      const LookupTableType *lut, OutputPixelType &xout);
   void MapPixelXYtoHSV(
       InputPixelType xin0, InputPixelType xin1,
-      const LookupTableType *lut, bool zero_out_of_range, OutputPixelType &xout);
+      const LookupTableType *lut, OutputPixelType &xout);
 };
 
 

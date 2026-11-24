@@ -25,6 +25,8 @@
 #include "NonOrthogonalSlicerWorkerTraits.h"
 #include "FastLinearInterpolator.h"
 #include <cmath>
+#include <cstring>
+#include <algorithm>
 
 /* ===========================================================================================
  * DefaultNonOrthogonalSlicerWorkerTraits traits for itk::Image or itk::VectorImage
@@ -49,7 +51,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
-::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
   // Perform the interpolation
   typename Interpolator::InOut status =
@@ -62,6 +64,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
     {
     for(int k = 0; k < m_NumComponents; k++)
       *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[k]);
+    *(*mask_ptr)++ = 255;
     }
   else if(status == Interpolator::BORDER && (mask = m_Interpolator.GetMask()) > 0.0)
     {
@@ -71,10 +74,11 @@ DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
     // shows a 2D image whose plane is not exactly on the slice at its own values.
     for(int k = 0; k < m_NumComponents; k++)
       *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[k] / mask);
+    *(*mask_ptr)++ = 255;
     }
   else
     {
-    SkipVoxels(1, out_ptr);
+    SkipVoxels(1, out_ptr, mask_ptr);
     }
 }
 
@@ -126,12 +130,20 @@ DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>::CollectStatis
 template <class TInputImage, class TOutputImage>
 void
 DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
-::SkipVoxels(int n, OutputComponentType **out_ptr)
+::SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
-  // TODO: this is problematic, why are we using zero? !!!!
+  // Samples outside of the image are marked in the mask; the zero intensity
+  // written for them is only a placeholder. The pointers are copied to locals
+  // and the runs are filled in one go: incrementing them in place in a loop
+  // keeps the compiler from turning the loop into a memset, which made
+  // oblique slicing much slower where most of the slice is outside of the image
   int n_total = n * m_NumComponents;
-  for(int k = 0; k < n_total; k++)
-    *(*out_ptr)++ = 0; //itk::NumericTraits<OutputComponentType>::Zero;
+  OutputComponentType *out = *out_ptr;
+  unsigned char *mask = *mask_ptr;
+  std::fill_n(out, n_total, OutputComponentType(0));
+  std::memset(mask, 0, n);
+  *out_ptr = out + n_total;
+  *mask_ptr = mask + n;
 }
 
 /* ===========================================================================================
@@ -169,7 +181,7 @@ void
 DefaultNonOrthogonalSlicerWorkerTraits<
   itk::VectorImageToImageAdaptor<TPixelType, Dimension>,
   TOutputImage>
-::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
   // Perform the interpolation
   typename Interpolator::InOut status =
@@ -181,11 +193,19 @@ DefaultNonOrthogonalSlicerWorkerTraits<
   // image (see the scalar version above)
   double mask;
   if(status == Interpolator::INSIDE)
+    {
     *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue);
+    *(*mask_ptr)++ = 255;
+    }
   else if(status == Interpolator::BORDER && (mask = m_Interpolator.GetMask()) > 0.0)
+    {
     *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue / mask);
+    *(*mask_ptr)++ = 255;
+    }
   else
-    *(*out_ptr)++ = 0;
+    {
+    SkipVoxels(1, out_ptr, mask_ptr);
+    }
 }
 
 template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
@@ -222,10 +242,15 @@ void
 DefaultNonOrthogonalSlicerWorkerTraits<
   itk::VectorImageToImageAdaptor<TPixelType, Dimension>,
   TOutputImage>
-::SkipVoxels(int n, OutputComponentType **out_ptr)
+::SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
-  for(int i = 0; i < n; i++)
-    *(*out_ptr)++ = 0;
+  // Fill the runs in one go (see the scalar version above)
+  OutputComponentType *out = *out_ptr;
+  unsigned char *mask = *mask_ptr;
+  std::fill_n(out, n, OutputComponentType(0));
+  std::memset(mask, 0, n);
+  *out_ptr = out + n;
+  *mask_ptr = mask + n;
 }
 
 /* ===========================================================================================
@@ -259,7 +284,7 @@ void
 DefaultNonOrthogonalSlicerWorkerTraits<
   itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>,
   TOutputImage>
-::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
+::ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
   // Perform the interpolation
   typename Interpolator::InOut status =
@@ -286,10 +311,11 @@ DefaultNonOrthogonalSlicerWorkerTraits<
     // Apply the accessor
     *(*out_ptr)++ =
         m_Adaptor->GetPixelAccessor().Get(m_VectorPixel.GetDataPointer());
+    *(*mask_ptr)++ = 255;
     }
   else
     {
-    *(*out_ptr)++ = 0;
+    SkipVoxels(1, out_ptr, mask_ptr);
     }
 }
 
@@ -335,10 +361,15 @@ void
 DefaultNonOrthogonalSlicerWorkerTraits<
   itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>,
   TOutputImage>
-::SkipVoxels(int n, OutputComponentType **out_ptr)
+::SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
-  for(int i = 0; i < n; i++)
-    *(*out_ptr)++ = 0;
+  // Fill the runs in one go (see the scalar version above)
+  OutputComponentType *out = *out_ptr;
+  unsigned char *mask = *mask_ptr;
+  std::fill_n(out, n, OutputComponentType(0));
+  std::memset(mask, 0, n);
+  *out_ptr = out + n;
+  *mask_ptr = mask + n;
 }
 
 /* ===========================================================================================
@@ -361,7 +392,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TO
 template <typename TPixel, unsigned int Dimension, typename TCounter, typename TOutputImage>
 void
 DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TOutputImage>
-::ProcessVoxel(double *cix, bool itkNotUsed(use_nn), OutputComponentType **out_ptr)
+::ProcessVoxel(double *cix, bool itkNotUsed(use_nn), OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
   // We simply have to round cix to the closest index, check if it's inside the buffer
   // and call GetPixel(). There is not a faster way. Round with floor: a cast
@@ -373,10 +404,11 @@ DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TO
   if(m_Image->GetBufferedRegion().IsInside(idx))
     {
     *(*out_ptr)++ = m_Image->GetPixel(idx);
+    *(*mask_ptr)++ = 255;
     }
   else
     {
-    *(*out_ptr)++ = 0;
+    SkipVoxels(1, out_ptr, mask_ptr);
     }
 }
 
@@ -404,10 +436,15 @@ DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TO
 template <typename TPixel, unsigned int Dimension, typename TCounter, typename TOutputImage>
 void
 DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TOutputImage>
-::SkipVoxels(int n, OutputComponentType **out_ptr)
+::SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr)
 {
-  for(int i = 0; i < n; i++)
-    *(*out_ptr)++ = 0;
+  // Fill the runs in one go (see the scalar version above)
+  OutputComponentType *out = *out_ptr;
+  unsigned char *mask = *mask_ptr;
+  std::fill_n(out, n, OutputComponentType(0));
+  std::memset(mask, 0, n);
+  *out_ptr = out + n;
+  *mask_ptr = mask + n;
 }
 
 #endif // NONORTHOGONALSLICERWORKERTRAITS_TXX

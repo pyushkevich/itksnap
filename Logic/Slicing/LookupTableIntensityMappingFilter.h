@@ -38,6 +38,9 @@ public:
   // Output LUT
   using LookupTableType = ColorLookupTable<InputComponentType, OutputPixelType>;
 
+  // Optional mask of the input slice: 255 inside the image, 0 outside
+  using MaskImageType = itk::Image<unsigned char, InputImageDimension>;
+
   // This is necessary to use itkGet/SetInputMacros to avoid gcc compiling error
   using ProcessObject = itk::ProcessObject;
 
@@ -49,6 +52,14 @@ public:
 
   /** Get the intensity remapping curve - for contrast adjustment */
   itkGetInputMacro(LookupTable, LookupTableType)
+
+  /**
+   * Set the mask of the input slice (optional). Pixels where the mask is 0 are
+   * outside of the image (see NonOrthogonalSlicer) and are made fully
+   * transparent, whatever their intensity (#193).
+   */
+  itkSetInputMacro(MaskInput, MaskImageType)
+  itkGetInputMacro(MaskInput, MaskImageType)
 
   /** The actual work */
   void DynamicThreadedGenerateData(const OutputRegionType &region) override;

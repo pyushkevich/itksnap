@@ -1854,6 +1854,14 @@ TARGET_INCLUDE_DIRECTORIES(TestDicomSeriesDetection PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestDicomSeriesDetection COMMAND TestDicomSeriesDetection ${TESTDATA_DIR})
 
+# Test: the mask of obliquely sliced images, outside of which nothing is drawn (#193)
+ADD_EXECUTABLE(SliceMaskTest
+    Testing/Logic/SliceMaskTest.cxx)
+TARGET_LINK_LIBRARIES(SliceMaskTest ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(SliceMaskTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME SliceMaskTest COMMAND SliceMaskTest)
+
 # Test: remote file cache stores, evicts and locks its metadata correctly
 ADD_EXECUTABLE(TestRemoteFileCache
     Testing/Logic/TestRemoteFileCache.cxx)

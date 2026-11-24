@@ -1885,8 +1885,14 @@ ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<
       // TODO: too much being initialized here for a single lookup operation!
       InterpolateWorker iw(m_ImageTimePoints[tp]);
 
-      // Process the voxel, arr will be updated by the function
-      iw.ProcessVoxel(cidx.GetDataPointer(), is_nn, &arr);
+      // Process the voxel, arr will be updated by the function. A voxel
+      // outside of the image reads as zero.
+      // TODO: use the mask value to tell the caller that the sample is outside
+      // of the image, so that the cursor inspector does not report an
+      // intensity of zero when the cursor is outside of an obliquely sliced
+      // image (#193)
+      unsigned char mask_value, *mask_ptr = &mask_value;
+      iw.ProcessVoxel(cidx.GetDataPointer(), is_nn, &arr, &mask_ptr);
     }
   }
 }
@@ -2177,6 +2183,14 @@ ImageWrapper<TTraits>
 ::GetSlice(DisplaySliceIndex index)
 {
   return m_Slicers[index]->GetOutput();
+}
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::SliceMaskType*
+ImageWrapper<TTraits>
+::GetSliceMask(DisplaySliceIndex index)
+{
+  return m_Slicers[index]->GetMaskOutput();
 }
 
 // TODO: this should take advantage of an in-place filter!

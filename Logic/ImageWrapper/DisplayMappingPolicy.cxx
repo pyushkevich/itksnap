@@ -52,6 +52,8 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
   for (auto index : DisplaySliceIndices)
     {
     m_RGBAFilter[index] = RGBAFilterType::New();
+    // No slice mask is needed: outside of the image, the slice holds label 0,
+    // which is shown as transparent
     m_RGBAFilter[index]->SetInput(wrapper->GetSlice(index));
     m_RGBAFilter[index]->SetColorTable(NULL);
     }
@@ -172,8 +174,13 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
   m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 
+  // The slice mask makes the parts of an obliquely sliced image that are
+  // outside of the image transparent (#193)
   for (auto index : DisplaySliceIndices)
+  {
     m_IntensityFilter[index]->SetInput(m_Wrapper->GetSlice(index));
+    m_IntensityFilter[index]->SetMaskInput(m_Wrapper->GetSliceMask(index));
+  }
 }
 
 template<class TWrapperTraits>
@@ -445,6 +452,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 
   for (auto index : DisplaySliceIndices)
     {
+    // TODO: use the slice mask (as in CachingCurveAndColorMapDisplayMappingPolicy)
+    // if these images (e.g., speed images in snake mode) are ever sliced
+    // obliquely; outside of the image they are now shown with the color for 0
     m_Filter[index]->SetInput(wrapper->GetSlice(index));
     }
 
@@ -602,6 +612,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>::UpdateImagePointer(ImageType *
         m_RGBMapper[index]->SetMappingModeToTwoChannelHueValue();
       for (unsigned int j = 0; j < nc; j++)
         m_RGBMapper[index]->SetInput(j, m_Wrapper->GetComponentWrapper(j)->GetSlice(index));
+
+      // The components share one geometry, so the mask of the first one
+      // marks the parts of the slice outside of the image (#193)
+      m_RGBMapper[index]->SetMaskInput(m_Wrapper->GetComponentWrapper(0)->GetSliceMask(index));
 
       // Add this filter as the input to the selector
       m_DisplaySliceSelector[index]->AddSelectableInput(
