@@ -136,6 +136,16 @@ void PopulateHistoryMenu(
     QMenu *menu, QObject *receiver, const char *slot,
     const QStringList &local_history, const QStringList &global_history);
 
+/**
+ * Show whether the file of a recent-file action (its data) still exists: the
+ * action for a file known to be missing is disabled and marked "(not found)"
+ * (see FileExistenceCache)
+ */
+void UpdateRecentFileAction(QAction *action);
+
+/** Do the same for every recent-file action in a menu */
+void UpdateRecentFileActions(QMenu *menu);
+
 /** Get the path in which to open a file dialog */
 QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName);
 

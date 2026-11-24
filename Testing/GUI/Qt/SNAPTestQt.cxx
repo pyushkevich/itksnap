@@ -4,6 +4,8 @@
 #include <QAction>
 #include <QLineEdit>
 #include <QFile>
+#include <QToolButton>
+#include <QMenu>
 #include <QPointer>
 #include <QTextStream>
 #include <QDebug>
@@ -194,6 +196,33 @@ int SNAPTestQt::itemCount(QObject *view)
   return RunOnGuiThread([&]() -> int {
     QAbstractItemView *v = dynamic_cast<QAbstractItemView *>(view);
     return v ? v->model()->rowCount() : -1;
+  });
+}
+
+QVariantList SNAPTestQt::menuActions(QObject *menuOrButton)
+{
+  return RunOnGuiThread([&]() -> QVariantList {
+    QMenu *menu = qobject_cast<QMenu *>(menuOrButton);
+    if(QToolButton *tb = qobject_cast<QToolButton *>(menuOrButton))
+      menu = tb->menu();
+    else if(QPushButton *pb = qobject_cast<QPushButton *>(menuOrButton))
+      menu = pb->menu();
+
+    QVariantList list;
+    if(menu)
+      {
+      for(QAction *action : menu->actions())
+        {
+        if(action->isSeparator())
+          continue;
+        QVariantMap item;
+        item["text"] = action->text();
+        item["data"] = action->data();
+        item["enabled"] = action->isEnabled();
+        list.append(item);
+        }
+      }
+    return list;
   });
 }
 

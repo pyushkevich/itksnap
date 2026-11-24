@@ -43,6 +43,39 @@ engine.validateValue(tooltip.indexOf("not found") >= 0, true);
 engine.validateValue(String(engine.itemData(list, 1, 0, 256)).endsWith("MRIcrop-orig.gipl.gz"), true);
 engine.validateValue(engine.itemData(list, 1, 0, MissingFileRole), false);
 
+// Find the action for a file in a menu (or a button's menu)
+function findAction(menu, file)
+{
+    var actions = engine.menuActions(menu);
+    for (var i = 0; i < actions.length; i++)
+        if (String(actions[i].data) == file)
+            return actions[i];
+    for (var i = 0; i < actions.length; i++)
+        engine.print("  " + actions[i].text);
+    engine.testFailed("No menu entry for " + file);
+}
+
+//=== File > Recent Images: the copy is disabled and marked, the other is not
+var menu = engine.findChild(mainwin, "menuRecent_Images");
+var action = findAction(menu, copy);
+engine.print("Recent menu: " + action.text);
+engine.validateValue(action.enabled, false);
+engine.validateValue(String(action.text).endsWith("(not found)"), true);
+action = findAction(menu, datadir + "/MRIcrop-orig.gipl.gz");
+engine.validateValue(action.enabled, true);
+engine.validateValue(String(action.text), datadir + "/MRIcrop-orig.gipl.gz");
+
+//=== The history drop-down of the Open Main Image dialog marks it too
+engine.trigger("actionOpenMain");
+engine.sleep(2000);
+dialog = engine.findChild(mainwin, "wizImageIO");
+action = findAction(engine.findChild(dialog, "btnHistory"), copy);
+engine.print("History drop-down: " + action.text);
+engine.validateValue(action.enabled, false);
+engine.validateValue(String(action.text).endsWith("(not found)"), true);
+engine.invoke(dialog, "reject");
+engine.sleep(1000);
+
 //=== Clicking it offers to remove it; Cancel keeps it
 var n = engine.itemCount(list);
 engine.clickItem(list, 0);

@@ -12,6 +12,7 @@
   - A new segmentation or workspace over a main image from such a URL is suggested next to it on the server
   - Saving a workspace to a server warns if it refers to files that are only on this computer
   - Layers and workspaces opened from `http(s)://` URLs are still saved to local files
+- Recent files that no longer exist are marked on the startup page, in the Recent menus and in the history lists of file dialogs (#314). The check runs in the background, so a slow network drive does not delay the startup page. Clicking a missing file on the startup page offers to remove it from the list
 
 ### Bug Fixes
 

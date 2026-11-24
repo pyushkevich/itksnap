@@ -126,6 +126,10 @@ public slots:
   // Number of rows in a list or table
   int itemCount(QObject *view);
 
+  // The actions of a menu, or of a button's menu, as a list of objects with
+  // fields text, data and enabled
+  QVariantList menuActions(QObject *menuOrButton);
+
   // Emit the clicked() signal of a list or table for an item. This does not
   // wait, since the click may open a modal dialog.
   void clickItem(QObject *view, int row, int col = 0);
