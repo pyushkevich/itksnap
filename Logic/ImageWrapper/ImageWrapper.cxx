@@ -383,8 +383,8 @@ public:
                                                  ImageType *image_tp,
                                                  unsigned int tp)
   {
-    unsigned int nt = image_4d->GetBufferedRegion().GetSize()[TImage::ImageDimension];
-    unsigned int bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
+    size_t nt = image_4d->GetBufferedRegion().GetSize()[TImage::ImageDimension];
+    size_t bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
   
     // Copy the information from 4D image to 3D image
     CopyInformationFrom4DToTimePoint(image_4d, image_tp);
@@ -802,8 +802,8 @@ public:
                                                  ImageType *image_tp,
                                                  unsigned int tp)
   {
-    unsigned int nt = image_4d->GetBufferedRegion().GetSize()[VDim];
-    unsigned int bytes_per_volume = image_4d->GetBuffer()->GetPixelContainer()->Size() / nt;
+    size_t nt = image_4d->GetBufferedRegion().GetSize()[VDim];
+    size_t bytes_per_volume = image_4d->GetBuffer()->GetPixelContainer()->Size() / nt;
   
     // Copy the information
     CopyInformationFrom4DToTimePoint(image_4d, image_tp);
@@ -837,8 +837,8 @@ public:
                                                  TImageAdaptor *image_tp,
                                                  unsigned int tp)
  {
-   unsigned int nt = image_4d->GetBufferedRegion().GetSize()[TImageAdaptor::ImageDimension];
-   unsigned int bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
+   size_t nt = image_4d->GetBufferedRegion().GetSize()[TImageAdaptor::ImageDimension];
+   size_t bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
 
    // Set up a new image for the internals of this timepoint
    typename InternalImageType::Pointer tp_internals = InternalImageType::New();
