@@ -16,6 +16,7 @@
 #include "QtTranslationLocale.h"
 #include "SNAPQtCommon.h"
 #include "FileExistenceCache.h"
+#include "QtFrameBufferOpenGLWidget.h"
 #include "SNAPTestQt.h"
 #include "SegmentationAutosave.h"
 
@@ -278,6 +279,7 @@ usage(const char *progname)
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
 #endif // SNAP_DEBUG_EVENTS
   cout << "   --debug-stat         : Print the checks that recent files still exist" << endl;
+  cout << "   --debug-painter      : Print the OpenGL version and slice view painting times" << endl;
   cout << "   --test list          : List available tests. " << endl;
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
@@ -325,6 +327,7 @@ public:
   bool                     flagDebugEvents = false;
   bool                     flagDebugSync = false;
   bool                     flagDebugStat = false;
+  bool                     flagDebugPainter = false;
   bool                     flagTestIPC = false;
   bool                     flagNoCache = false;
 
@@ -531,6 +534,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--debug-events", 0);
   parser.AddOption("--debug-sync", 0);
   parser.AddOption("--debug-stat", 0);
+  parser.AddOption("--debug-painter", 0);
   parser.AddOption("--test-ipc", 0);
   parser.AddOption("--no-cache", 0);
 
@@ -619,6 +623,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--debug-stat"))
     argdata.flagDebugStat = true;
+
+  if (parseResult.IsOptionPresent("--debug-painter"))
+    argdata.flagDebugPainter = true;
 
   if (parseResult.IsOptionPresent("--no-cache"))
     argdata.flagNoCache = true;
@@ -1421,6 +1428,9 @@ main(int argc, char *argv[])
 
     // Print the checks that recent files still exist
     FileExistenceCache::instance()->setDebug(argdata.flagDebugStat);
+
+    // Print the OpenGL version and the time spent painting the views
+    QtFrameBufferOpenGLWidget::SetDebugPainter(argdata.flagDebugPainter);
 
     // Optionally download remote files without the cache
     driver->SetRemoteCacheEnabled(!argdata.flagNoCache);
