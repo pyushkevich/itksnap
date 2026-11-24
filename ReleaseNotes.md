@@ -22,7 +22,7 @@
 - Error messages from saving an image no longer show just "std::exception"
 - Opening Image Free Rotation no longer resets the registration of additional images made in Registration mode, and a workspace saved while rotated keeps that registration
 
-## Version 4.6.0 (in development)
+## Version 4.6.0
 
 ### New Features
 
@@ -90,6 +90,9 @@
   - Segmentations on another grid showed labels one voxel past their lower edges
   - The volumetric, adaptive and DLS brushes were disabled, and the paintbrush painted polygons
   - The adaptive brush crashed on a region with a single watershed, such as a constant region
+- Very large images (over 4 GB):
+  - On Linux, every image over 4 GB was refused with "only 0.0 GB is currently available", because the memory check before loading read the free memory as 0. On macOS, the same check refused some images that would fit. It now reads the free memory correctly
+  - Fixed 4D images of more than about 4 billion values in all (e.g. 4 GB of 8-bit data) showing an earlier time point in place of the later ones. On Windows, images of that size could also be read with part of their data wrong
 - Fixed `.seq.nrrd` export writing transposed orientation and the wrong data type for 8-bit images
 - Fixed the VTI reader and writer for images with an origin, extent or direction, and for unsupported data
 - Fixed DLS: an empty stroke undid the previous edit, clicks during a running request could hang ITK-SNAP, and 3D results were not size-checked

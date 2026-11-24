@@ -220,6 +220,27 @@ static bool TestNormalSizedImageNoThrow(const std::string &tempDir)
   return !sizeGuardFired;
 }
 
+/**
+ * TestAvailableMemoryKnown
+ *
+ * On the three supported platforms the memory query must succeed. If it
+ * returns 0, the size guard silently falls back to a fixed 4 GB limit, which
+ * on Linux refused every image larger than 4 GB (#146).
+ */
+static bool TestAvailableMemoryKnown()
+{
+  std::cout << "TestAvailableMemoryKnown ... " << std::flush;
+  size_t available = GuidedNativeImageIO::GetAvailableMemory();
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+  bool ok = available > 0;
+#else
+  bool ok = true;
+#endif
+  std::cout << (ok ? "PASS" : "FAIL") << "  (available "
+            << available / (1024.0 * 1024.0 * 1024.0) << " GB)" << std::endl;
+  return ok;
+}
+
 // ---------------------------------------------------------------------------
 // main
 // ---------------------------------------------------------------------------
@@ -235,6 +256,7 @@ int main(int argc, char *argv[])
   std::cout << "Temp directory: " << tempDir << std::endl;
 
   int failed = 0;
+  if(!TestAvailableMemoryKnown())          failed++;
   if(!TestOversizedImageThrows(tempDir))  failed++;
   if(!TestNormalSizedImageNoThrow(tempDir)) failed++;
 
