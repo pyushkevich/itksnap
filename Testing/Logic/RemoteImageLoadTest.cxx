@@ -132,7 +132,9 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --test-upload <url> <ref1> <ref2> <server-file>  save images to a URL" << std::endl;
   std::cerr << "  " << prog << " --test-upload-multifile <url> <ref> <server-file> <companion>  save a two-file format" << std::endl;
   std::cerr << "  " << prog << " --test-upload-cancel <url> <local-file> <server-file> <original>  cancel uploads" << std::endl;
-  std::cerr << "  " << prog << " --test-upload-refused <url> <ref>  saving to a read-only URL fails" << std::endl;
+  std::cerr << "  " << prog << " --test-upload-refused <url> <ref> [<text>]  saving to a read-only URL fails" << std::endl;
+  std::cerr << "  " << prog << " --test-save-url (<url> <expected>)...  the default URL to save a file from <url> to" << std::endl;
+  std::cerr << "  " << prog << " --test-workspace-upload <url> <server-file> <local-ref>  save a workspace to a URL" << std::endl;
   std::cerr << "  " << prog << " --test-fw-url-forms  check the fw:// URL grammar offline" << std::endl;
 }
 
@@ -578,7 +580,7 @@ static int TestCancel(const std::string &url)
 //  the workspace refers to the image by its URL (not by a mangled local
 //  path or the cache/temp file), that it can be reopened with the same data,
 //  that it can be exported (as for an upload to the distributed segmentation
-//  service), and that saving a workspace to a remote URL is refused.
+//  service), and that saving a workspace to an http(s) URL is refused.
 // -----------------------------------------------------------------------
 
 static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
@@ -596,7 +598,7 @@ static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
     snaps1 = SnapshotAllLayers(app1);
     app1->SaveProject(ws_file);
 
-    // Saving to a remote location must fail cleanly
+    // Saving to an http(s) URL must fail cleanly
     bool threw = false;
     try
       {
@@ -1022,7 +1024,8 @@ static int TestUploadCancel(const std::string &url, const std::string &local_fil
 }
 
 // Saving to a URL whose scheme is read-only must fail with a clear message
-static int TestUploadRefused(const std::string &url, const std::string &ref)
+static int TestUploadRefused(const std::string &url, const std::string &ref,
+                             const std::string &expected_text)
 {
   auto app = MakeApp();
   try
@@ -1032,6 +1035,12 @@ static int TestUploadRefused(const std::string &url, const std::string &ref)
     }
   catch (IRISException &exc)
     {
+    if (std::string(exc.what()).find(expected_text) == std::string::npos)
+      {
+      std::cerr << "FAIL: the error does not contain '" << expected_text << "': "
+                << exc.what() << std::endl;
+      return 1;
+      }
     std::cout << "PASS: saving to " << url << " refused: " << exc.what() << std::endl;
     return 0;
     }
@@ -1042,6 +1051,154 @@ static int TestUploadRefused(const std::string &url, const std::string &ref)
     }
   std::cerr << "FAIL: saving to " << url << " did not fail" << std::endl;
   return 1;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-workspace-upload
+// -----------------------------------------------------------------------
+
+// Number of mesh layers in the application
+static int CountMeshes(IRISApplication *app)
+{
+  int n = 0;
+  for (MeshLayerIterator it(app->GetCurrentImageData()->GetMeshLayers()); !it.IsAtEnd(); ++it)
+    n++;
+  return n;
+}
+
+// Open the workspace at @p url (whose layers are all on the same server), save
+// it back to the URL, and save it under another name next to it. The server's
+// copy must refer to the layers by their URLs, so that it opens again from
+// the server. @p server_file is the server's local path of the workspace, and
+// @p local_ref a local image, which GetLocalFilesInProject must report once it
+// is added. Saving to an http URL must fail.
+static int TestWorkspaceUpload(const std::string &url, const std::string &server_file,
+                               const std::string &local_ref)
+{
+  try
+    {
+    IRISWarningList warnings;
+    auto app = MakeApp();
+    app->OpenWorkspace(url, warnings);
+    std::string main_url = app->GetCurrentImageData()->GetMain()->GetFileName();
+    int n_layers = 0;
+    for (LayerIterator it(app->GetCurrentImageData()); !it.IsAtEnd(); ++it)
+      n_layers++;
+    int n_meshes = CountMeshes(app);
+    std::cout << "Opened " << url << ": " << n_layers << " layers, " << n_meshes
+              << " meshes, main image " << main_url << std::endl;
+    if (!app->GetLocalFilesInProject().empty())
+      {
+      std::cerr << "FAIL: a workspace opened from the server refers to local files" << std::endl;
+      return 1;
+      }
+
+    // ── 1. Save it back to its URL ──────────────────────────────────────
+    std::remove(server_file.c_str());
+    app->SaveProject(url);
+    if (!itksys::SystemTools::FileExists(server_file, true))
+      {
+      std::cerr << "FAIL: the server has no file " << server_file << std::endl;
+      return 1;
+      }
+    if (app->GetGlobalState()->GetProjectFilename() != url || app->IsProjectUnsaved())
+      {
+      std::cerr << "FAIL: after saving, the project is '"
+                << app->GetGlobalState()->GetProjectFilename()
+                << "' and unsaved=" << app->IsProjectUnsaved() << std::endl;
+      return 1;
+      }
+
+    // The server's copy is saved in the URL's folder and refers to the main
+    // image by its URL
+    Registry reg;
+    reg.ReadFromXMLFile(server_file.c_str());
+    std::string save_location = reg["SaveLocation"][""];
+    std::string stored_main = reg["Layers.Layer[000].AbsolutePath"][""];
+    if (save_location != url.substr(0, url.rfind('/')) || stored_main != main_url)
+      {
+      std::cerr << "FAIL: the server's workspace has SaveLocation '" << save_location
+                << "' and main image '" << stored_main << "'" << std::endl;
+      return 1;
+      }
+
+    // ── 2. Save it under another name and open that from the server ─────
+    std::string copy_url = SiblingURL(url, "RemoteWorkspaceCopy.itksnap");
+    app->SaveProject(copy_url);
+    auto app2 = MakeApp();
+    app2->OpenWorkspace(copy_url, warnings);
+    int n_layers2 = 0;
+    for (LayerIterator it(app2->GetCurrentImageData()); !it.IsAtEnd(); ++it)
+      n_layers2++;
+    if (n_layers2 != n_layers || CountMeshes(app2) != n_meshes ||
+        std::string(app2->GetCurrentImageData()->GetMain()->GetFileName()) != main_url)
+      {
+      std::cerr << "FAIL: the copy opened with " << n_layers2 << " layers, "
+                << CountMeshes(app2) << " meshes and main image "
+                << app2->GetCurrentImageData()->GetMain()->GetFileName() << std::endl;
+      return 1;
+      }
+
+    // ── 3. A local overlay is reported ──────────────────────────────────
+    app->OpenImage(local_ref.c_str(), OVERLAY_ROLE, warnings);
+    std::vector<std::string> local = app->GetLocalFilesInProject();
+    if (local.size() != 1 ||
+        itksys::SystemTools::CollapseFullPath(local[0]) != itksys::SystemTools::CollapseFullPath(local_ref))
+      {
+      std::cerr << "FAIL: GetLocalFilesInProject reports " << local.size()
+                << " files, expected " << local_ref << std::endl;
+      return 1;
+      }
+
+    // ── 4. http URLs are read-only ──────────────────────────────────────
+    bool threw = false;
+    try
+      {
+      app->SaveProject("http://127.0.0.1:1/RemoteWorkspace.itksnap");
+      }
+    catch (IRISException &exc)
+      {
+      std::cout << "Saving to http refused: " << exc.what() << std::endl;
+      threw = true;
+      }
+    if (!threw || app->GetGlobalState()->GetProjectFilename() != copy_url)
+      {
+      std::cerr << "FAIL: saving a workspace to an http URL did not fail cleanly" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  std::cout << "PASS: workspace saved to " << url << " and reopened" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-save-url
+// -----------------------------------------------------------------------
+
+// GetDefaultSaveURL for each URL must give the expected URL: the URL itself,
+// or for a file in a Flywheel analysis, the same file in its parent container
+static int TestSaveURL(const std::vector<std::string> &pairs)
+{
+  auto app = MakeApp();
+  int n_failures = 0;
+  for (size_t i = 0; i + 1 < pairs.size(); i += 2)
+    {
+    std::string url = ResolveITKSnapURL(pairs[i]);
+    std::string got = GetDefaultSaveURL(url, app->GetRemoteIOContext());
+    bool ok = (got == pairs[i + 1]);
+    std::cout << (ok ? "  ok:   " : "  FAIL: ") << url << " -> " << got
+              << (ok ? "" : " (expected " + pairs[i + 1] + ")") << std::endl;
+    n_failures += ok ? 0 : 1;
+    }
+  return n_failures ? 1 : 0;
 }
 
 
@@ -1313,7 +1470,29 @@ int main(int argc, char *argv[])
       PrintUsage(argv[0]);
       return 1;
       }
-    return TestUploadRefused(ResolveITKSnapURL(argv[2]), argv[3]);
+    return TestUploadRefused(ResolveITKSnapURL(argv[2]), argv[3], argc > 4 ? argv[4] : "");
+    }
+
+  // ── --test-save-url ──────────────────────────────────────────────────
+  if (cmd == "--test-save-url")
+    {
+    if (argc < 4 || argc % 2)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestSaveURL(std::vector<std::string>(argv + 2, argv + argc));
+    }
+
+  // ── --test-workspace-upload ──────────────────────────────────────────
+  if (cmd == "--test-workspace-upload")
+    {
+    if (argc < 5)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    return TestWorkspaceUpload(ResolveITKSnapURL(argv[2]), argv[3], argv[4]);
     }
 
   // ── --test-fw-url-forms ──────────────────────────────────────────────

@@ -36,6 +36,11 @@ std::map<std::string, std::string> g_APIKeyCache;
 std::mutex g_LabelIDMutex;
 std::map<std::string, std::string> g_LabelIDCache;
 
+// Cache for the parent container of each analysis: key is server+"|"+id,
+// value is "<type>/<id>", e.g. "sessions/69d6...", as in an fw:// URL
+std::mutex g_AnalysisParentMutex;
+std::map<std::string, std::string> g_AnalysisParentCache;
+
 std::string GetCachedAPIKey(const std::string &server)
 {
   std::lock_guard<std::mutex> lock(g_APIKeyMutex);
@@ -484,6 +489,66 @@ FlywheelContainer ResolveContainer(const FlywheelURL      &fw,
   return { ctype, container_id, parts[8] };
 }
 
+// The "message" of a Flywheel error response, or the whole response
+std::string APIErrorMessage(const char *body)
+{
+  std::string text = body ? body : "";
+  Json::Reader reader;
+  Json::Value  root;
+  if (reader.parse(text, root, false) && root.isObject() && root["message"].isString())
+    return root["message"].asString();
+  return text;
+}
+
+// The parent container of analysis @p id, as "<type>/<id>" (e.g.
+// "sessions/69d6..."). Cached for the lifetime of the application.
+std::string GetAnalysisParent(const std::string &server, const std::string &id,
+                              const std::string &api_key,
+                              DownloadProgressCallback *progress_cb)
+{
+  std::string cache_key = server + "|" + id;
+  {
+  std::lock_guard<std::mutex> lock(g_AnalysisParentMutex);
+  auto it = g_AnalysisParentCache.find(cache_key);
+  if (it != g_AnalysisParentCache.end())
+    return it->second;
+  }
+
+  long code = 0;
+  std::string body = APIGet(FlywheelBaseURL(server) + "/api/analyses/" + id,
+                            api_key, code, progress_cb);
+  if (code == 401)
+    {
+    ClearCachedAPIKey(server);
+    throw IRISException("Flywheel: invalid API key for %s (HTTP 401). "
+                        "The key has been cleared — please try again.",
+                        server.c_str());
+    }
+  if (code != 200)
+    throw IRISException("Flywheel: HTTP %ld looking up analysis %s: %s",
+                        code, id.c_str(), APIErrorMessage(body.c_str()).c_str());
+
+  // The parent's type is singular ("session"); URLs use the plural
+  Json::Reader reader;
+  Json::Value  root;
+  std::string ptype, pid;
+  if (reader.parse(body, root, false) && root.isObject() && root["parent"].isObject())
+    {
+    ptype = root["parent"].get("type", "").asString() + "s";
+    pid = root["parent"].get("id", "").asString();
+    }
+  if (!IsDirectContainerType(ptype) || ptype == "analyses" || pid.empty())
+    throw IRISException("Flywheel: analysis %s has no parent container that files "
+                        "can be saved to", id.c_str());
+
+  std::string parent = ptype + "/" + pid;
+  {
+  std::lock_guard<std::mutex> lock(g_AnalysisParentMutex);
+  g_AnalysisParentCache[cache_key] = parent;
+  }
+  return parent;
+}
+
 } // anonymous namespace
 
 
@@ -505,6 +570,20 @@ FlywheelRemoteImageSource::Download(const std::string &url)
   return DownloadDirect(fw.server, c.type, c.id, c.filename,
                         api_key, url, m_FileCache, &m_ProgressCallback,
                         m_TemporaryDirectory);
+}
+
+std::string
+FlywheelRemoteImageSource::GetSaveURL(const std::string &url)
+{
+  // Only the leaf container of a URL can be an analysis
+  FlywheelURL fw = ParseFlywheelURL(url);
+  if ((fw.is_find ? fw.parts[5] : fw.parts[0]) != "analyses")
+    return url;
+
+  std::string api_key = GetAPIKey(fw.server, m_AuthDelegate);
+  FlywheelContainer c = ResolveContainer(fw, api_key, &m_ProgressCallback);
+  std::string parent = GetAnalysisParent(fw.server, c.id, api_key, &m_ProgressCallback);
+  return "fw://" + fw.server + "/" + parent + "/files/" + c.filename;
 }
 
 void
@@ -553,6 +632,16 @@ FlywheelRemoteImageSource::Upload(const std::string &local_path, const std::stri
     throw IRISException("Flywheel: you do not have permission to add files to %s/%s "
                         "on %s (HTTP 403)",
                         c.type.c_str(), c.id.c_str(), fw.server.c_str());
+
+  // An analysis made by a gear takes no uploads (422), and one made by hand
+  // never replaces a file (409)
+  if ((code == 409 || code == 422) && c.type == "analyses")
+    throw IRISException("Flywheel did not accept %s in analysis %s (HTTP %ld: %s). "
+                        "Files in an analysis cannot be replaced, and an analysis "
+                        "created by a gear does not accept files. Please save to the "
+                        "analysis's session instead.",
+                        filename.c_str(), c.id.c_str(), code,
+                        APIErrorMessage(client.GetOutput()).c_str());
   if (code != 200)
     throw IRISException("Flywheel: HTTP %ld uploading %s to %s: %s",
                         code, filename.c_str(), upload_url.c_str(), client.GetOutput());

@@ -59,9 +59,14 @@ ImageIOWizardModel ::InitializeForSave(GlobalUIModel             *parent,
   m_Overlay = false;
 
   // A layer loaded from an http(s) URL cannot be saved back to it, so only
-  // suggest its file name, to be saved to a local folder of the user's choice
+  // suggest its file name, to be saved to a local folder of the user's choice.
+  // A file in a Flywheel analysis cannot be replaced, so suggest the same
+  // name in the analysis's parent container.
+  RemoteIOContext ctx = parent->GetDriver()->GetRemoteIOContext();
   if (IsRemoteImageURL(m_SuggestedFilename) && !CanSaveToURL(m_SuggestedFilename))
     m_SuggestedFilename = itksys::SystemTools::GetFilenameName(m_SuggestedFilename);
+  else
+    m_SuggestedFilename = GetDefaultSaveURL(m_SuggestedFilename, ctx);
 
   // A new layer (e.g. a new segmentation) has no file name. If the main image
   // came from a URL that can be saved to, suggest a file next to it, as the
@@ -70,7 +75,7 @@ ImageIOWizardModel ::InitializeForSave(GlobalUIModel             *parent,
     {
     std::string main_fn = parent->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName();
     if (IsRemoteImageURL(main_fn) && CanSaveToURL(main_fn))
-      m_SuggestedFilename = SiblingURL(main_fn, "Untitled.nii.gz");
+      m_SuggestedFilename = GetDefaultSaveURL(SiblingURL(main_fn, "Untitled.nii.gz"), ctx);
     }
   m_LoadedImage = NULL;
   m_SaveCurrentTPIn3D = saveCrntTP;

@@ -2134,8 +2134,13 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
   // Clear the registry contents
   preg.Clear();
 
-  // Get the directory in which the project will be saved
-  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+  // Get the directory in which the project will be saved. GetParentDirectory
+  // would turn the "//" of a URL into "/", so a URL is cut at its last slash.
+  std::string project_dir;
+  if (IsRemoteImageURL(proj_file_full))
+    project_dir = proj_file_full.substr(0, proj_file_full.rfind('/'));
+  else
+    project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
 
   // Put version information - later versions may not be compatible
   preg["Version"] << SNAPCurrentVersionReleaseDate;
@@ -2215,14 +2220,8 @@ IRISApplication::SaveProject(const std::string &proj_file)
     "as long as the relative location of the images to the project file is \n"
     "the same. Do not modify the SaveLocation entry, or this will not work.\n";
 
-  // Workspaces can be opened from remote URLs, but not saved to them
-  if (IsRemoteImageURL(proj_file))
-    throw IRISException("Workspaces cannot be saved to a remote location (%s). "
-                        "Please save the workspace to a local file instead.",
-                        proj_file.c_str());
-
   // Get the full name of the project file
-  std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
+  std::string proj_file_full = CollapseFullPathOrURL(proj_file);
 
   // Create a registry that will be used to save the project
   Registry preg;
@@ -2230,8 +2229,15 @@ IRISApplication::SaveProject(const std::string &proj_file)
   // Do the actual writing to the registry
   SaveProjectToRegistry(preg, proj_file_full);
 
-  // Finally, save the registry
-  preg.WriteToXMLFile(proj_file_full.c_str(), header);
+  // Finally, save the registry. A project saved to a URL is written to a
+  // temporary file and uploaded; this throws for URLs that cannot be saved to.
+  if (IsRemoteImageURL(proj_file_full))
+    SaveRemoteFile(proj_file_full, GetRemoteIOContext(),
+                   [&preg](const std::string &local_file) {
+                     preg.WriteToXMLFile(local_file.c_str(), header);
+                   });
+  else
+    preg.WriteToXMLFile(proj_file_full.c_str(), header);
 
   // Save the project filename
   m_GlobalState->SetProjectFilename(proj_file_full.c_str());
@@ -2241,6 +2247,30 @@ IRISApplication::SaveProject(const std::string &proj_file)
 
   // Store the project registry
   m_LastSavedProjectState = preg;
+}
+
+std::vector<std::string>
+IRISApplication::GetLocalFilesInProject()
+{
+  std::vector<std::string> files;
+  for (LayerIterator it = GetCurrentImageData()->GetLayers(MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE);
+       !it.IsAtEnd();
+       ++it)
+    {
+    std::string fn = it.GetLayer()->GetFileName();
+    if (fn.size() && !IsRemoteImageURL(fn))
+      files.push_back(fn);
+    }
+
+  // Only standalone meshes are saved in the project
+  for (MeshLayerIterator it(GetCurrentImageData()->GetMeshLayers()); !it.IsAtEnd(); ++it)
+    {
+    auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(it.GetLayer());
+    std::string fn = (mesh && mesh->GetFileName()) ? mesh->GetFileName() : "";
+    if (fn.size() && !IsRemoteImageURL(fn))
+      files.push_back(fn);
+    }
+  return files;
 }
 
 RemoteIOContext

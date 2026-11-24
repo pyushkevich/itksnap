@@ -212,9 +212,9 @@ The browser will show a confirmation dialog before launching ITK-SNAP. The
 
 ## Saving to URLs
 
-Image layers (main image, overlays and segmentations) can be saved to
-`scp://`, `sftp://` and `fw://` URLs. `http(s)://` URLs are read-only.
-Workspaces and meshes are always saved to local files.
+Image layers (main image, overlays and segmentations) and workspaces can be
+saved to `scp://`, `sftp://` and `fw://` URLs. `http(s)://` URLs are
+read-only. Meshes are always saved to local files.
 
 - **Save** (e.g. Ctrl-S for the segmentation) on a layer opened from an
   `scp`, `sftp` or `fw` URL uploads it back to that URL, without a dialog.
@@ -237,6 +237,17 @@ Workspaces and meshes are always saved to local files.
 - Saving to a URL drops that URL from the download cache, so reopening it
   downloads the new version.
 
+**Workspaces** work the same way: Save Workspace on a workspace opened from
+an `scp`, `sftp` or `fw` URL uploads it back, Save Workspace As shows the URL,
+and the unsaved changes prompt (e.g. on exit) uploads it without asking for a
+file. A new workspace whose main image came from such a URL is suggested as
+`Untitled.itksnap` next to it. The workspace's `SaveLocation` is the URL's
+folder, and layers on the same server are stored by their URLs, so it opens
+again from the server and keeps working if it is moved there. Before a
+workspace is saved to a URL, ITK-SNAP warns if any of its layers or meshes
+are local files (`IRISApplication::GetLocalFilesInProject`), since nobody else
+can open those.
+
 **SSH / SFTP**: the file is written to a temporary name
 (`.<name>.itksnap-upload`) in the target folder and then renamed over the
 target, so a failed or cancelled upload never leaves a partial file under the
@@ -247,7 +258,15 @@ the temporary file that holds the upload.
 **Flywheel**: the file is uploaded to the container the URL names, with
 `POST /api/<type>/<id>/files`. Both the direct and the `find/` form work. An
 upload under an existing file name makes a new version of that file in
-Flywheel. A `401` response clears the cached API key; a `403` means the key's
+Flywheel.
+
+Analyses are different: Flywheel never replaces a file in an analysis (HTTP
+409), and an analysis created by a gear accepts no files at all (HTTP 422).
+So Save on a file from an analysis, or on a new segmentation or workspace over
+one, opens Save As with the same file name in the analysis's parent container,
+e.g. `fw://server/sessions/<id>/files/<file>`; later saves go there directly.
+ITK-SNAP looks up the parent with `GET /api/analyses/<id>`, once per analysis
+(`GetDefaultSaveURL` in `ImageIORemote.h`). A `401` response clears the cached API key; a `403` means the key's
 user may not write to the container.
 
 ---

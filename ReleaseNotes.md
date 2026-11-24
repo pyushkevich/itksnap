@@ -4,12 +4,14 @@
 
 ### New Features
 
-- Save images and segmentations to remote locations (#309):
-  - Save on a layer opened from an `scp://`, `sftp://` or `fw://` URL uploads it back to that URL
+- Save images, segmentations and workspaces to remote locations (#309):
+  - Save on a layer or workspace opened from an `scp://`, `sftp://` or `fw://` URL uploads it back to that URL
   - Save As shows the URL, which can be edited to save under another name or to another folder or Flywheel container
   - Uploads show their progress and can be cancelled; a failed or cancelled upload leaves the remote file as it was and the layer marked as modified
-  - On Flywheel, saving under an existing file name makes a new version of the file
-  - Layers opened from `http(s)://` URLs are still saved to local files
+  - On Flywheel, saving under an existing file name makes a new version of the file. Flywheel does not allow files in an analysis to be replaced, so files from an analysis (e.g. a gear's output) are saved to the analysis's session instead
+  - A new segmentation or workspace over a main image from such a URL is suggested next to it on the server
+  - Saving a workspace to a server warns if it refers to files that are only on this computer
+  - Layers and workspaces opened from `http(s)://` URLs are still saved to local files
 
 ### Bug Fixes
 

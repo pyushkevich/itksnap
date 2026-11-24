@@ -422,6 +422,26 @@ bool CanSaveToURL(const std::string &url)
          url.substr(0, 5) == "fw://";
 }
 
+std::string GetDefaultSaveURL(const std::string &url, const RemoteIOContext &ctx)
+{
+  if (!IsRemoteImageURL(url) || !CanSaveToURL(url))
+    return url;
+
+  try
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+    if (ctx.connectionPool)
+      src->SetConnectionPool(ctx.connectionPool);
+    if (ctx.authDelegate)
+      src->SetAuthDelegate(ctx.authDelegate);
+    return src->GetSaveURL(url);
+    }
+  catch (std::exception &)
+    {
+    return url;
+    }
+}
+
 std::string SiblingURL(const std::string &url, const std::string &filename)
 {
   std::string url_path = url.substr(0, url.find_first_of("?#"));

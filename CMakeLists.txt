@@ -1731,6 +1731,7 @@ IF(Python3_Interpreter_FOUND)
   # (resolved by label to the acquisition a0001). The key in the client's
   # config has the host with its port, "127.0.0.1:<port>:<secret>".
   set(_fw_find "find/testgroup/TestProject/sub-01/ses-01/acquisitions/T1w")
+  set(_fw_find_analysis "find/testgroup/TestProject/sub-01/ses-01/analyses/seg")
   foreach(_case "FlywheelDirect;8958;acquisitions/a0001;uploaded.nii.gz"
                 "FlywheelFind;8961;${_fw_find};uploaded_find.nii.gz")
     list(GET _case 0 _name)
@@ -1770,6 +1771,47 @@ IF(Python3_Interpreter_FOUND)
          --regression-test -g "fw://127.0.0.1:${_fw_port}/${_container}/files/MRIcrop-orig.gipl.gz"
          "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
   endforeach()
+
+  # Saving a workspace opened from the server back to it, and under another
+  # name next to it
+  set(_ws MRIcrop-with-mesh.itksnap)
+  add_remote_server_test(RemoteSaveTest_WorkspaceSFTP 8985
+    -- $<TARGET_FILE:remote_image_load_test>
+       --test-workspace-upload "sftp://testuser@127.0.0.1:8985/${_ws}"
+       "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_WorkspaceSFTP_Server/sftp/${_ws}"
+       "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz")
+  foreach(_case "Direct;8988;acquisitions/a0001" "Find;8991;${_fw_find}")
+    list(GET _case 0 _name)
+    list(GET _case 1 _port)
+    list(GET _case 2 _container)
+    math(EXPR _fw_port "${_port} + 2")
+    add_remote_server_test(RemoteSaveTest_WorkspaceFlywheel${_name} ${_port}
+      -- $<TARGET_FILE:remote_image_load_test>
+         --test-workspace-upload "fw://127.0.0.1:${_fw_port}/${_container}/files/${_ws}"
+         "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveTest_WorkspaceFlywheel${_name}_Server/fw/acquisitions/a0001/${_ws}"
+         "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz")
+  endforeach()
+
+  # Flywheel analyses: files in them are saved to the analysis's session by
+  # default; an analysis made by a gear refuses uploads (422) and one made by
+  # hand refuses to replace a file (409)
+  set(_fw "fw://127.0.0.1:8999")
+  set(_seg MRIcrop-seg.gipl.gz)
+  add_remote_server_test(RemoteSaveTest_FlywheelAnalysisURL 8997
+    -- $<TARGET_FILE:remote_image_load_test> --test-save-url
+       "${_fw}/analyses/n0001/files/${_seg}" "${_fw}/sessions/e0001/files/${_seg}"
+       "${_fw}/${_fw_find_analysis}/files/${_seg}" "${_fw}/sessions/e0001/files/${_seg}"
+       "${_fw}/acquisitions/a0001/files/${_seg}" "${_fw}/acquisitions/a0001/files/${_seg}"
+       "sftp://testuser@127.0.0.1:8997/${_seg}" "sftp://testuser@127.0.0.1:8997/${_seg}"
+       "http://127.0.0.1:8998/${_seg}" "http://127.0.0.1:8998/${_seg}")
+  add_remote_server_test(RemoteSaveTest_FlywheelAnalysisGear 9000
+    -- $<TARGET_FILE:remote_image_load_test> --test-upload-refused
+       "fw://127.0.0.1:9002/analyses/n0001/files/new.nii.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz" "HTTP 422")
+  add_remote_server_test(RemoteSaveTest_FlywheelAnalysisRepeat 9003
+    -- $<TARGET_FILE:remote_image_load_test> --test-upload-refused
+       "fw://127.0.0.1:9005/analyses/n0002/files/MRIcrop-orig.gipl.gz"
+       "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz" "HTTP 409")
 ENDIF()
 
 # Saving to an http(s) URL is refused before any connection is made
@@ -2029,6 +2071,42 @@ IF(Python3_Interpreter_FOUND)
     SKIP_RETURN_CODE 77)
   IF(WIN32)
     SET_PROPERTY(TEST RemoteSaveSFTPNewSeg APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+  ENDIF()
+
+  # A workspace opened from an sftp:// URL: Save uploads it back, Save As
+  # shows the URL, and the unsaved changes prompt uploads it (ports 8994-8996)
+  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Server")
+  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Work")
+  FILE(MAKE_DIRECTORY ${_work})
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+    --root ${_root} --data ${TESTDATA_DIR}
+    --sftp-port 8994 --http-port 8995 --fw-port 8996 --)
+  ADD_SNAP_GUI_TEST(RemoteSaveWorkspaceSFTP
+    -w "sftp://testuser@127.0.0.1:8994/MRIcrop-with-mesh.itksnap")
+  SET_TESTS_PROPERTIES(RemoteSaveWorkspaceSFTP PROPERTIES
+    WORKING_DIRECTORY ${_work}
+    SKIP_RETURN_CODE 77)
+  IF(WIN32)
+    SET_PROPERTY(TEST RemoteSaveWorkspaceSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+  ENDIF()
+
+  # A workspace in a Flywheel analysis made by a gear: the new segmentation
+  # and the workspace are saved to the analysis's session (ports 9006-9008)
+  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Server")
+  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Work")
+  FILE(MAKE_DIRECTORY ${_work})
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+    --root ${_root} --data ${TESTDATA_DIR}
+    --sftp-port 9006 --http-port 9007 --fw-port 9008 --)
+  ADD_SNAP_GUI_TEST(RemoteSaveFlywheelAnalysis
+    -w "fw://127.0.0.1:9008/analyses/n0001/files/MRIcrop-with-mesh.itksnap")
+  SET_TESTS_PROPERTIES(RemoteSaveFlywheelAnalysis PROPERTIES
+    WORKING_DIRECTORY ${_work}
+    SKIP_RETURN_CODE 77)
+  IF(WIN32)
+    SET_PROPERTY(TEST RemoteSaveFlywheelAnalysis APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
   ENDIF()
 
   # Saving a workspace opened from a URL from the unsaved changes dialog asks

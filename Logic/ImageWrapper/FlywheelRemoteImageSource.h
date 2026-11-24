@@ -38,6 +38,15 @@ public:
    */
   void Upload(const std::string &local_path, const std::string &url) override;
 
+  /**
+   * For a file in an analysis, the same file name in the analysis's parent
+   * container (fw://server/sessions/<id>/files/<file> for an analysis of a
+   * session): Flywheel never replaces a file in an analysis, and an analysis
+   * made by a gear takes no uploads. Other URLs are returned unchanged. The
+   * parent of each analysis is looked up once and cached.
+   */
+  std::string GetSaveURL(const std::string &url) override;
+
 protected:
   FlywheelRemoteImageSource() {}
   virtual ~FlywheelRemoteImageSource() {}

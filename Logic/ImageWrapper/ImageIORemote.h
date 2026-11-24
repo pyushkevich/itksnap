@@ -163,6 +163,13 @@ public:
   virtual void Upload(const std::string &local_path, const std::string &url);
 
   /**
+   * The URL that a file opened from @p url is saved to by default. This is
+   * @p url itself, unless the server keeps that file read-only. Only called
+   * when CanUpload() is true. May contact the server, and throws on failure.
+   */
+  virtual std::string GetSaveURL(const std::string &url) { return url; }
+
+  /**
    * After Download(): the temp directory holding the returned file, or ""
    * when the file is in the cache. The caller owns this directory.
    */
@@ -281,6 +288,19 @@ bool CanSaveToURL(const std::string &url);
  * #fragment) is replaced by @p filename, percent-encoded.
  */
 std::string SiblingURL(const std::string &url, const std::string &filename);
+
+/**
+ * The URL that a file opened from @p url is saved to by default. This is
+ * @p url itself, except for a file in a Flywheel analysis: Flywheel never
+ * replaces a file in an analysis, and an analysis made by a gear takes no
+ * uploads at all, so the same file name in the analysis's parent container
+ * (e.g. its session) is returned. Local paths and URLs that cannot be saved
+ * to (see CanSaveToURL) are returned unchanged.
+ *
+ * This may contact the server (once per Flywheel analysis). If that fails,
+ * @p url is returned, and saving to it reports the error.
+ */
+std::string GetDefaultSaveURL(const std::string &url, const RemoteIOContext &ctx);
 
 /**
  * Strip the "itksnap-" wrapper prefix from a URL if present, returning the

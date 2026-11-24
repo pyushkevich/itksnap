@@ -18,8 +18,8 @@ emptied and filled with:
   DIR/ssh/        a client key, known_hosts and config for the SFTP server
   DIR/home/.fw/   a Flywheel CLI config.yml holding the API key
 
-The files in SRC (--data) are copied to the SFTP root, the HTTP root and the
-mock Flywheel acquisition. The command runs with ITKSNAP_SSH_DIR=DIR/ssh, so
+The files in SRC (--data) are copied to the SFTP root, the HTTP root, the
+mock Flywheel acquisition and both mock analyses. The command runs with ITKSNAP_SSH_DIR=DIR/ssh, so
 that libssh reads keys and known_hosts from there and never from the user's
 ~/.ssh; HOME=DIR/home, so that the Flywheel key is found there; and
 ITKSNAP_FW_TEST_ALLOW_HTTP=1, so that fw://127.0.0.1:P/... uses plain http.
@@ -48,14 +48,17 @@ SSH_USER = 'testuser'
 SSH_PASSWORD = 'testpassword'
 
 # The mock Flywheel hierarchy. Labels resolve to IDs through the list
-# endpoints that fw://host/find/... URLs use.
+# endpoints that fw://host/find/... URLs use. As in Flywheel, an analysis that
+# a gear made (one with a job) takes no uploads, and one made by hand takes
+# new files but never replaces one.
 FW_GROUP = 'testgroup'
 FW_TREE = {
     'projects':     [{'_id': 'p0001', 'label': 'TestProject', 'parent': FW_GROUP}],
     'subjects':     [{'_id': 's0001', 'label': 'sub-01', 'parent': 'p0001'}],
     'sessions':     [{'_id': 'e0001', 'label': 'ses-01', 'parent': 's0001'}],
     'acquisitions': [{'_id': 'a0001', 'label': 'T1w', 'parent': 'e0001'}],
-    'analyses':     [{'_id': 'n0001', 'label': 'seg', 'parent': 'e0001'}],
+    'analyses':     [{'_id': 'n0001', 'label': 'seg', 'parent': 'e0001', 'job': 'j0001'},
+                     {'_id': 'n0002', 'label': 'manual', 'parent': 'e0001', 'job': None}],
 }
 FW_CONTAINER_TYPES = ('projects', 'subjects', 'sessions', 'acquisitions', 'analyses')
 FW_CHILD_TYPE = {'groups': 'projects', 'projects': 'subjects',
@@ -173,6 +176,19 @@ def make_flywheel_handler(root, api_key):
                 self.send_json(200, {'ticket': ticket})
                 return
 
+            # /api/analyses/<id>: the analysis, with its parent and job
+            if len(parts) == 2 and parts[0] == 'analyses':
+                if not self.authorized():
+                    return
+                for a in FW_TREE['analyses']:
+                    if a['_id'] == parts[1]:
+                        self.send_json(200, {'_id': a['_id'], 'label': a['label'],
+                                             'parent': {'type': 'session', 'id': a['parent']},
+                                             'job': a['job']})
+                        return
+                self.send_json(404, {'message': 'Analysis not found'})
+                return
+
             # /api/<parent type>/<parent id>/<child type>: list the children
             if len(parts) == 3:
                 ptype, pid, ctype = parts
@@ -209,6 +225,10 @@ def make_flywheel_handler(root, api_key):
                 return
             msg = email.parser.BytesParser(policy=email.policy.HTTP).parsebytes(
                 b'Content-Type: ' + ctype.encode() + b'\r\n\r\n' + body)
+            analysis = [a for a in FW_TREE['analyses'] if a['_id'] == parts[2]]
+            if parts[1] == 'analyses' and analysis and analysis[0]['job']:
+                self.send_json(422, {'message': 'Analysis created via a job does not allow file uploads'})
+                return
             saved = []
             for part in msg.iter_parts():
                 if part.get_param('name', header='content-disposition') != 'file':
@@ -217,6 +237,9 @@ def make_flywheel_handler(root, api_key):
                 path = safe_join(root, parts[1], parts[2], name) if name else None
                 if path is None:
                     self.send_json(400, {'message': 'Bad file name'})
+                    return
+                if parts[1] == 'analyses' and os.path.exists(path):
+                    self.send_json(409, {'message': 'Cannot have repeated file uploads'})
                     return
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path + '.part', 'wb') as f:
@@ -309,7 +332,9 @@ def prepare_root(root, data):
             src = os.path.join(data, name)
             if os.path.isfile(src):
                 for dest in (dirs['sftp'], dirs['http'],
-                             os.path.join(dirs['fw'], 'acquisitions', 'a0001')):
+                             os.path.join(dirs['fw'], 'acquisitions', 'a0001'),
+                             os.path.join(dirs['fw'], 'analyses', 'n0001'),
+                             os.path.join(dirs['fw'], 'analyses', 'n0002')):
                     shutil.copy2(src, dest)
     return dirs
 
@@ -389,6 +414,22 @@ async def self_test(asyncssh, args, dirs):
     ticket = get_json(fw + 'acquisitions/a0001/files/u.bin?ticket=')['ticket']
     with urllib.request.urlopen(fw + 'acquisitions/a0001/files/u.bin?ticket=' + ticket) as r:
         assert hashlib.sha256(r.read()).hexdigest() == digest
+
+    # Analyses: the record, no uploads to one made by a gear, and no repeated
+    # file names in one made by hand
+    rec = get_json(fw + 'analyses/n0001')
+    assert rec['parent'] == {'type': 'session', 'id': 'e0001'} and rec['job']
+    for analysis, code in (('n0001', 422), ('n0002', 200), ('n0002', 409)):
+        req = urllib.request.Request(
+            fw + 'analyses/%s/files' % analysis, data=body, method='POST',
+            headers=dict(auth, **{'Content-Type': 'multipart/form-data; boundary=' + boundary}))
+        try:
+            with urllib.request.urlopen(req) as r:
+                got = r.status
+        except urllib.error.HTTPError as e:
+            got = e.code
+        assert got == code, (analysis, got, code)
+
     try:
         get_json(fw + 'projects/p0001/subjects', headers={'Authorization': 'Bearer wrong'})
         raise AssertionError('expected 401')

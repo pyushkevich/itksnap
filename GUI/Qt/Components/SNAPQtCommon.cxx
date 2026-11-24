@@ -497,11 +497,12 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
       model->CreateIOWizardModelForSave(wrapper, role, currentTPOnly);
 
   // Interactive or not? A layer without a file name needs one, even if the
-  // wizard suggests one. A layer loaded from an http(s) URL cannot be saved
-  // back to it, so the user must choose a local file. Other URLs are uploaded.
+  // wizard suggests one. A layer from a URL that cannot be saved back to
+  // (http(s), or a file in a Flywheel analysis) gets another suggestion from
+  // the wizard model, which the user must confirm. Other URLs are uploaded.
   std::string fn = wrapper->GetFileName();
   if(force_interactive || fn.empty() || wiz_model->GetSuggestedFilename().size() == 0 ||
-     (IsRemoteImageURL(fn) && !CanSaveToURL(fn)))
+     (IsRemoteImageURL(fn) && wiz_model->GetSuggestedFilename() != fn))
     {
     // Execute the IO wizard
     ImageIOWizard wiz(parent);
@@ -531,30 +532,80 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 {
   // Get the currently stored project name
   QString file_abs = from_utf8(model->GetGlobalState()->GetProjectFilename());
+  IRISApplication *driver = model->GetDriver();
 
-  // A workspace opened from a remote URL cannot be saved back to it, so the
+  // A workspace opened from an http(s) URL cannot be saved back to it, so the
   // user must choose a local file. Offer just the file name as the default.
-  if(IsRemoteImageURL(to_utf8(file_abs)))
+  // A workspace in a Flywheel analysis cannot be replaced, so offer the same
+  // name in the analysis's parent container. Other URLs are uploaded.
+  std::string proj_fn = to_utf8(file_abs);
+  if(IsRemoteImageURL(proj_fn) && !CanSaveToURL(proj_fn))
     {
     interactive = true;
     file_abs = QUrl(file_abs).fileName();
+    }
+  else if(IsRemoteImageURL(proj_fn))
+    {
+    std::string target = GetDefaultSaveURL(proj_fn, driver->GetRemoteIOContext());
+    if(target != proj_fn)
+      {
+      interactive = true;
+      file_abs = from_utf8(target);
+      }
     }
 
   // Prompt for a project filename if one was not provided
   if(interactive || file_abs.length() == 0)
     {
+    // A new workspace whose main image came from a URL that can be saved to
+    // is suggested next to it, as for a new segmentation
+    QString init_file = file_abs;
+    if(init_file.isEmpty() && driver->IsMainImageLoaded())
+      {
+      std::string main_fn = driver->GetCurrentImageData()->GetMain()->GetFileName();
+      if(IsRemoteImageURL(main_fn) && CanSaveToURL(main_fn))
+        init_file = from_utf8(GetDefaultSaveURL(SiblingURL(main_fn, "Untitled.itksnap"),
+                                                driver->GetRemoteIOContext()));
+      }
+
     // Use the dialog with history - to be consistent with other parts of SNAP
     QString file = ShowSimpleSaveDialogWithHistory(
           parent, model, "Project", "Save Workspace",
           "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)",
-          true, file_abs);
+          true, init_file);
 
     // If user hits cancel, move on
     if(file.isNull())
       return false;
 
     // Make sure to get an absolute path, because the project needs that info
-    file_abs = QFileInfo(file).absoluteFilePath();
+    file_abs = IsRemoteImageURL(to_utf8(file)) ? file : QFileInfo(file).absoluteFilePath();
+    }
+
+  // A workspace on a server that refers to files on this computer cannot be
+  // opened anywhere else, so ask first
+  if(IsRemoteImageURL(to_utf8(file_abs)))
+    {
+    std::vector<std::string> local_files = driver->GetLocalFilesInProject();
+    if(local_files.size())
+      {
+      QStringList names;
+      for(auto &fn : local_files)
+        names << from_utf8(fn);
+      QMessageBox mbox(QMessageBox::Warning, QObject::tr("Workspace Refers to Local Files"),
+                       QObject::tr("The workspace will be saved to %1, but some of its "
+                                   "files are only on this computer. Others who open the "
+                                   "workspace will not be able to load them.").arg(file_abs),
+                       QMessageBox::Save | QMessageBox::Cancel, parent);
+      mbox.setObjectName("mboxLocalFilesInRemoteWorkspace");
+      mbox.button(QMessageBox::Save)->setObjectName("btnSave");
+      mbox.button(QMessageBox::Cancel)->setObjectName("btnCancel");
+      mbox.setInformativeText(QObject::tr("Save the workspace anyway?"));
+      mbox.setDetailedText(names.join("\n"));
+      mbox.setDefaultButton(QMessageBox::Cancel);
+      if(mbox.exec() != QMessageBox::Save)
+        return false;
+      }
     }
 
   // If file was provided, set it as the current project file
