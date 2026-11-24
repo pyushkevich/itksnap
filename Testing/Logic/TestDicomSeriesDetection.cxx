@@ -26,6 +26,7 @@
  */
 
 #include "GuidedNativeImageIO.h"
+#include "ImageIODelegates.h"
 #include "IRISException.h"
 #include "Registry.h"
 
@@ -210,6 +211,63 @@ TestLoad(const std::string &dir)
   }
 }
 
+// A series whose slice positions hold different numbers of images (#202):
+// 8 positions, one of which has a second image. It used to fail with "vector
+// too long"; it is now read as one image per position, in file name order,
+// with a warning (see make_dicom_uneven_series.py)
+static void
+TestUnevenSeries(const std::string &dir)
+{
+  std::string tag = "[uneven series] ";
+  GuidedNativeImageIO::Pointer io = GuidedNativeImageIO::New();
+  Registry                     hints;
+  try
+  {
+    io->ReadNativeImageHeader((dir + "/m_0001.dcm").c_str(), hints);
+  }
+  catch (std::exception &exc)
+  {
+    CHECK(false, tag << "exception while reading the header: " << exc.what());
+    return;
+  }
+
+  CHECK(io->IsDICOMNonUniformImagesPerPosition(), tag << "not reported as uneven");
+  CHECK(io->GetDICOMNumberOfImages() == 9 && io->GetDICOMNumberOfPositions() == 8,
+        tag << io->GetDICOMNumberOfImages() << " images at " << io->GetDICOMNumberOfPositions()
+            << " positions, expected 9 at 8");
+
+  // Loading it as an image warns about it
+  IRISWarningList wl;
+  SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
+  del->LoadAnatomicImageDelegate::ValidateHeader(io, wl);
+  bool warned = false;
+  for (auto &w : wl)
+    warned |= std::string(w.what()).find("Uneven DICOM Series") != std::string::npos;
+  CHECK(warned, tag << "no warning about the uneven series");
+
+  try
+  {
+    io->ReadNativeImageData();
+  }
+  catch (std::exception &exc)
+  {
+    CHECK(false, tag << "exception while loading: " << exc.what());
+    return;
+  }
+
+  // All nine images, stacked in file name order
+  auto *native = io->GetNativeImage();
+  auto  size = native->GetBufferedRegion().GetSize();
+  CHECK(size[0] == 16 && size[1] == 16 && size[2] == 9 && size[3] == 1,
+        tag << "size " << size << ", expected 16 x 16 x 9 x 1");
+
+  // A series with the same number of images everywhere is not uneven
+  GuidedNativeImageIO::Pointer io_ct = GuidedNativeImageIO::New();
+  Registry                     hints_ct;
+  io_ct->ReadNativeImageHeader((dir + "/../dicom_ct_exam/s2_0001.dcm").c_str(), hints_ct);
+  CHECK(!io_ct->IsDICOMNonUniformImagesPerPosition(), "[Axial 3D A] reported as uneven");
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -224,6 +282,7 @@ main(int argc, char *argv[])
   TestGuessFormat(dir);
   TestParse(dir);
   TestLoad(dir);
+  TestUnevenSeries(std::string(argv[1]) + "/dicom_uneven_series");
 
   if (g_Failures)
   {

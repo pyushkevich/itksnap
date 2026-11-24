@@ -36,6 +36,20 @@ void LoadAnatomicImageDelegate
             "Intensity values reported in ITK-SNAP may differ from the "
             "actual values in the image.", oss.str().c_str()));
     }
+
+  // A DICOM series whose positions hold different numbers of images (#202)
+  if(io->IsDICOMNonUniformImagesPerPosition())
+    {
+    wl.push_back(
+          IRISWarning(
+            "Warning: Uneven DICOM Series."
+            "This DICOM series has %d images at %d slice positions, but not the same "
+            "number of images at every position. This can happen when a series that "
+            "repeats each slice (e.g., perfusion or multi-echo) has a missing or "
+            "extra image. The images were stacked one per slice in file name order, "
+            "so the image may have repeated, missing or out-of-order slices.",
+            io->GetDICOMNumberOfImages(), io->GetDICOMNumberOfPositions()));
+    }
 }
 
 
