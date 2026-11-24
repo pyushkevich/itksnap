@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QMenu>
 #include <QAction>
+#include <QMessageBox>
+#include <QPushButton>
 #include <HistoryQListModel.h>
 #include <SNAPQtCommon.h>
 #include <IRISApplication.h>
@@ -74,6 +76,34 @@ void RecentHistoryItemsView::on_listRecent_clicked(const QModelIndex &index)
   if(index.isValid())
     {
     QString filename = ui->listRecent->model()->data(index, Qt::UserRole).toString();
+
+    // A file that was not found can be removed from the list instead
+    if(index.data(HistoryQListItem::MissingFileRole).toBool())
+      {
+      QMessageBox mbox(QMessageBox::Warning, tr("File Not Found"),
+                       tr("The file %1 was not found.").arg(filename),
+                       QMessageBox::NoButton, this);
+      mbox.setObjectName("mboxRecentFileMissing");
+      QPushButton *btnRemove =
+          mbox.addButton(tr("Remove from List"), QMessageBox::DestructiveRole);
+      QPushButton *btnOpen = mbox.addButton(tr("Open Anyway"), QMessageBox::AcceptRole);
+      QPushButton *btnCancel = mbox.addButton(QMessageBox::Cancel);
+      btnRemove->setObjectName("btnRemove");
+      btnOpen->setObjectName("btnOpen");
+      btnCancel->setObjectName("btnCancel");
+      mbox.setDefaultButton(btnCancel);
+      mbox.exec();
+
+      if(mbox.clickedButton() == btnRemove)
+        {
+        HistoryManager *hm =
+            m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+        hm->DeleteHistoryItem(m_History, to_utf8(filename));
+        }
+      if(mbox.clickedButton() != btnOpen)
+        return;
+      }
+
     emit RecentItemSelected(filename);
     }
 }

@@ -15,6 +15,7 @@
 #include "QtReporterDelegates.h"
 #include "QtTranslationLocale.h"
 #include "SNAPQtCommon.h"
+#include "FileExistenceCache.h"
 #include "SNAPTestQt.h"
 #include "SegmentationAutosave.h"
 
@@ -276,6 +277,7 @@ usage(const char *progname)
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
 #endif // SNAP_DEBUG_EVENTS
+  cout << "   --debug-stat         : Print the checks that recent files still exist" << endl;
   cout << "   --test list          : List available tests. " << endl;
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
@@ -322,6 +324,7 @@ public:
   double                   xZoomFactor = 0.0;
   bool                     flagDebugEvents = false;
   bool                     flagDebugSync = false;
+  bool                     flagDebugStat = false;
   bool                     flagTestIPC = false;
   bool                     flagNoCache = false;
 
@@ -527,6 +530,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   parser.AddOption("--debug-events", 0);
   parser.AddOption("--debug-sync", 0);
+  parser.AddOption("--debug-stat", 0);
   parser.AddOption("--test-ipc", 0);
   parser.AddOption("--no-cache", 0);
 
@@ -612,6 +616,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--debug-sync"))
     argdata.flagDebugSync = true;
+
+  if (parseResult.IsOptionPresent("--debug-stat"))
+    argdata.flagDebugStat = true;
 
   if (parseResult.IsOptionPresent("--no-cache"))
     argdata.flagNoCache = true;
@@ -1411,6 +1418,9 @@ main(int argc, char *argv[])
     if (argdata.xTestId.empty() || argdata.flagTestIPC)
       gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
     gui->GetSynchronizationModel()->SetDebugSync(argdata.flagDebugSync);
+
+    // Print the checks that recent files still exist
+    FileExistenceCache::instance()->setDebug(argdata.flagDebugStat);
 
     // Optionally download remote files without the cache
     driver->SetRemoteCacheEnabled(!argdata.flagNoCache);

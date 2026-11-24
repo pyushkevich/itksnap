@@ -18,21 +18,37 @@ class HistoryQListItem : public QObject, public QStandardItem
   Q_OBJECT
 public:
 
+  // Data role that is true when the item's file was not found
+  static const int MissingFileRole = Qt::UserRole + 1;
+
   virtual void setItem(GlobalUIModel *model, const QString &history_entry);
 
 protected slots:
 
   void onTimer();
 
+  void onFileStatusChanged(QString path);
+
 protected:
 
-  // Set the thumbnail as the item's icon, with a badge for remote items
+  // Set the thumbnail as the item's icon, with a badge for remote items and
+  // for files that were not found
   void setThumbnail(const QPixmap &thumbnail);
+
+  // Show whether the item's file exists
+  void updateMissing();
 
   QString m_IconFilename;
 
+  // The history entry and the last thumbnail set
+  QString m_Path;
+  QPixmap m_Thumbnail;
+
   // Whether the item is a remote URL
   bool m_IsRemote = false;
+
+  // Whether the item's file was not found
+  bool m_IsMissing = false;
 
 };
 

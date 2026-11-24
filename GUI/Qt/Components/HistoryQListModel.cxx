@@ -16,6 +16,7 @@
 #include <QPixmapCache>
 #include <QFileInfo>
 #include "ImageIORemote.h"
+#include "FileExistenceCache.h"
 #include <QIcon>
 #include <QTimer>
 #include <QPainter>
@@ -47,11 +48,18 @@ void HistoryQListItem::setItem(
   this->setText(short_name);
 
   // Set the filename
-  this->setToolTip(history_entry);
+  m_Path = history_entry;
   this->setData(history_entry, Qt::UserRole);
   QPixmap dummy(128, 128);
   dummy.fill(Qt::black);
-  this->setThumbnail(dummy);
+  m_Thumbnail = dummy;
+
+  // Mark the item if its file is known to be missing, and update it when a
+  // check in the background finds it missing (or back)
+  FileExistenceCache *fec = FileExistenceCache::instance();
+  connect(fec, &FileExistenceCache::statusChanged,
+          this, &HistoryQListItem::onFileStatusChanged);
+  this->updateMissing();
 
   // At the moment, these are hard-coded
   this->setSizeHint(QSize(188,144));
@@ -117,16 +125,32 @@ void HistoryQListItem::onTimer()
     }
 }
 
+void HistoryQListItem::onFileStatusChanged(QString path)
+{
+  if(path == m_Path)
+    this->updateMissing();
+}
+
+void HistoryQListItem::updateMissing()
+{
+  m_IsMissing = FileExistenceCache::instance()->isMissing(m_Path);
+  this->setData(m_IsMissing, MissingFileRole);
+  this->setToolTip(m_IsMissing ? tr("%1 (file not found)").arg(m_Path) : m_Path);
+  this->setThumbnail(m_Thumbnail);
+}
+
 void HistoryQListItem::setThumbnail(const QPixmap &thumbnail)
 {
-  if(!m_IsRemote)
+  m_Thumbnail = thumbnail;
+  if(!m_IsRemote && !m_IsMissing)
     {
     this->setIcon(QIcon(thumbnail));
     return;
     }
 
-  // Draw the remote badge in the top left corner. The result is made at the
-  // screen's pixel ratio, so that the badge stays sharp on high-DPI screens
+  // Draw the badge in the top left corner: a missing file's thumbnail is
+  // also faded. The result is made at the screen's pixel ratio, so that the
+  // badge stays sharp on high-DPI screens
   qreal dpr = qApp->devicePixelRatio();
   QSize size = thumbnail.deviceIndependentSize().toSize();
   QPixmap badged(size * dpr);
@@ -135,8 +159,24 @@ void HistoryQListItem::setThumbnail(const QPixmap &thumbnail)
 
   QPainter p(&badged);
   p.setRenderHint(QPainter::SmoothPixmapTransform);
+  p.setRenderHint(QPainter::Antialiasing);
+  if(m_IsMissing)
+    p.setOpacity(0.35);
   p.drawPixmap(QRect(QPoint(0, 0), size), thumbnail);
-  p.drawPixmap(QRect(4, 4, 20, 20), QPixmap(":/root/remote_badge_20.png"));
+  p.setOpacity(1.0);
+  if(m_IsMissing)
+    {
+    // A red disc with a white cross
+    QRectF disc(4, 4, 20, 20);
+    p.setPen(Qt::NoPen);
+    p.setBrush(QColor(200, 40, 40));
+    p.drawEllipse(disc);
+    p.setPen(QPen(Qt::white, 2.5, Qt::SolidLine, Qt::RoundCap));
+    p.drawLine(disc.center() + QPointF(-4, -4), disc.center() + QPointF(4, 4));
+    p.drawLine(disc.center() + QPointF(-4, 4), disc.center() + QPointF(4, -4));
+    }
+  else
+    p.drawPixmap(QRect(4, 4, 20, 20), QPixmap(":/root/remote_badge_20.png"));
   p.end();
 
   this->setIcon(QIcon(badged));

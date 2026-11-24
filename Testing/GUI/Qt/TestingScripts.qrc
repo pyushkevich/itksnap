@@ -37,6 +37,7 @@
         <file>Scripts/test_MCTo4D.js</file>
         <file>Scripts/test_DeformationGrid.js</file>
         <file>Scripts/test_RemoteSaveFlywheelAnalysis.js</file>
+        <file>Scripts/test_RecentMissingFiles.js</file>
         <file>Scripts/test_RemoteSaveLayer.js</file>
         <file>Scripts/test_RemoteSaveSFTP.js</file>
         <file>Scripts/test_RemoteSaveSFTPNewSeg.js</file>

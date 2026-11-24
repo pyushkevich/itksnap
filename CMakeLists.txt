@@ -716,6 +716,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/DICOMListingTable.cxx
   GUI/Qt/Components/ElidedTextWidgets.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
+  GUI/Qt/Components/FileExistenceCache.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
   GUI/Qt/Components/LabelInspector.cxx
@@ -831,6 +832,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/DisplayLayoutInspector.h
   GUI/Qt/Components/ElidedTextWidgets.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
+  GUI/Qt/Components/FileExistenceCache.h
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
   GUI/Qt/Components/LabelInspector.h
@@ -1992,6 +1994,13 @@ ENDFUNCTION()
 FOREACH(GUI_TEST ${GUI_TESTS})
   ADD_SNAP_GUI_TEST(${GUI_TEST})
 ENDFOREACH(GUI_TEST)
+
+# Recent files that no longer exist are marked (#314). The test copies an
+# image to a scratch folder, opens it and deletes it.
+set(_tmpdir "${CMAKE_CURRENT_BINARY_DIR}/Testing/RecentMissingFiles")
+file(MAKE_DIRECTORY ${_tmpdir})
+ADD_SNAP_GUI_TEST(RecentMissingFiles)
+SET_PROPERTY(TEST RecentMissingFiles APPEND PROPERTY ENVIRONMENT SNAP_TEST_TMPDIR=${_tmpdir})
 
 # GUI tests that open data from URLs given on the command line, as a browser
 # link would. These require network access and are labelled "Remote".

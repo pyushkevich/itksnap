@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QLineEdit>
 #include <QFile>
+#include <QPointer>
 #include <QTextStream>
 #include <QDebug>
 #include <QPushButton>
@@ -172,6 +173,43 @@ QVariant SNAPTestQt::tableItemText(QObject *table, int row, int col)
       }
     return QVariant();
   });
+}
+
+
+QVariant SNAPTestQt::itemData(QObject *view, int row, int col, int role)
+{
+  return RunOnGuiThread([&]() -> QVariant {
+    QAbstractItemView *v = dynamic_cast<QAbstractItemView *>(view);
+    if(v)
+      {
+      QAbstractItemModel *model = v->model();
+      return model->data(model->index(row, col), role);
+      }
+    return QVariant();
+  });
+}
+
+int SNAPTestQt::itemCount(QObject *view)
+{
+  return RunOnGuiThread([&]() -> int {
+    QAbstractItemView *v = dynamic_cast<QAbstractItemView *>(view);
+    return v ? v->model()->rowCount() : -1;
+  });
+}
+
+void SNAPTestQt::clickItem(QObject *view, int row, int col)
+{
+  QAbstractItemView *v = dynamic_cast<QAbstractItemView *>(view);
+  if(!v)
+    {
+    testFailed("clickItem called on an object that is not an item view");
+    return;
+    }
+  QPointer<QAbstractItemView> pv(v);
+  QMetaObject::invokeMethod(v, [pv, row, col]() {
+    if(pv)
+      emit pv->clicked(pv->model()->index(row, col));
+    }, Qt::QueuedConnection);
 }
 
 
@@ -454,6 +492,18 @@ double SNAPTestQt::fileModifiedTime(QString filename)
 {
   QFileInfo fi(filename);
   return fi.exists() ? (double) fi.lastModified().toMSecsSinceEpoch() : -1.0;
+}
+
+bool SNAPTestQt::copyFile(QString source, QString target)
+{
+  if(QFileInfo::exists(target))
+    QFile::remove(target);
+  return QFile::copy(source, target);
+}
+
+bool SNAPTestQt::removeFile(QString filename)
+{
+  return QFile::remove(filename);
 }
 
 void SNAPTestQt::printChildrenRecursive(QObject *parent, QString offset, const char *className)
