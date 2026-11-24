@@ -20,6 +20,7 @@
 
 - Flywheel API keys for servers with a port number (e.g. `host:8443:secret`) were sent with the port as part of the key, and rejected
 - Error messages from saving an image no longer show just "std::exception"
+- The c3d documentation (and `c3d -h`) had errors, e.g. `-lms` for `-landmarks-to-spheres`, which is really `-lts` (#174). Updated to c3d with the documentation checked against the code
 - In Image Free Rotation, and for overlays moved in Registration mode or with a different orientation, the area outside an image was drawn with the color map's color for intensity 0 instead of the background, covering the layers below (#193)
 - A DICOM series whose slice positions hold different numbers of images (e.g., a perfusion series with an extra image) failed to load with "vector too long". It now loads one image per slice, in file name order, with a warning (#202)
 - Opening Image Free Rotation no longer resets the registration of additional images made in Registration mode, and a workspace saved while rotated keeps that registration
