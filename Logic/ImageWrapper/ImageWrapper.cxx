@@ -1787,7 +1787,7 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
-void
+bool
 ImageWrapper<TTraits>
 ::SampleIntensityAtReferenceIndex(
     const itk::Index<3> &index, int time_point,
@@ -1807,7 +1807,7 @@ ImageWrapper<TTraits>
   unsigned int tp_end = time_point < 0 ? this->GetNumberOfTimePoints() : (unsigned int) time_point+1;
 
   // Call the internal method to do the sampling
-  this->SampleIntensityAtReferenceIndexInternal(index, tp_begin, tp_end);
+  bool inside = this->SampleIntensityAtReferenceIndexInternal(index, tp_begin, tp_end);
 
   // Remap the intensities to double or native format
   ComponentType *p_begin = m_IntensitySamplingArray.data_block() + nc * tp_begin;
@@ -1817,11 +1817,13 @@ ImageWrapper<TTraits>
   else
     for(unsigned int k = 0; k < odim; k++)
       out[k] = static_cast<double>(p_begin[k]);
+
+  return inside;
 }
 
 
 template <class TTraits>
-void
+bool
 ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<3> &index,
                                                                unsigned int         tp_begin,
                                                                unsigned int         tp_end) const
@@ -1858,17 +1860,18 @@ ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<
       // Lookup the pixel from the preview image
       PixelType p = m_Slicers.front()->GetPreviewImage()->GetPixel(index);
       Specialization::ExportToComponentArray(p, nc, arr);
+      return true;
     }
     else
     {
       // The simple case when no interpolation is required
+      bool inside = this->GetBufferedRegion().IsInside(index);
       for (unsigned int tp = tp_begin; tp < tp_end; tp++, arr += nc)
       {
-        PixelType p = this->GetBufferedRegion().IsInside(index)
-                        ? m_ImageTimePoints[tp]->GetPixel(index)
-                        : GetZeroPixelValue();
+        PixelType p = inside ? m_ImageTimePoints[tp]->GetPixel(index) : GetZeroPixelValue();
         Specialization::ExportToComponentArray(p, nc, arr);
       }
+      return inside;
     }
   }
   else
@@ -1878,7 +1881,9 @@ ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<
     this->TransformReferenceCIndexToWrappedImageCIndex(index, cidx);
     bool is_nn = this->GetSlicingInterpolationMode() == ImageWrapperBase::NEAREST;
 
-    // Sample all time points
+    // Sample all time points. The mask value tells whether the sample is
+    // inside of the image; it is the same for all time points
+    unsigned char mask_value = 0;
     for (unsigned int tp = tp_begin; tp < tp_end; tp++)
     {
       // Use an interpolator to do the work
@@ -1886,14 +1891,11 @@ ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<
       InterpolateWorker iw(m_ImageTimePoints[tp]);
 
       // Process the voxel, arr will be updated by the function. A voxel
-      // outside of the image reads as zero.
-      // TODO: use the mask value to tell the caller that the sample is outside
-      // of the image, so that the cursor inspector does not report an
-      // intensity of zero when the cursor is outside of an obliquely sliced
-      // image (#193)
-      unsigned char mask_value, *mask_ptr = &mask_value;
+      // outside of the image reads as zero, with a mask value of zero (#193)
+      unsigned char *mask_ptr = &mask_value;
       iw.ProcessVoxel(cidx.GetDataPointer(), is_nn, &arr, &mask_ptr);
     }
+    return mask_value != 0;
   }
 }
 

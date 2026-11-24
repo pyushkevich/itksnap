@@ -38,17 +38,22 @@ CurrentVoxelInfoItemSetDomain
     // Get the intensity under the cursor for this layer
     vnl_vector<double> v;
     ImageWrapperBase::DisplayPixelType disprgb;
-    it.GetLayer()->GetVoxelUnderCursorDisplayedValueAndAppearance(v, disprgb);
+    vox.isInsideImage =
+        it.GetLayer()->GetVoxelUnderCursorDisplayedValueAndAppearance(v, disprgb);
 
     // Use good old sprintf!
-    char buffer[64];
+    char buffer[64] = "";
 
-    if(v.size() == 1)
-      snprintf(buffer, 64, "%.4g", v[0]);
-    if(v.size() == 2)
-      snprintf(buffer, 64, "%.4g,%.4g", v[0], v[1]);
-    else if(v.size() == 3)
-      snprintf(buffer, 64, "%.4g,%.4g,%.4g", v[0], v[1], v[2]);
+    // Outside of the image, there is no value to show (#193)
+    if(vox.isInsideImage)
+      {
+      if(v.size() == 1)
+        snprintf(buffer, 64, "%.4g", v[0]);
+      else if(v.size() == 2)
+        snprintf(buffer, 64, "%.4g,%.4g", v[0], v[1]);
+      else if(v.size() == 3)
+        snprintf(buffer, 64, "%.4g,%.4g,%.4g", v[0], v[1], v[2]);
+      }
 
     vox.IntensityValue = buffer;
 
@@ -74,6 +79,7 @@ CurrentVoxelInfoItemSetDomain
     vox.Color = Vector3ui(0);
     vox.isSelectedGroundLayer = false;
     vox.isSticky = false;
+    vox.isInsideImage = false;
     }
 
   return vox;

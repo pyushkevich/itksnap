@@ -226,9 +226,12 @@ bool ImageInfoModel::GetImageScalarIntensityUnderCursor(double &value)
 
   if(l && l->GetNumberOfComponents() == 1 && l->GetNumberOfTimePoints() == 1)
   {
+    // Outside of the image (e.g., an obliquely sliced image that does not
+    // cover the cursor), there is no value to show (#193)
     vnl_vector<double> ivec(1);
-    l->SampleIntensityAtReferenceIndex(
-          l->GetSliceIndex(), l->GetTimePointIndex(), true, ivec);
+    if(!l->SampleIntensityAtReferenceIndex(
+          l->GetSliceIndex(), l->GetTimePointIndex(), true, ivec))
+      return false;
     value = ivec[0];
     return true;
   }

@@ -20,6 +20,10 @@ struct LayerCurrentVoxelInfo
   Vector3ui Color;
   bool isSelectedGroundLayer;
   bool isSticky;
+
+  // False when the cursor is outside of the layer (e.g., an obliquely sliced
+  // image that does not cover the cursor). There is then no value or color
+  bool isInsideImage;
 };
 
 /**

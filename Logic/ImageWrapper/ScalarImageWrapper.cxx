@@ -181,19 +181,21 @@ UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, T
   display slices.
   */
 template<class TTraits>
-void
+bool
 ScalarImageWrapper<TTraits>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
   // Sample the intensity under the cursor for the current time point
-  this->SampleIntensityAtReferenceIndex(
+  bool inside = this->SampleIntensityAtReferenceIndex(
         this->m_SliceIndex, this->GetTimePointIndex(), true, out_value);
 
   // Use the display mapping to map to display pixel
   out_appearance = this->m_DisplayMapping->MapPixel(
                      this->m_IntensitySamplingArray.data_block() +
         this->GetTimePointIndex() * this->GetNumberOfComponents());
+
+  return inside;
 }
 
 

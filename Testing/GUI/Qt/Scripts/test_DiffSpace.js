@@ -60,8 +60,9 @@ engine.sleep(1000);
 var value4 = readVoxelIntensity(2);
 engine.validateValue(value4, 513, 10)
 
-// Probe the image intensity outside of the image range
+// Probe the image intensity outside of the image range: there is no value to
+// show, rather than zero (#193)
 setCursor(4,17,14);
 
 var value5 = readVoxelIntensity(2);
-engine.validateValue(value5, 0);
+engine.validateValue(value5, "");

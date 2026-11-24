@@ -154,7 +154,7 @@ public:
    * of the multiple components when the mode is RGB. In the second parameter,
    * the method returns the RGB appearance of the voxel under the cursor
    */
-  virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
+  virtual bool GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) override;
 
   /**
