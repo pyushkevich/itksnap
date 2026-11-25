@@ -1420,8 +1420,11 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     {
       if (d->IsMainImageLoaded())
       {
-        // check if it's a label description file (this only works locally)
-        if (!isRemote && d->GetColorLabelTable()->ValidateFile(filename.c_str()))
+        // check if it's a label description file (this only works locally). A
+        // folder is not, and on Windows ValidateFile throws for one because
+        // it cannot be opened as a file (#147)
+        if (!isRemote && !QFileInfo(file).isDir() &&
+            d->GetColorLabelTable()->ValidateFile(filename.c_str()))
         {
           d->LoadLabelDescriptions(filename.c_str());
           return;
