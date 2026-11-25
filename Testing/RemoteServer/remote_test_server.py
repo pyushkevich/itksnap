@@ -463,6 +463,8 @@ async def run(args):
                    ITKSNAP_SSH_DIR=dirs['ssh'],
                    ITKSNAP_FW_TEST_ALLOW_HTTP='1',
                    HOME=dirs['home'])
+        # Keep the user's ssh-agent out of the tests, like their ~/.ssh
+        env.pop('SSH_AUTH_SOCK', None)
         proc = await asyncio.create_subprocess_exec(*args.command, env=env)
         return await proc.wait()
     finally:

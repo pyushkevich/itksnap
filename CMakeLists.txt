@@ -1662,11 +1662,24 @@ set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES
 
 # Tests against remote_test_server.py, which serves the test data over SFTP,
 # HTTP and a mock Flywheel API on local ports while it runs the test command.
-# They need no internet, so they are not labelled "Remote". The server exits
-# with 77 when the Python module asyncssh is missing, and the test is skipped.
+# They need no internet, so they are not labelled "Remote". They are only added
+# when the Python module asyncssh is installed (checked at every configure, so
+# installing it and re-running CMake adds them). If asyncssh goes missing later,
+# the server exits with 77 and the test is reported as skipped.
 # Each test passes a first port; the servers use it and the next two ports.
 FIND_PACKAGE(Python3 COMPONENTS Interpreter QUIET)
+SET(SNAP_REMOTE_SERVER_TESTS OFF)
 IF(Python3_Interpreter_FOUND)
+  EXECUTE_PROCESS(COMMAND ${Python3_EXECUTABLE} -c "import asyncssh"
+    RESULT_VARIABLE _asyncssh_rc OUTPUT_QUIET ERROR_QUIET)
+  IF(_asyncssh_rc EQUAL 0)
+    SET(SNAP_REMOTE_SERVER_TESTS ON)
+  ELSE()
+    MESSAGE(STATUS "Python module asyncssh not found for ${Python3_EXECUTABLE}: "
+                   "the remote server tests are not added")
+  ENDIF()
+ENDIF()
+IF(SNAP_REMOTE_SERVER_TESTS)
   function(add_remote_server_test name first_port)
     math(EXPR _http_port "${first_port} + 1")
     math(EXPR _fw_port "${first_port} + 2")
@@ -2053,78 +2066,81 @@ IF(Python3_Interpreter_FOUND)
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8921 0 --)
   ADD_SNAP_GUI_TEST(GettingStartedLinks)
 
-  # Saving a segmentation opened from an sftp:// URL: plain Save uploads it
-  # back, and Save As shows the URL. Run under the test server of the
-  # RemoteSaveTest_* tests (ports 8979-8981), skipped without asyncssh.
-  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Server")
-  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Work")
-  FILE(MAKE_DIRECTORY ${_work})
-  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
-    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
-    --root ${_root} --data ${TESTDATA_DIR}
-    --sftp-port 8979 --http-port 8980 --fw-port 8981 --)
-  ADD_SNAP_GUI_TEST(RemoteSaveSFTP
-    -g "sftp://testuser@127.0.0.1:8979/MRIcrop-orig.gipl.gz"
-    -s "sftp://testuser@127.0.0.1:8979/MRIcrop-seg.gipl.gz")
-  SET_TESTS_PROPERTIES(RemoteSaveSFTP PROPERTIES
-    WORKING_DIRECTORY ${_work}
-    SKIP_RETURN_CODE 77)
-  IF(WIN32)
-    SET_PROPERTY(TEST RemoteSaveSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
-  ENDIF()
+  IF(SNAP_REMOTE_SERVER_TESTS)
+    # Saving a segmentation opened from an sftp:// URL: plain Save uploads it
+    # back, and Save As shows the URL. Run under the test server of the
+    # RemoteSaveTest_* tests (ports 8979-8981). Like those, these GUI tests
+    # are only added when asyncssh is installed.
+    SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Server")
+    SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTP_Work")
+    FILE(MAKE_DIRECTORY ${_work})
+    SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+      ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+      --root ${_root} --data ${TESTDATA_DIR}
+      --sftp-port 8979 --http-port 8980 --fw-port 8981 --)
+    ADD_SNAP_GUI_TEST(RemoteSaveSFTP
+      -g "sftp://testuser@127.0.0.1:8979/MRIcrop-orig.gipl.gz"
+      -s "sftp://testuser@127.0.0.1:8979/MRIcrop-seg.gipl.gz")
+    SET_TESTS_PROPERTIES(RemoteSaveSFTP PROPERTIES
+      WORKING_DIRECTORY ${_work}
+      SKIP_RETURN_CODE 77)
+    IF(WIN32)
+      SET_PROPERTY(TEST RemoteSaveSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+    ENDIF()
 
-  # A new segmentation over a main image from an sftp:// URL: Save suggests a
-  # file next to the main image on the server (ports 8982-8984)
-  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Server")
-  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Work")
-  FILE(MAKE_DIRECTORY ${_work})
-  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
-    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
-    --root ${_root} --data ${TESTDATA_DIR}
-    --sftp-port 8982 --http-port 8983 --fw-port 8984 --)
-  ADD_SNAP_GUI_TEST(RemoteSaveSFTPNewSeg
-    -g "sftp://testuser@127.0.0.1:8982/MRIcrop-orig.gipl.gz")
-  SET_TESTS_PROPERTIES(RemoteSaveSFTPNewSeg PROPERTIES
-    WORKING_DIRECTORY ${_work}
-    SKIP_RETURN_CODE 77)
-  IF(WIN32)
-    SET_PROPERTY(TEST RemoteSaveSFTPNewSeg APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
-  ENDIF()
+    # A new segmentation over a main image from an sftp:// URL: Save suggests a
+    # file next to the main image on the server (ports 8982-8984)
+    SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Server")
+    SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveSFTPNewSeg_Work")
+    FILE(MAKE_DIRECTORY ${_work})
+    SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+      ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+      --root ${_root} --data ${TESTDATA_DIR}
+      --sftp-port 8982 --http-port 8983 --fw-port 8984 --)
+    ADD_SNAP_GUI_TEST(RemoteSaveSFTPNewSeg
+      -g "sftp://testuser@127.0.0.1:8982/MRIcrop-orig.gipl.gz")
+    SET_TESTS_PROPERTIES(RemoteSaveSFTPNewSeg PROPERTIES
+      WORKING_DIRECTORY ${_work}
+      SKIP_RETURN_CODE 77)
+    IF(WIN32)
+      SET_PROPERTY(TEST RemoteSaveSFTPNewSeg APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+    ENDIF()
 
-  # A workspace opened from an sftp:// URL: Save uploads it back, Save As
-  # shows the URL, and the unsaved changes prompt uploads it (ports 8994-8996)
-  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Server")
-  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Work")
-  FILE(MAKE_DIRECTORY ${_work})
-  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
-    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
-    --root ${_root} --data ${TESTDATA_DIR}
-    --sftp-port 8994 --http-port 8995 --fw-port 8996 --)
-  ADD_SNAP_GUI_TEST(RemoteSaveWorkspaceSFTP
-    -w "sftp://testuser@127.0.0.1:8994/MRIcrop-with-mesh.itksnap")
-  SET_TESTS_PROPERTIES(RemoteSaveWorkspaceSFTP PROPERTIES
-    WORKING_DIRECTORY ${_work}
-    SKIP_RETURN_CODE 77)
-  IF(WIN32)
-    SET_PROPERTY(TEST RemoteSaveWorkspaceSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
-  ENDIF()
+    # A workspace opened from an sftp:// URL: Save uploads it back, Save As
+    # shows the URL, and the unsaved changes prompt uploads it (ports 8994-8996)
+    SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Server")
+    SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveWorkspaceSFTP_Work")
+    FILE(MAKE_DIRECTORY ${_work})
+    SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+      ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+      --root ${_root} --data ${TESTDATA_DIR}
+      --sftp-port 8994 --http-port 8995 --fw-port 8996 --)
+    ADD_SNAP_GUI_TEST(RemoteSaveWorkspaceSFTP
+      -w "sftp://testuser@127.0.0.1:8994/MRIcrop-with-mesh.itksnap")
+    SET_TESTS_PROPERTIES(RemoteSaveWorkspaceSFTP PROPERTIES
+      WORKING_DIRECTORY ${_work}
+      SKIP_RETURN_CODE 77)
+    IF(WIN32)
+      SET_PROPERTY(TEST RemoteSaveWorkspaceSFTP APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+    ENDIF()
 
-  # A workspace in a Flywheel analysis made by a gear: the new segmentation
-  # and the workspace are saved to the analysis's session (ports 9006-9008)
-  SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Server")
-  SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Work")
-  FILE(MAKE_DIRECTORY ${_work})
-  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
-    ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
-    --root ${_root} --data ${TESTDATA_DIR}
-    --sftp-port 9006 --http-port 9007 --fw-port 9008 --)
-  ADD_SNAP_GUI_TEST(RemoteSaveFlywheelAnalysis
-    -w "fw://127.0.0.1:9008/analyses/n0001/files/MRIcrop-with-mesh.itksnap")
-  SET_TESTS_PROPERTIES(RemoteSaveFlywheelAnalysis PROPERTIES
-    WORKING_DIRECTORY ${_work}
-    SKIP_RETURN_CODE 77)
-  IF(WIN32)
-    SET_PROPERTY(TEST RemoteSaveFlywheelAnalysis APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+    # A workspace in a Flywheel analysis made by a gear: the new segmentation
+    # and the workspace are saved to the analysis's session (ports 9006-9008)
+    SET(_root "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Server")
+    SET(_work "${CMAKE_CURRENT_BINARY_DIR}/Testing/RemoteSaveFlywheelAnalysis_Work")
+    FILE(MAKE_DIRECTORY ${_work})
+    SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+      ${SNAP_SOURCE_DIR}/Testing/RemoteServer/remote_test_server.py
+      --root ${_root} --data ${TESTDATA_DIR}
+      --sftp-port 9006 --http-port 9007 --fw-port 9008 --)
+    ADD_SNAP_GUI_TEST(RemoteSaveFlywheelAnalysis
+      -w "fw://127.0.0.1:9008/analyses/n0001/files/MRIcrop-with-mesh.itksnap")
+    SET_TESTS_PROPERTIES(RemoteSaveFlywheelAnalysis PROPERTIES
+      WORKING_DIRECTORY ${_work}
+      SKIP_RETURN_CODE 77)
+    IF(WIN32)
+      SET_PROPERTY(TEST RemoteSaveFlywheelAnalysis APPEND PROPERTY ENVIRONMENT "APPDATA=${_work}")
+    ENDIF()
   ENDIF()
 
   # Saving a workspace opened from a URL from the unsaved changes dialog asks
