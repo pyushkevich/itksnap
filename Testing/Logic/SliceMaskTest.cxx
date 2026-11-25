@@ -28,6 +28,7 @@
 
 #include "itkEuler3DTransform.h"
 #include "itkImage.h"
+#include "itkMath.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkRGBAPixel.h"
 
@@ -120,7 +121,7 @@ main(int, char *[])
   center[1] = 15.5;
   center[2] = 16.0;
   rotation->SetCenter(center);
-  rotation->SetRotation(0.0, 0.0, 30.0 * M_PI / 180.0);
+  rotation->SetRotation(0.0, 0.0, 30.0 * itk::Math::pi / 180.0);
 
   pipeline->SetObliqueTransform(rotation);
   pipeline->SetObliqueReferenceImage(reference);
