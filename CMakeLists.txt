@@ -2004,6 +2004,12 @@ FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
   ENDIF()
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
+  # On Windows, Qt sends qWarning() and the other messages of a GUI application
+  # to the debugger, so the test log would not say why a test failed
+  IF(WIN32)
+    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT QT_FORCE_STDERR_LOGGING=1)
+  ENDIF()
+
   # Optionally run without windows (see SNAP_GUI_TEST_QT_PLATFORM)
   IF(SNAP_GUI_TEST_QT_PLATFORM)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT QT_QPA_PLATFORM=${SNAP_GUI_TEST_QT_PLATFORM})
