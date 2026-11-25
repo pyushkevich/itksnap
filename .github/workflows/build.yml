@@ -122,7 +122,7 @@ jobs:
           dnf -y install dnf-plugins-core epel-release
           dnf config-manager --set-enabled powertools
           dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-          dnf -y install gcc-toolset-13 git cmake ninja-build python3.11 python3.11-pip \
+          dnf -y install gcc-toolset-13 git cmake ninja-build python3.11 python3.11-pip python3.12-pip \
             libcurl-devel libssh-devel openssl-devel zlib-devel \
             mesa-libGL-devel mesa-libEGL-devel mesa-dri-drivers libX11-devel libXt-devel \
             libXext-devel libxkbcommon-devel libxkbcommon-x11 fontconfig-devel freetype-devel \
@@ -430,9 +430,11 @@ jobs:
           rm mesa.7z
           echo "MESA_DIR=$(cygpath -w "$PWD")" >> $GITHUB_ENV
 
-      # The remote save and load tests serve SFTP with the asyncssh module (they are skipped
-      # without it). Install it for the Python that CMake found and runs the test server with:
-      # Python3_EXECUTABLE if it was set, else FindPython's internal _Python3_EXECUTABLE.
+      # The remote save and load tests serve SFTP with the asyncssh module, and CMake only
+      # adds them when it is installed. Install it for the Python that CMake found and runs
+      # the test server with (Python3_EXECUTABLE if it was set, else FindPython's internal
+      # _Python3_EXECUTABLE), then re-run CMake so that the tests are added. Where it cannot
+      # be installed, the tests are left out and every test that is added must pass.
       - name: Install Python modules for the remote IO tests
         if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
         working-directory: ${{github.workspace}}/itksnap/build
@@ -441,7 +443,13 @@ jobs:
           PYTHON=$(sed -n 's/^_\{0,1\}Python3_EXECUTABLE:[A-Z]*=//p' CMakeCache.txt | head -n 1)
           echo "Python used by the tests: ${PYTHON:-none}"
           if [ -n "$PYTHON" ]; then
-            "$PYTHON" -m pip install asyncssh || echo "::warning::Could not install asyncssh; the remote server tests will be skipped"
+            "$PYTHON" -m pip install asyncssh || echo "::warning::Could not install asyncssh; the remote server tests will not be added"
+          fi
+          cmake . > /dev/null
+          if ctest -N -R '^RemoteServerSelfTest$' | grep -q RemoteServerSelfTest; then
+            echo "The remote server tests are added"
+          else
+            echo "The remote server tests are not added"
           fi
 
       - name: ITK-SNAP Dashboard -- Test
