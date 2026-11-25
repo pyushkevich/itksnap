@@ -18,6 +18,7 @@
 
 ### Bug Fixes
 
+- On Windows, opening files over SSH (`scp://`, `sftp://`) failed with "Failed to construct client init buffer" on servers that offer the `mlkem768x25519-sha256` key exchange, which OpenSSH offers by default since version 9.9. ITK-SNAP 4.6.0 for Windows was built with libssh 0.12.0, which has this bug; 4.6.2 uses libssh 0.12.2
 - Flywheel API keys for servers with a port number (e.g. `host:8443:secret`) were sent with the port as part of the key, and rejected
 - Error messages from saving an image no longer show just "std::exception"
 - Dropping a folder of DICOM files on ITK-SNAP failed with "Unsupported or missing image file format". It now opens the Open Image wizard on the list of DICOM series in the folder, as ITK-SNAP 4.0 did, also when an image is already loaded (#147)
