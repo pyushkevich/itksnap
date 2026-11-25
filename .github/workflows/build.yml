@@ -167,6 +167,13 @@ jobs:
       # package versions. (v6 cached with pat-s/always-upload-cache@v3, which uses GitHub's
       # retired cache service and failed with "Cache service responded with 400", so every run
       # rebuilt curl, libssh, zlib and OpenSSL: 5 minutes on x64, 11 on arm64.)
+      #
+      # vcpkg is pinned to a commit with libssh 0.12.2. Without a revision the action uses the
+      # latest vcpkg release, and 2026.10.16 has libssh 0.12.0, which cannot connect on Windows
+      # to a server that offers the mlkem768x25519-sha256 key exchange (OpenSSH 9.9 and later,
+      # and the asyncssh test server): "Failed to construct client init buffer". It passes an
+      # int where ssh_buffer_pack reads a size_t; fixed in 0.12.1 (libssh commit 18133120).
+      # The pin can be removed once a vcpkg release has libssh 0.12.1 or later.
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v8
         id: vcpkg
@@ -174,6 +181,7 @@ jobs:
         with:
           pkgs: curl libssh zlib
           triplet: ${{ matrix.vcpkg_triplet }}
+          revision: aaf0e1dc2c524a987c2991ee894e84ba5c1b3665
           token: ${{ github.token }}
     
       # The SSH command is printed in the step log. Only the user who started the run can
