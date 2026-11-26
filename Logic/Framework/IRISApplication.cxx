@@ -2186,10 +2186,23 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
     if (it.GetRole() == LABEL_ROLE && layer == GetCurrentImageData()->GetActiveSegmentationLayer())
       folder["ActiveSegmentation"] << true;
 
-    // Save the layer transform - relevant only for overlays
+    // Save the layer transform - relevant only for overlays. In free rotation
+    // mode, an overlay rotated with the main image has the transform R o A,
+    // where A is the rotation of the main image. The rotation is a view and is
+    // not saved, so save the overlay's own transform R.
     if (it.GetRole() == OVERLAY_ROLE)
     {
-      AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
+      auto *gid = GetCurrentImageData();
+      if (gid->IsFreeRotation() && m_GlobalState->GetRotateAllLayers())
+      {
+        auto a_inv = AffineTransformHelper::Inverse(gid->GetReferenceSpaceWrapper()->GetITKTransform());
+        auto r = AffineTransformHelper::Compose(a_inv, layer->GetITKTransform());
+        AffineTransformHelper::WriteToRegistry(&folder, r);
+      }
+      else
+      {
+        AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
+      }
     }
   }
 

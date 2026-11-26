@@ -62,6 +62,9 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
 
   makeCoupling((QComboBox *)ui->inMovingLayer,m_Model->GetMovingLayerModel());
 
+  // Free rotation page
+  makeCoupling(ui->inRotateAllLayers, m_Model->GetRotateAllLayersModel());
+
   // Manual page couplings
   makeCoupling((QAbstractButton *) ui->btnInteractiveTool, m_Model->GetInteractiveToolModel());
 
@@ -343,7 +346,6 @@ void RegistrationDialog::on_actionMoments_of_Inertia_triggered()
 
 void RegistrationDialog::onFreeRotationModeChange(const EventBucket &)
 {
-  std::cout << "ROTATION MODE CHANGE" << std::endl;
   if(m_Model->GetFreeRotationMode())
     {
     ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), false);

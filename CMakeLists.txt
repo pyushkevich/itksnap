@@ -2213,6 +2213,14 @@ TARGET_INCLUDE_DIRECTORIES(FreeRotation3DTest PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME FreeRotation3D COMMAND FreeRotation3DTest ${TEMP})
 
+# Test: image free rotation rotates the overlays with the main image (#228)
+ADD_EXECUTABLE(FreeRotationOverlayTest
+    Testing/GUI/Model/FreeRotationOverlayTest.cxx)
+TARGET_LINK_LIBRARIES(FreeRotationOverlayTest ${SNAP_EXTERNAL_LIBS} itksnapui_model itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(FreeRotationOverlayTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME FreeRotationOverlay COMMAND FreeRotationOverlayTest ${TEMP})
+
 # SSH tunnel test
 SET(SSH_TUNNEL_TEST_CXX
   Testing/GUI/Qt/SSHTunnelTest/main.cxx

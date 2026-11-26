@@ -6,6 +6,7 @@
 #include "itkMatrix.h"
 #include "itkVector.h"
 #include "MultiComponentMetricReport.h"
+#include <set>
 
 class GlobalUIModel;
 class IRISApplication;
@@ -83,6 +84,9 @@ public:
 
   /** Interactive registration tool button */
   irisGetMacro(InteractiveToolModel, AbstractSimpleBooleanProperty *)
+
+  /** Whether free rotation also rotates the overlays (kept in GlobalState) */
+  AbstractSimpleBooleanProperty *GetRotateAllLayersModel() const;
 
   /** Set the center of rotation to current cross-hairs position */
   void SetCenterOfRotationToCursor();
@@ -195,6 +199,19 @@ protected:
 
   // Set the transform in the moving layer
   void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset, bool skipParameterUpdate = false);
+
+  // In free rotation mode, the main image's transform A is also given to the
+  // segmentations and, if RotateAllLayers is on, to the overlays: an overlay
+  // whose own (registration) transform is R gets R o A, i.e., x -> R(A(x)).
+  // This brings the overlays and segmentations in line with that: overlays
+  // are rotated or unrotated as needed, and layers added while rotated get A.
+  void UpdateLayerRotation();
+
+  // Undo the rotation of the overlays, so that each one has its own transform
+  void UnrotateOverlays();
+
+  // Overlays whose transform currently includes the main image's rotation
+  std::set<unsigned long> m_RotatedOverlayIds;
 
   SmartPtr<AbstractLayerSelectionModel> m_MovingLayerModel;
   bool GetMovingLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);

@@ -614,10 +614,27 @@ void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixTyp
 
   // Create a new euler transform
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+  auto *cid = m_Driver->GetCurrentImageData();
+
+  // The overlays that are rotated with the main image move from its old
+  // rotation to the new one: R o A_old becomes R o A_new
+  if(layer == cid->GetMain())
+    {
+    auto a_old_inv = AffineTransformHelper::Inverse(layer->GetITKTransform());
+    auto change = AffineTransformHelper::Compose(affine, a_old_inv);
+    for(auto it = cid->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+      {
+      if(m_RotatedOverlayIds.count(it.GetLayer()->GetUniqueId()))
+        {
+        auto t = AffineTransformHelper::Compose(change, it.GetLayer()->GetITKTransform());
+        it.GetLayer()->SetITKTransform(cid->GetMain()->GetReferenceSpace(), t);
+        }
+      }
+    }
+
   layer->SetITKTransform(layer->GetReferenceSpace(), affine);
 
   // If the moving layer is the main layer, also apply this transform to the segmentation
-  auto *cid = m_Driver->GetCurrentImageData();
   if(layer == cid->GetMain())
     {
     for(auto it = cid->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
@@ -647,6 +664,86 @@ void RegistrationModel::GetMovingTransform(ITKMatrixType &matrix, ITKVectorType 
     matrix = tb->GetMatrix();
     offset = tb->GetOffset();
     }
+}
+
+AbstractSimpleBooleanProperty *RegistrationModel::GetRotateAllLayersModel() const
+{
+  return m_Driver->GetGlobalState()->GetRotateAllLayersModel();
+}
+
+void RegistrationModel::UpdateLayerRotation()
+{
+  auto *cid = m_Driver->GetCurrentImageData();
+  if(!cid->IsMainLoaded())
+    {
+    m_RotatedOverlayIds.clear();
+    return;
+    }
+
+  // Forget overlays that are gone
+  std::set<unsigned long> present;
+  for(auto it = cid->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    present.insert(it.GetLayer()->GetUniqueId());
+  for(auto id = m_RotatedOverlayIds.begin(); id != m_RotatedOverlayIds.end(); )
+    id = present.count(*id) ? std::next(id) : m_RotatedOverlayIds.erase(id);
+
+  if(!this->GetFreeRotationMode())
+    return;
+
+  ImageWrapperBase *main = cid->GetMain();
+  const auto *a = main->GetITKTransform();
+
+  // Segmentations added while rotated get the rotation
+  auto a_inv = AffineTransformHelper::Inverse(a);
+  for(auto it = cid->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
+    {
+    auto diff = AffineTransformHelper::Compose(it.GetLayer()->GetITKTransform(), a_inv);
+    if(!AffineTransformHelper::IsIdentity(diff))
+      {
+      ITKMatrixType matrix;
+      ITKVectorType offset;
+      AffineTransformHelper::GetMatrixAndOffset(a, matrix, offset);
+      it.GetLayer()->SetITKTransform(main->GetReferenceSpace(), MakeTransform(matrix, offset));
+      }
+    }
+
+  // Rotate or unrotate the overlays: R becomes R o A, and back
+  bool rotate = this->GetRotateAllLayersModel()->GetValue();
+  for(auto it = cid->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *overlay = it.GetLayer();
+    bool rotated = m_RotatedOverlayIds.count(overlay->GetUniqueId());
+    if(rotate && !rotated)
+      {
+      overlay->SetITKTransform(main->GetReferenceSpace(),
+                               AffineTransformHelper::Compose(a, overlay->GetITKTransform()));
+      m_RotatedOverlayIds.insert(overlay->GetUniqueId());
+      }
+    else if(!rotate && rotated)
+      {
+      overlay->SetITKTransform(main->GetReferenceSpace(),
+                               AffineTransformHelper::Compose(a_inv, overlay->GetITKTransform()));
+      m_RotatedOverlayIds.erase(overlay->GetUniqueId());
+      }
+    }
+}
+
+void RegistrationModel::UnrotateOverlays()
+{
+  auto *cid = m_Driver->GetCurrentImageData();
+  if(cid->IsMainLoaded() && !m_RotatedOverlayIds.empty())
+    {
+    ImageWrapperBase *main = cid->GetMain();
+    auto a_inv = AffineTransformHelper::Inverse(main->GetITKTransform());
+    for(auto it = cid->GetLayers(OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+      {
+      ImageWrapperBase *overlay = it.GetLayer();
+      if(m_RotatedOverlayIds.count(overlay->GetUniqueId()))
+        overlay->SetITKTransform(main->GetReferenceSpace(),
+                                 AffineTransformHelper::Compose(a_inv, overlay->GetITKTransform()));
+      }
+    }
+  m_RotatedOverlayIds.clear();
 }
 
 ImageWrapperBase *RegistrationModel::GetMovingLayerWrapper() const
@@ -1028,6 +1125,9 @@ void RegistrationModel::SetParentModel(GlobalUIModel *model)
   // Interactive mode tool model is just a wrapper around the toolbar mode
   m_InteractiveToolModel->RebroadcastFromSourceProperty(
         m_Driver->GetGlobalState()->GetToolbarModeModel());
+
+  // Rotating the overlays is turned on and off in free rotation mode
+  Rebroadcast(this->GetRotateAllLayersModel(), ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void RegistrationModel::OnUpdate()
@@ -1050,14 +1150,25 @@ void RegistrationModel::OnUpdate()
       }
     }
 
+  bool rotate_all_changed =
+      this->m_EventBucket->HasEvent(ValueChangedEvent(), this->GetRotateAllLayersModel());
+
   if(free_rotation_mode_changed)
     {
-    // Changed free rotation mode. We should reset the transforms on all layers to identity
+    // Changed free rotation mode. The overlays go back to their own transforms
+    // (their registration is kept), and the main image and the segmentations
+    // are reset to identity
+    this->UnrotateOverlays();
     AffineTransform::Pointer identity = MakeIdentityTransform();
     auto *cid = m_Driver->GetCurrentImageData();
-    for(auto it = cid->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
+    for(auto it = cid->GetLayers(MAIN_ROLE | LABEL_ROLE); !it.IsAtEnd(); ++it)
         it.GetLayer()->SetITKTransform(it.GetLayer()->GetReferenceSpace(), identity);
     }
+
+  // Rotate the overlays with the main image, or stop, and give layers added
+  // while rotated the rotation
+  if(free_rotation_mode_changed || rotate_all_changed || layers_changed)
+    this->UpdateLayerRotation();
 
   // Specifically for when the main image changes
   if(main_changed)
