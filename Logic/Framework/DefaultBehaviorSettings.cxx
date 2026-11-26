@@ -13,6 +13,8 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   m_SyncPanModel = NewSimpleProperty("SyncPan", true);
 
   m_AutoContrastModel = NewSimpleProperty("AutoContrast", false);
+  m_RestoreCursorModel = NewSimpleProperty("RestoreCursor", true);
+  m_FollowSyncOnOpenModel = NewSimpleProperty("FollowSyncOnOpen", true);
   m_HideFileExtensionsModel = NewSimpleProperty("HideFileExtensions", true);
   m_UILanguageModel = NewSimpleProperty("UILanguage", std::string());
 

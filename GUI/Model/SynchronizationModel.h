@@ -70,7 +70,12 @@ public:
   /** Enable sync debugging */
   irisGetSetMacro(DebugSync, bool)
 
-  /** This method should be called by UI at regular intervals to read IPC state */
+  /**
+   * This method should be called by UI at regular intervals to read IPC state.
+   * With only_read_new false, the current shared state is applied whether or
+   * not it was read before, but only if another running ITK-SNAP shared it:
+   * this is how a window joins the others when it opens an image.
+   */
   void ReadIPCState(bool only_read_new=true);
 
 protected:

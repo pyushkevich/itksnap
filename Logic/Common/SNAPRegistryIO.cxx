@@ -39,6 +39,7 @@
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
 #include "HistoryManager.h"
+#include "DefaultBehaviorSettings.h"
 #include <algorithm>
 #include <vector>
 #include <string>
@@ -307,6 +308,15 @@ SNAPRegistryIO
   // Write the tiling state
   registry["IRIS.SliceViewLayerLayout"].PutEnum(
         GetEnumMapLayerLayout(), gs->GetSliceViewLayerLayout());
+
+  // Write where the user is in the image: the cursor position, in RAS
+  // coordinates so that it does not depend on the voxel grid of the reference
+  // space, and the time point (#157)
+  if(app->GetIRISImageData()->IsMainLoaded())
+    {
+    registry["IRIS.Cursor.PositionRAS"] << app->GetIRISImageData()->GetCursorPositionRAS();
+    registry["IRIS.Cursor.TimePoint"] << (int) app->GetIRISImageData()->GetCursorTimePoint();
+    }
 }
 
 bool 
@@ -408,6 +418,18 @@ SNAPRegistryIO
   // Read the local history
   app->GetSystemInterface()->GetHistoryManager()->LoadLocalHistory(
         registry.Folder("IOHistory"));
+
+  // Return to where the user was in the image (#157), unless turned off in the
+  // preferences. A position outside of the image goes to its center
+  if(gs->GetDefaultBehaviorSettings()->GetRestoreCursor() &&
+     registry.HasEntry("IRIS.Cursor.PositionRAS"))
+    {
+    app->GetIRISImageData()->SetCursorPositionRAS(
+          registry["IRIS.Cursor.PositionRAS"][Vector3d(0.0)]);
+    int tp = registry["IRIS.Cursor.TimePoint"][0];
+    if(tp >= 0 && tp < (int) app->GetIRISImageData()->GetNumberOfTimePoints())
+      app->GetIRISImageData()->SetCursorTimePoint((unsigned int) tp);
+    }
 
   // Done!
   return true;

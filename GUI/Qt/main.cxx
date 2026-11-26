@@ -17,6 +17,7 @@
 #include "SNAPQtCommon.h"
 #include "FileExistenceCache.h"
 #include "QtFrameBufferOpenGLWidget.h"
+#include "DefaultBehaviorSettings.h"
 #include "SNAPTestQt.h"
 #include "SegmentationAutosave.h"
 
@@ -1466,6 +1467,12 @@ main(int argc, char *argv[])
 
     // Load the user preferences
     gui->LoadUserPreferences();
+
+    // Tests open images at their center: the cursor saved with an image comes
+    // from whatever last closed it, e.g., another test. A test may turn this
+    // back on; preferences are not saved in tests
+    if (!argdata.xTestId.empty())
+      gui->GetGlobalState()->GetDefaultBehaviorSettings()->SetRestoreCursor(false);
 
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();

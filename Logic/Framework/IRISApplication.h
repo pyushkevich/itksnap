@@ -488,6 +488,12 @@ public:
   Vector3i GetCursorPosition() const;
 
   /**
+   * Put the cursor at the center of the main image, as when an image is opened
+   * without a saved position. The time point is not changed.
+   */
+  void ResetCursorPosition();
+
+  /**
    * Set the current cursor time point. Like setting the cursor position, but
    * changes which image time point is actively shown
    */

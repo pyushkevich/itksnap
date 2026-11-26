@@ -22,6 +22,15 @@ public:
   irisSimplePropertyAccessMacro(SyncPan, bool)
   irisSimplePropertyAccessMacro(AutoContrast, bool)
 
+  // Whether an image (or workspace) is reopened at the cursor position and
+  // time point it was closed (or saved) at
+  irisSimplePropertyAccessMacro(RestoreCursor, bool)
+
+  // Whether an image opened while synchronized with other ITK-SNAP windows
+  // goes to the cursor position they share (if it is inside the image),
+  // rather than to its saved position or its center
+  irisSimplePropertyAccessMacro(FollowSyncOnOpen, bool)
+
   // Whether layer nicknames derived from filenames omit the file extension
   irisSimplePropertyAccessMacro(HideFileExtensions, bool)
 
@@ -66,6 +75,8 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncZoomModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_AutoContrastModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_RestoreCursorModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FollowSyncOnOpenModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_HideFileExtensionsModel;
   SmartPtr<ConcreteSimpleStringProperty> m_UILanguageModel;
 

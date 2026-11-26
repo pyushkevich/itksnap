@@ -842,6 +842,17 @@ IRISApplication ::GetCursorPosition() const
 }
 
 void
+IRISApplication ::ResetCursorPosition()
+{
+  // The center voxel of the main image, through RAS coordinates, since the
+  // cursor is in the voxel grid of the reference space (the active
+  // segmentation), which may differ from that of the main image
+  ImageWrapperBase *main = this->GetCurrentImageData()->GetMain();
+  Vector3d center_ras = main->TransformVoxelCIndexToNIFTICoordinates(to_double(main->GetSize() / 2u));
+  this->GetCurrentImageData()->SetCursorPositionRAS(center_ras);
+}
+
+void
 IRISApplication ::SetCursorTimePoint(unsigned int time_point, bool force)
 {
   this->GetCurrentImageData()->SetCursorTimePoint(time_point);
@@ -1632,6 +1643,11 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(m_IRISImageData->GetReferenceSpace()->GetBufferedRegion());
 
+  // Put the crosshairs at the center of the image. This comes before the
+  // project-level settings are read, which may move them to where the user
+  // left the image (#157)
+  this->ResetCursorPosition();
+
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
 
@@ -1639,9 +1655,6 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // allowed, so we force override
   if (layer->IsSticky())
     layer->SetSticky(false);
-
-  // Update the crosshairs position to the center of the image
-  this->SetCursorPosition(to_int(layer->GetSize()) / 2);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
