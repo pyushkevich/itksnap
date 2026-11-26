@@ -18,6 +18,8 @@
 #include <vtkSphereSource.h>
 #include <vtkOpenGLFramebufferObject.h>
 
+bool QtFrameBufferOpenGLWidget::m_DebugPainter = false;
+
 QtFrameBufferOpenGLWidget::QtFrameBufferOpenGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)
 {
@@ -252,15 +254,16 @@ QtFrameBufferOpenGLWidget::initializeGL()
   this->vtk_test->initializeGL();
 
   QOpenGLContext *context = QOpenGLContext::currentContext();
-  if (context)
+  if (!context)
   {
+    qDebug() << "No OpenGL context available.";
+  }
+  else if (QtFrameBufferOpenGLWidget::GetDebugPainter())
+  {
+    // The OpenGL version is printed only with --debug-painter
     qDebug() << "OpenGL Vendor:" << reinterpret_cast<const char *>(glGetString(GL_VENDOR));
     qDebug() << "OpenGL Renderer:" << reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     qDebug() << "OpenGL Version:" << reinterpret_cast<const char *>(glGetString(GL_VERSION));
-  }
-  else
-  {
-    qDebug() << "No OpenGL context available.";
   }
 }
 
@@ -337,10 +340,14 @@ QtFrameBufferOpenGLWidget::paintGL()
   n_calls++;
   if (n_calls % 100 == 0)
   {
-    char buffer[256];
-    snprintf(buffer, 256, "QPainter Render Timing: FBO = %4.3f ms, Blit = %4.3f ms",
-             total_ms_t / n_calls, (total_ms_u - total_ms_t) / n_calls);
-    qDebug() << buffer;
+    // Printed only with --debug-painter
+    if (QtFrameBufferOpenGLWidget::GetDebugPainter())
+    {
+      char buffer[256];
+      snprintf(buffer, 256, "QPainter Render Timing: FBO = %4.3f ms, Blit = %4.3f ms",
+               total_ms_t / n_calls, (total_ms_u - total_ms_t) / n_calls);
+      qDebug() << buffer;
+    }
     total_ms_t = 0;
     total_ms_u = 0;
     n_calls = 0;
@@ -425,15 +432,16 @@ QtDirectRenderOpenGLWidget::initializeGL()
 {
   initializeOpenGLFunctions();
   QOpenGLContext *context = QOpenGLContext::currentContext();
-  if (context)
+  if (!context)
   {
+    qDebug() << "No OpenGL context available.";
+  }
+  else if (QtFrameBufferOpenGLWidget::GetDebugPainter())
+  {
+    // The OpenGL version is printed only with --debug-painter
     qDebug() << "OpenGL Vendor:" << reinterpret_cast<const char *>(glGetString(GL_VENDOR));
     qDebug() << "OpenGL Renderer:" << reinterpret_cast<const char *>(glGetString(GL_RENDERER));
     qDebug() << "OpenGL Version:" << reinterpret_cast<const char *>(glGetString(GL_VERSION));
-  }
-  else
-  {
-    qDebug() << "No OpenGL context available.";
   }
 }
 
@@ -455,8 +463,10 @@ QtDirectRenderOpenGLWidget::paintGL()
   n_calls++;
   if (n_calls % 100 == 0)
   {
-    std::cout << "Average paintGL duration last 100 runs: " << total_ms / n_calls << "ms."
-              << std::endl;
+    // Printed only with --debug-painter
+    if (QtFrameBufferOpenGLWidget::GetDebugPainter())
+      std::cout << "Average paintGL duration last 100 runs: " << total_ms / n_calls << "ms."
+                << std::endl;
     total_ms = 0;
     n_calls = 0;
   }

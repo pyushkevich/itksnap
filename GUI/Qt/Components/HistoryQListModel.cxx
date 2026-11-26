@@ -87,41 +87,17 @@ void HistoryQListItem::onTimer()
     this->setThumbnail(pixmap);
   else
     {
-    try
+    // Load the thumbnail. A file that has no thumbnail (yet), e.g., a remote
+    // file, gets a black square instead: drawing the badge on an empty pixmap
+    // fails, and Qt prints warnings about it
+    QPixmap load_pixmap(m_IconFilename);
+    if(load_pixmap.isNull())
       {
-    /*
-      // Load the icon using ITK to avoid this really annoying warning
-      // from the PNG library. The only problem is that QIcon caches
-      typedef itk::RGBAPixel<unsigned char> PNGPixelType;
-      typedef itk::Image<PNGPixelType, 2> PNGSliceType;
-      typedef itk::ImageFileReader<PNGSliceType> PNGReaderType;
-      SmartPtr<PNGReaderType> reader = PNGReaderType::New();
-      reader->SetFileName(to_utf8(m_IconFilename).c_str());
-      reader->Update();
-
-      // Need to load the icon
-      SmartPtr<PNGSliceType> slice = reader->GetOutput();
-      int w = slice->GetBufferedRegion().GetSize()[0];
-      int h = slice->GetBufferedRegion().GetSize()[1];
-      QImage image(w, h, QImage::Format_ARGB32);
-      PNGPixelType *input = slice->GetBufferPointer();
-      QRgb *output = reinterpret_cast<QRgb*>(image.bits());
-      for(int i = 0; i < slice->GetPixelContainer()->Size(); i++)
-        {
-        *output++ = qRgba(input[i].GetRed(), input[i].GetGreen(), input[i].GetBlue(), input[i].GetAlpha());
-        } */
-
-      QPixmap load_pixmap(m_IconFilename);
-      this->setThumbnail(load_pixmap);
-      QPixmapCache::insert(key, load_pixmap);
+      load_pixmap = QPixmap(128, 128);
+      load_pixmap.fill(Qt::black);
       }
-    catch(itk::ExceptionObject &)
-      {
-      QPixmap dummy(128, 128);
-      dummy.fill(Qt::black);
-      this->setThumbnail(dummy);
-      QPixmapCache::insert(key, dummy);
-      }
+    this->setThumbnail(load_pixmap);
+    QPixmapCache::insert(key, load_pixmap);
     }
 }
 

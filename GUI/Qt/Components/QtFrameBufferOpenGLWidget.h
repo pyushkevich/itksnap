@@ -37,7 +37,16 @@ public:
 
   virtual void showEvent(QShowEvent *event) override;
 
+  /**
+   * Print the OpenGL version when a view is created, and the average time
+   * spent painting every 100 paints (--debug-painter). Applies to all views.
+   */
+  static void SetDebugPainter(bool flag) { m_DebugPainter = flag; }
+  static bool GetDebugPainter() { return m_DebugPainter; }
+
 protected:
+  static bool m_DebugPainter;
+
   void updateFBO();
   void connectCurrentScreen(bool force);
 
