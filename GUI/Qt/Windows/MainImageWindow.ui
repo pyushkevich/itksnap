@@ -671,6 +671,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <addaction name="separator"/>
      <addaction name="actionAnnotation_Preferences"/>
     </widget>
+    <widget class="QMenu" name="menuNavigate">
+     <property name="title">
+      <string>Navigate</string>
+     </property>
+     <addaction name="actionCursorBack"/>
+     <addaction name="actionCursorForward"/>
+     <addaction name="separator"/>
+     <addaction name="actionCursorReset"/>
+     <addaction name="actionResetView"/>
+    </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
       <string>Zoom</string>
@@ -726,6 +736,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="menuBackground_Label"/>
     <addaction name="actionSwitch_Foreground_Background_Labels"/>
     <addaction name="separator"/>
+    <addaction name="menuNavigate"/>
     <addaction name="menuZoom"/>
     <addaction name="menuLayers"/>
     <addaction name="menuSlice_Annotations"/>
@@ -967,6 +978,49 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionCursorBack">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/cursor_back_16.png</normaloff>:/root/cursor_back_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the cursor back to where it was before</string>
+   </property>
+  </action>
+  <action name="actionCursorForward">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/cursor_forward_16.png</normaloff>:/root/cursor_forward_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the cursor forward again, after going back</string>
+   </property>
+  </action>
+  <action name="actionCursorReset">
+   <property name="text">
+    <string>Center Cursor in Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the cursor to the center of the main image</string>
+   </property>
+  </action>
+  <action name="actionResetView">
+   <property name="text">
+    <string>Reset View</string>
+   </property>
+   <property name="toolTip">
+    <string>Center the cursor in the image and zoom to fit in all views</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
    </property>
   </action>
   <action name="actionCenter_on_Cursor">

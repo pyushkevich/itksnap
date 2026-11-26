@@ -60,6 +60,7 @@
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
+#include "CursorHistoryModel.h"
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "LabelEditorModel.h"
@@ -638,6 +639,17 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionCenter_on_Cursor, m_Model, UIF_BASEIMG_LOADED);
+
+  // Going back and forward through the cursor history uses the standard
+  // shortcuts of the platform (Cmd-[ and Cmd-] on the Mac, Alt+Left and
+  // Alt+Right elsewhere)
+  CursorHistoryModel *chm = m_Model->GetCursorHistoryModel();
+  ui->actionCursorBack->setShortcuts(QKeySequence::Back);
+  ui->actionCursorForward->setShortcuts(QKeySequence::Forward);
+  activateOnFlag(ui->actionCursorBack, chm, CursorHistoryModel::UIF_CAN_GO_BACK);
+  activateOnFlag(ui->actionCursorForward, chm, CursorHistoryModel::UIF_CAN_GO_FORWARD);
+  activateOnFlag(ui->actionCursorReset, chm, CursorHistoryModel::UIF_CAN_RESET);
+  activateOnFlag(ui->actionResetView, chm, CursorHistoryModel::UIF_CAN_RESET);
   activateOnFlag(ui->actionZoom_to_100, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionZoom_to_200, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionZoom_to_400, m_Model, UIF_BASEIMG_LOADED);
@@ -1867,6 +1879,31 @@ void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
 void MainImageWindow::on_actionCenter_on_Cursor_triggered()
 {
   m_Model->GetSliceCoordinator()->CenterViewOnCursorInAllWindows();
+}
+
+void MainImageWindow::on_actionCursorBack_triggered()
+{
+  m_Model->GetCursorHistoryModel()->GoBack();
+}
+
+void MainImageWindow::on_actionCursorForward_triggered()
+{
+  m_Model->GetCursorHistoryModel()->GoForward();
+}
+
+void MainImageWindow::on_actionCursorReset_triggered()
+{
+  m_Model->GetCursorHistoryModel()->Reset();
+}
+
+void MainImageWindow::on_actionResetView_triggered()
+{
+  // Go back to the view we get when the image is first loaded: the cursor in
+  // the center of the image, and all of the views zoomed to fit the whole
+  // scene. The time point and the 3D view are left as they are
+  m_Model->GetCursorHistoryModel()->Reset();
+  m_Model->GetSliceCoordinator()->ResetFitTargets();
+  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
 }
 
 void MainImageWindow::on_actionZoom_to_100_triggered()
