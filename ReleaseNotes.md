@@ -18,7 +18,7 @@
 - Images and workspaces reopen where you left them: the cursor position and the time point are saved with the image's settings when it is closed, and in workspaces (#157). This can be turned off in Preferences
 - Cursor history (#157):
   - Back and Forward move the cursor between the places it has been, like in a web browser. A drag, or a quick series of moves (scrolling through slices, arrow keys), counts as one place. Playing a 4D image does not fill the history
-  - They are in the new Edit > Navigate menu, with the standard shortcuts (⌘[ and ⌘] on the Mac, Alt+← and Alt+→ elsewhere), and next to "zoom to fit" in each slice view
+  - They are in the new Edit > Navigation menu, with the standard shortcuts (⌘[ and ⌘] on the Mac, Alt+← and Alt+→ elsewhere), and next to "zoom to fit" in each slice view
   - Center Cursor in Image moves the cursor to the center of the main image, and Reset View (Ctrl+0, ⌘0 on the Mac) also zooms all slice views to fit, as when the image was first opened
   - The "zoom to fit" button has a menu to fit all layers, the main image or the segmentation, and to center the view or the cursor
 - Synchronized ITK-SNAP sessions: opening an image no longer moves the other sessions, and an image opened in a new session starts at their cursor position (#157). This can be turned off in Preferences

@@ -671,9 +671,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <addaction name="separator"/>
      <addaction name="actionAnnotation_Preferences"/>
     </widget>
-    <widget class="QMenu" name="menuNavigate">
+    <widget class="QMenu" name="menuNavigation">
      <property name="title">
-      <string>Navigate</string>
+      <string>Navigation</string>
      </property>
      <addaction name="actionCursorBack"/>
      <addaction name="actionCursorForward"/>
@@ -736,7 +736,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="menuBackground_Label"/>
     <addaction name="actionSwitch_Foreground_Background_Labels"/>
     <addaction name="separator"/>
-    <addaction name="menuNavigate"/>
+    <addaction name="menuNavigation"/>
     <addaction name="menuZoom"/>
     <addaction name="menuLayers"/>
     <addaction name="menuSlice_Annotations"/>

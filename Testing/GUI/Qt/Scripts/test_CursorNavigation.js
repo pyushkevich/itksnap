@@ -2,7 +2,7 @@
 include("Library");
 
 // Test of the cursor history (#157): the Back and Forward buttons next to
-// "zoom to fit" in the slice views, Reset View in the Navigate menu, and the
+// "zoom to fit" in the slice views, Reset View in the Navigation menu, and the
 // menu of the zoom to fit button. Restoring the cursor when an image is
 // reopened is checked by the CursorRestore test, since it is turned off when
 // ITK-SNAP runs a test.

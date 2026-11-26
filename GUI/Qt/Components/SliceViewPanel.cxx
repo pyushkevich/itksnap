@@ -349,7 +349,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Assign the viewport reporter to the model
   m_SliceModel->SetSizeReporter(m_ViewportReporter.GetPointer());
 
-  // The back and forward buttons use the actions in the Navigate menu, so
+  // The back and forward buttons use the actions in the Navigation menu, so
   // they are enabled and disabled along with them
   ui->btnCursorBack->setDefaultAction(FindUpstreamAction(this, "actionCursorBack"));
   ui->btnCursorForward->setDefaultAction(FindUpstreamAction(this, "actionCursorForward"));
