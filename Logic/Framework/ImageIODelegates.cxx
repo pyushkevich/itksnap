@@ -6,6 +6,7 @@
 #include "ImageWrapperTraits.h"
 #include <itkImageIOBase.h>
 #include <itkImageBase.h>
+#include <itksys/SystemTools.hxx>
 #include <cmath>
 #include <limits>
 
@@ -407,8 +408,9 @@ LoadSegmentationImageDelegate ::CanLoadOverwriteUnsavedChanges(GuidedNativeImage
       return true;
 
     // Reading the header of a remote image would mean downloading it here and
-    // again when it is loaded, so assume that it may be 4D
-    if (IsRemoteImageURL(filename))
+    // again when it is loaded, so assume that it may be 4D. A folder (of DICOM
+    // files) has no header to read; the series is chosen later in the wizard
+    if (IsRemoteImageURL(filename) || itksys::SystemTools::FileIsDirectory(filename))
       return true;
 
     // The changes are lost if the incoming image is 4D

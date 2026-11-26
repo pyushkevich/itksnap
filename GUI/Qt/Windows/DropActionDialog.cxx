@@ -49,6 +49,15 @@ void DropActionDialog::SetDroppedFilename(QString name)
 
   bool isWorkspace4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
 
+  // A dropped folder (e.g., of DICOM files) has no header to read here. It is
+  // opened in the Open Image wizard, which lists the DICOM series in it (#147)
+  if(QFileInfo(name).isDir())
+    {
+    this->SetIncludeMeshOptions(false);
+    UpdateSendToWindowMenu();
+    return;
+    }
+
   // Check if the file can be loaded as mesh
   bool isPolyData = GuidedMeshIO::IsFilePolyData(to_utf8(name).c_str());
 
@@ -373,8 +382,12 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
   // Is this a file with a known format?
   GuidedNativeImageIO::FileFormat fmt = GuidedNativeImageIO::GetFileFormat(ioHints);
 
-  // If not, peek at the header to see if it's DICOM or unknown
-  if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
+  // A folder is opened as a DICOM directory, so that the wizard lists the
+  // series in it (#147). Otherwise, peek at the header to see if it's DICOM
+  // or unknown
+  if(QFileInfo(ui->outFilename->text()).isDir())
+    fmt = GuidedNativeImageIO::FORMAT_DICOM_DIR;
+  else if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
     fmt = GuidedNativeImageIO::GuessFormatForFileName(file, true);
 
   // If this has been determined to be a DICOM directory, let's go to the DICOM page
