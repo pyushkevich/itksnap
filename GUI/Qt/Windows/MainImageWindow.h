@@ -392,8 +392,12 @@ protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
 
-  // Change event (for tracking active / non-active window)
+  // Change event (for tracking active / non-active window, and dark mode)
   virtual void changeEvent(QEvent *);
+
+  // Pick the light or dark versions of icons that need them, depending on
+  // whether the palette is light or dark. Called when the palette changes
+  void UpdateIconsForColorScheme();
 
 private:
 

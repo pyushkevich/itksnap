@@ -646,6 +646,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   CursorHistoryModel *chm = m_Model->GetCursorHistoryModel();
   ui->actionCursorBack->setShortcuts(QKeySequence::Back);
   ui->actionCursorForward->setShortcuts(QKeySequence::Forward);
+  UpdateIconsForColorScheme();
   activateOnFlag(ui->actionCursorBack, chm, CursorHistoryModel::UIF_CAN_GO_BACK);
   activateOnFlag(ui->actionCursorForward, chm, CursorHistoryModel::UIF_CAN_GO_FORWARD);
   activateOnFlag(ui->actionCursorReset, chm, CursorHistoryModel::UIF_CAN_RESET);
@@ -2735,10 +2736,25 @@ void MainImageWindow::on_actionUnload_All_Overlays_triggered()
     }
 }
 
-void MainImageWindow::changeEvent(QEvent *)
+void MainImageWindow::changeEvent(QEvent *event)
 {
   if(m_Model)
     m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
+
+  if(event->type() == QEvent::PaletteChange)
+    UpdateIconsForColorScheme();
+}
+
+void MainImageWindow::UpdateIconsForColorScheme()
+{
+  // Some icons are dark grey and can hardly be seen in dark mode, so there are
+  // light versions of them too, which have "_dark" in the name
+  bool dark = this->palette().color(QPalette::Window).valueF() < 0.5;
+  QString suffix = dark ? "_dark" : "";
+
+  // Cursor Back and Forward chevrons
+  ui->actionCursorBack->setIcon(QIcon(QString(":/root/cursor_back%1_16.png").arg(suffix)));
+  ui->actionCursorForward->setIcon(QIcon(QString(":/root/cursor_forward%1_16.png").arg(suffix)));
 }
 
 void MainImageWindow::on_actionClose_Window_triggered()

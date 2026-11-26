@@ -231,7 +231,33 @@ font-size:11px;
              </spacer>
             </item>
             <item>
-             <widget class="QToolButton" name="btnZoomToFit">
+             <widget class="SplitToolButton" name="btnCursorBack">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Move the cursor back to where it was before</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="SplitToolButton" name="btnCursorForward">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Move the cursor forward again, after going back</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="SplitToolButton" name="btnZoomToFit">
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -1179,6 +1205,13 @@ font-size:11px;
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SplitToolButton</class>
+   <extends>QToolButton</extends>
+   <header>SplitToolButton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>

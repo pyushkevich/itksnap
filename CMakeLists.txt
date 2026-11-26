@@ -759,6 +759,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQtCommonTranslations.cxx
   GUI/Qt/Components/SegmentationAutosave.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/SplitToolButton.cxx
   GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
   GUI/Qt/Components/TagListWidget.cxx
@@ -868,6 +869,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SegmentationAutosave.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/SplitToolButton.h
   GUI/Qt/Components/SNAPQtCommonTranslations.h
   GUI/Qt/Components/SSHTunnelWorkerThread.h
   GUI/Qt/Components/SynchronizationInspector.h
@@ -1427,6 +1429,7 @@ SET(GUI_TESTS
   MCTo4D
   DeformationGrid
   ZoomToFitCycle
+  CursorNavigation
   SnakeROIPanel
   ReloadSegmentation
   AdaptiveBrush

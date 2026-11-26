@@ -122,6 +122,11 @@ public:
    * maintained, the zoom is also applied to the other windows */
   void ResetViewToFitInOneWindow(unsigned int window);
 
+  /** Reset the zoom in one window so that the given target fits into it, for
+   * the menu of the window's "zoom to fit" button. When linked zoom is
+   * maintained, the zoom is also applied to the other windows */
+  void ResetViewToFitInOneWindow(unsigned int window, ZoomFitTarget target);
+
   /** Make the whole scene the fit target again (e.g. for a new main image) */
   void ResetFitTargets();
 

@@ -15,6 +15,14 @@
 - Recent files that no longer exist are marked on the startup page, in the Recent menus and in the history lists of file dialogs (#314). The check runs in the background, so a slow network drive does not delay the startup page. Clicking a missing file on the startup page offers to remove it from the list
 
 - Image Free Rotation rotates the additional images together with the main image and segmentations, so they stay aligned (#228). The new "Rotate all layers" checkbox, on by default, turns this off
+- Images and workspaces reopen where you left them: the cursor position and the time point are saved with the image's settings when it is closed, and in workspaces (#157). This can be turned off in Preferences
+- Cursor history (#157):
+  - Back and Forward move the cursor between the places it has been, like in a web browser. A drag, or a quick series of moves (scrolling through slices, arrow keys), counts as one place. Playing a 4D image does not fill the history
+  - They are in the new Edit > Navigate menu, with the standard shortcuts (⌘[ and ⌘] on the Mac, Alt+← and Alt+→ elsewhere), and next to "zoom to fit" in each slice view
+  - Center Cursor in Image moves the cursor to the center of the main image, and Reset View (Ctrl+0, ⌘0 on the Mac) also zooms all slice views to fit, as when the image was first opened
+  - The "zoom to fit" button has a menu to fit all layers, the main image or the segmentation, and to center the view or the cursor
+- Synchronized ITK-SNAP sessions: opening an image no longer moves the other sessions, and an image opened in a new session starts at their cursor position (#157). This can be turned off in Preferences
+- `--color-scheme dark|light` command line option, to run ITK-SNAP in dark or light mode regardless of the system setting
 
 ### Bug Fixes
 
@@ -25,6 +33,7 @@
 - In Image Free Rotation, and for overlays moved in Registration mode or with a different orientation, the area outside an image was drawn with the color map's color for intensity 0 instead of the background, covering the layers below (#193)
 - A DICOM series whose slice positions hold different numbers of images (e.g., a perfusion series with an extra image) failed to load with "vector too long". It now loads one image per slice, in file name order, with a warning (#202)
 - Opening Image Free Rotation no longer resets the registration of additional images made in Registration mode, and a workspace saved while rotated keeps that registration
+- A workspace saved while a segmentation with a different grid than the main image was active did not restore the settings of the main image (label descriptions, label and bounding box settings) when opened
 
 ## Version 4.6.0
 

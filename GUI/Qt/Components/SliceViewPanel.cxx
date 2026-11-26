@@ -49,6 +49,7 @@
 #include "QtReporterDelegates.h"
 #include <QStackedLayout>
 #include <QMenu>
+#include <algorithm>
 
 #include "QtFrameBufferOpenGLWidget.h"
 
@@ -348,6 +349,41 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Assign the viewport reporter to the model
   m_SliceModel->SetSizeReporter(m_ViewportReporter.GetPointer());
 
+  // The back and forward buttons use the actions in the Navigate menu, so
+  // they are enabled and disabled along with them
+  ui->btnCursorBack->setDefaultAction(FindUpstreamAction(this, "actionCursorBack"));
+  ui->btnCursorForward->setDefaultAction(FindUpstreamAction(this, "actionCursorForward"));
+
+  // Clicking the zoom to fit button cycles through the fit targets, and its
+  // menu lets the user pick a target, or center things
+  QMenu *zoom_menu = new QMenu(ui->btnZoomToFit);
+  zoom_menu->setObjectName("menuZoomToFit");
+  m_FitTargetActions.clear();
+  m_FitTargetActions << zoom_menu->addAction(tr("Fit All Layers"))
+                     << zoom_menu->addAction(tr("Fit Main Image"))
+                     << zoom_menu->addAction(tr("Fit Segmentation"));
+  m_FitTargetActions[FIT_SCENE]->setObjectName("actionFitScene");
+  m_FitTargetActions[FIT_MAIN_IMAGE]->setObjectName("actionFitMainImage");
+  m_FitTargetActions[FIT_SEGMENTATION]->setObjectName("actionFitSegmentation");
+  for(int t = 0; t < m_FitTargetActions.size(); t++)
+    {
+    m_FitTargetActions[t]->setCheckable(true);
+    connect(m_FitTargetActions[t], &QAction::triggered, this, [this, t]() {
+      m_GlobalUI->GetSliceCoordinator()->ResetViewToFitInOneWindow(m_Index, (ZoomFitTarget) t);
+      });
+    }
+  zoom_menu->addSeparator();
+  m_CenterViewAction = zoom_menu->addAction(tr("Center View on Cursor"));
+  m_CenterViewAction->setObjectName("actionCenterViewOnCursor");
+  connect(m_CenterViewAction, &QAction::triggered, this, [this]() {
+    m_SliceModel->CenterViewOnCursor();
+    });
+  zoom_menu->addAction(FindUpstreamAction(this, "actionCursorReset"));
+  zoom_menu->addAction(FindUpstreamAction(this, "actionResetView"));
+  connect(zoom_menu, &QMenu::aboutToShow, this, &SliceViewPanel::UpdateZoomMenu);
+  ui->btnZoomToFit->setMenu(zoom_menu);
+  ui->btnZoomToFit->setPopupMode(QToolButton::MenuButtonPopup);
+
   // Initialize the interaction modes
   m_DelegateChain->SetModel(model, index);
 
@@ -538,6 +574,27 @@ void SliceViewPanel::OnToolbarModeChange()
 void SliceViewPanel::on_btnZoomToFit_clicked()
 {
   m_GlobalUI->GetSliceCoordinator()->ResetViewToFitInOneWindow(m_Index);
+}
+
+void SliceViewPanel::UpdateZoomMenu()
+{
+  // Only the targets that look different in this view can be picked, and the
+  // one that the view shows now is checked
+  bool have_main = m_GlobalUI->GetDriver()->IsMainImageLoaded();
+  std::vector<ZoomFitTarget> targets;
+  if(have_main)
+    targets = m_SliceModel->GetDistinctFitTargets();
+
+  const auto &shown = m_SliceModel->GetOptimalView(m_SliceModel->GetFitTarget());
+  for(int t = 0; t < m_FitTargetActions.size(); t++)
+    {
+    bool distinct = std::find(targets.begin(), targets.end(), (ZoomFitTarget) t) != targets.end();
+    m_FitTargetActions[t]->setEnabled(distinct);
+    m_FitTargetActions[t]->setChecked(
+          distinct && m_SliceModel->GetViewIsFit() &&
+          m_SliceModel->GetOptimalView((ZoomFitTarget) t).SameInPlane(shown));
+    }
+  m_CenterViewAction->setEnabled(have_main);
 }
 
 void SliceViewPanel::onContextMenu()
