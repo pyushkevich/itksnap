@@ -642,10 +642,19 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Going back and forward through the cursor history uses the standard
   // shortcuts of the platform (Cmd-[ and Cmd-] on the Mac, Alt+Left and
-  // Alt+Right elsewhere)
+  // Alt+Right elsewhere). On Windows, Qt also includes Backspace and
+  // Shift+Backspace, but Backspace is used to delete the last point of a
+  // polygon, so we leave those out
+  auto without_backspace = [](QKeySequence::StandardKey key) {
+    QList<QKeySequence> keys;
+    for(const QKeySequence &ks : QKeySequence::keyBindings(key))
+      if(ks.count() > 0 && ks[0].key() != Qt::Key_Backspace)
+        keys << ks;
+    return keys;
+  };
   CursorHistoryModel *chm = m_Model->GetCursorHistoryModel();
-  ui->actionCursorBack->setShortcuts(QKeySequence::Back);
-  ui->actionCursorForward->setShortcuts(QKeySequence::Forward);
+  ui->actionCursorBack->setShortcuts(without_backspace(QKeySequence::Back));
+  ui->actionCursorForward->setShortcuts(without_backspace(QKeySequence::Forward));
   UpdateIconsForColorScheme();
   activateOnFlag(ui->actionCursorBack, chm, CursorHistoryModel::UIF_CAN_GO_BACK);
   activateOnFlag(ui->actionCursorForward, chm, CursorHistoryModel::UIF_CAN_GO_FORWARD);
