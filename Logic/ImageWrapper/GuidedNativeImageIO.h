@@ -215,6 +215,20 @@ public:
   bool IsNativeImageLoaded() const
     { return m_NativeImage.IsNotNull(); }
 
+  /**
+   * Whether the DICOM series whose header was read last has slice positions
+   * that do not all hold the same number of images. It is then read as one
+   * image per position, in file name order (#202).
+   */
+  bool IsDICOMNonUniformImagesPerPosition() const
+    { return m_DICOMNonUniformImagesPerIPP; }
+
+  /** For such a series: the number of images and of distinct positions */
+  int GetDICOMNumberOfImages() const
+    { return (int) m_DICOMFiles.size(); }
+  int GetDICOMNumberOfPositions() const
+    { return m_DICOMNumberOfPositions; }
+
   /** 
    * Save the native image it its native format (to a different location and
    * filename, presumably). This function is not meant as part of the normal
@@ -457,7 +471,12 @@ protected:
   std::vector<std::string> m_DICOMFiles;
 
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
-  int m_DICOMImagesPerIPP;
+  int m_DICOMImagesPerIPP = 1;
+
+  // Whether the positions in the DICOM series hold different numbers of
+  // images, and how many positions there are
+  bool m_DICOMNonUniformImagesPerIPP = false;
+  int m_DICOMNumberOfPositions = 0;
 
   // original ncomp after folding higher dimensions
   size_t m_NCompBeforeFolding;

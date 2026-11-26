@@ -492,6 +492,9 @@ GuidedNativeImageIO
 	if (progressCmd == nullptr)
 		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
 
+  m_DICOMNonUniformImagesPerIPP = false;
+  m_DICOMNumberOfPositions = 0;
+
 
   // Save the hints
   m_Hints = folder;
@@ -566,6 +569,8 @@ GuidedNativeImageIO
 			// we only have it parse the filenames for the current SeriesId
 			ExtendedGDCMSerieHelper helper;
 			helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
+			m_DICOMNonUniformImagesPerIPP = helper.IsNonUniformImagesPerIPP();
+			m_DICOMNumberOfPositions = helper.GetNumberOfPositions();
 
 			m_IOBase->SetFileName(m_DICOMFiles[0]);
 

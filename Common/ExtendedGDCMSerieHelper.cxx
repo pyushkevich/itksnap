@@ -52,6 +52,8 @@ void ExtendedGDCMSerieHelper
 
   // Typically there will be just one image per ipp
   n_images_per_ipp = 1;
+  m_NonUniformImagesPerIPP = false;
+  m_NumberOfPositions = 0;
 
   for(int i = 0; i < files.size(); i++)
     this->AddFileName(files[i]);
@@ -67,6 +69,15 @@ void ExtendedGDCMSerieHelper
   if (!IPPMultiOrdering( flist, n_images_per_ipp))
     {
     this->FileNameOrdering(flist );
+
+    // If the positions do not all have the same number of images, read the
+    // series as one image per position, in file name order. Otherwise the
+    // reader is asked for -1 images per position (#202)
+    if (n_images_per_ipp < 1)
+      {
+      n_images_per_ipp = 1;
+      m_NonUniformImagesPerIPP = true;
+      }
     }
 
   files.clear();
@@ -174,13 +185,19 @@ ExtendedGDCMSerieHelper
       }
     else if(count != n_images_per_ipp)
       {
-      gdcmErrorMacro("Non-uniform number of images per IPP");
+      gdcmWarningMacro("Non-uniform number of images per IPP");
       ok = false;
       break;
       }
     }
   if (!ok)
     {
+    // Count the positions, for the warning shown to the user
+    m_NumberOfPositions = 0;
+    for (auto it4 = distmultimap.begin(); it4 != distmultimap.end();
+         it4 = distmultimap.upper_bound(it4->first))
+      m_NumberOfPositions++;
+
     n_images_per_ipp = -1;
     return false;
     }

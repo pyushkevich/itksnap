@@ -48,7 +48,20 @@ public:
 
   void SetFilesAndOrder(std::vector<std::string> &files, int &n_images_per_ipp);
 
+  /**
+   * Whether the slice positions in the last series ordered do not all have the
+   * same number of images (#202). Such a series is read as one image per
+   * position, in file name order.
+   */
+  bool IsNonUniformImagesPerIPP() const { return m_NonUniformImagesPerIPP; }
+
+  /** Number of distinct slice positions in the last series ordered */
+  int GetNumberOfPositions() const { return m_NumberOfPositions; }
+
 protected:
+  bool m_NonUniformImagesPerIPP = false;
+  int m_NumberOfPositions = 0;
+
   bool IPPMultiOrdering(gdcm::FileList *fileList, int &n_images_per_ipp);
 
   static bool FileNameSortPredicate(
