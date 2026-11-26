@@ -76,22 +76,46 @@ void CursorHistoryModel::OnCursorChange()
   if(m_Navigating || m_Suspended || !app->IsMainImageLoaded())
     return;
 
-  // The event is also fired when the cursor does not actually move
+  // How the cursor is being changed (as part of a drag, or not)
+  auto kind = app->GetCursorChangeKind();
   Entry place = GetCurrentPlace();
   double now = m_Clock();
-  if(m_Index >= 0 && IsSamePlace(place, m_Entries[m_Index]))
-    return;
 
-  // If the cursor is still moving (being dragged, or the user is scrolling),
-  // update the newest entry. Otherwise this is a new place
+  // The event is also fired when the cursor does not actually move, e.g., at
+  // the end of a drag, which still closes the entry for the drag
+  if(m_Index >= 0 && IsSamePlace(place, m_Entries[m_Index]))
+    {
+    if(kind == IRISApplication::CURSOR_DRAG_END)
+      m_EntryOpen = false;
+    return;
+    }
+
+  // The newest entry is updated while a drag goes on, and while the cursor
+  // keeps being moved in quick succession (scrolling, arrow keys). A drag that
+  // starts, or a jump, is always a new place
   bool at_newest = m_Index == (int) m_Entries.size() - 1;
-  bool keeps_moving = m_PointerDown || now - m_LastChangeTime < PAUSE_SECONDS;
-  if(m_Index >= 0 && at_newest && m_EntryOpen && keeps_moving)
+  bool can_update = m_Index >= 0 && at_newest && m_EntryOpen;
+  bool update = false;
+  switch(kind)
+    {
+    case IRISApplication::CURSOR_DRAG:
+    case IRISApplication::CURSOR_DRAG_END:
+      update = can_update;
+      break;
+    case IRISApplication::CURSOR_MOVE:
+      update = can_update && now - m_LastChangeTime < PAUSE_SECONDS;
+      break;
+    default:
+      break;
+    }
+
+  if(update)
     m_Entries[m_Index] = place;
   else
     AddCurrentPlace();
 
-  m_EntryOpen = true;
+  // The entry stays open for more changes, unless the drag or jump is over
+  m_EntryOpen = (kind != IRISApplication::CURSOR_DRAG_END && kind != IRISApplication::CURSOR_JUMP);
   m_LastChangeTime = now;
   this->InvokeEvent(StateMachineChangeEvent());
 }
@@ -118,13 +142,6 @@ void CursorHistoryModel::On4DReplayChange()
     this->OnCursorChange();
     m_EntryOpen = false;
     }
-}
-
-void CursorHistoryModel::SetPointerDown(bool down)
-{
-  // A new click starts a new entry, and releasing the button ends the drag
-  m_PointerDown = down;
-  m_EntryOpen = false;
 }
 
 void CursorHistoryModel::GoTo(int index)

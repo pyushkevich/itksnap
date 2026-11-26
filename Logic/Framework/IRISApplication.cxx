@@ -829,10 +829,14 @@ IRISApplication ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 }
 
 void
-IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force)
+IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force, CursorChangeKind kind)
 {
-  // Cursor position is handled through ImageData
-  this->GetCurrentImageData()->SetCursorPosition(cursor, force);
+  // The kind of change is available to listeners while the cursor update event
+  // is fired. The end of a drag is usually at the same position as its last
+  // step, so the event is forced, or else the end of the drag would go unseen
+  m_CursorChangeKind = kind;
+  this->GetCurrentImageData()->SetCursorPosition(cursor, force || kind == CURSOR_DRAG_END);
+  m_CursorChangeKind = CURSOR_MOVE;
 }
 
 Vector3i

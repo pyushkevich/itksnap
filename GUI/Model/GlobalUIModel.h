@@ -66,6 +66,7 @@ class PaintbrushSettingsModel;
 class PolygonSettingsModel;
 class LayerGeneralPropertiesModel;
 class SynchronizationModel;
+class CursorHistoryModel;
 class SnakeParameterModel;
 class MeshExportModel;
 class MeshImportModel;
@@ -232,6 +233,9 @@ public:
 
   /** Model for multi-session sync */
   irisGetMacro(SynchronizationModel, SynchronizationModel *)
+
+  /** The history of cursor positions, for the back/forward/reset buttons */
+  irisGetMacro(CursorHistoryModel, CursorHistoryModel *)
 
   /** Model for snake parameter editing */
   irisGetMacro(SnakeParameterModel, SnakeParameterModel *)
@@ -459,6 +463,9 @@ protected:
 
   // Synchronization
   SmartPtr<SynchronizationModel> m_SynchronizationModel;
+
+  // History of cursor positions
+  SmartPtr<CursorHistoryModel> m_CursorHistoryModel;
 
   // Snake parameters
   SmartPtr<SnakeParameterModel> m_SnakeParameterModel;

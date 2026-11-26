@@ -25,6 +25,7 @@
 =========================================================================*/
 
 #include "GlobalUIModel.h"
+#include "CursorHistoryModel.h"
 
 #include <IRISException.h>
 #include <IRISApplication.h>
@@ -205,6 +206,10 @@ GlobalUIModel::GlobalUIModel()
   // Synchronization model
   m_SynchronizationModel = SynchronizationModel::New();
   m_SynchronizationModel->SetParentModel(this);
+
+  // Cursor history model
+  m_CursorHistoryModel = CursorHistoryModel::New();
+  m_CursorHistoryModel->SetParentModel(this);
 
   // Snake parameter model
   m_SnakeParameterModel = SnakeParameterModel::New();

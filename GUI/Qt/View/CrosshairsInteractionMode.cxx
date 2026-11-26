@@ -103,7 +103,7 @@ void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
     // Use model to envoke event
     if(btn == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]), IRISApplication::CURSOR_DRAG_START);
       }
     else if(btn == m_BtnZoom)
       {
@@ -129,7 +129,7 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 
     if(m_LastPressEmulatedButton == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]), IRISApplication::CURSOR_DRAG);
       }
     else if(m_LastPressEmulatedButton == m_BtnZoom)
       {
@@ -160,7 +160,7 @@ void CrosshairsInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     {
       if(btn == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]), IRISApplication::CURSOR_DRAG_END);
       }
     else if(btn == m_BtnZoom)
       {

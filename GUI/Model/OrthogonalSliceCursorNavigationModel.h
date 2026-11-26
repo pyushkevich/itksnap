@@ -29,6 +29,7 @@
 
 #include <SNAPCommon.h>
 #include "AbstractModel.h"
+#include "IRISApplication.h"
 
 class GenericSliceModel;
 
@@ -41,8 +42,10 @@ public:
   irisSetMacro(Parent, GenericSliceModel *)
   irisGetMacro(Parent, GenericSliceModel *)
 
-  // Move 3D cursor to (x,y) point on the screen supplied by user
-  void UpdateCursor(Vector2d x);
+  // Move 3D cursor to (x,y) point on the screen supplied by user. The kind of
+  // change tells the cursor history whether this is part of a drag
+  void UpdateCursor(Vector2d x,
+                    IRISApplication::CursorChangeKind kind = IRISApplication::CURSOR_MOVE);
 
   // Start zoom operation
   void BeginZoom();

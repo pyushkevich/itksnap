@@ -33,7 +33,8 @@
 #include "SliceWindowCoordinator.h"
 #include "ImageCoordinateTransform.h"
 
-void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x)
+void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x,
+                                                        IRISApplication::CursorChangeKind kind)
 {
   // Compute the position in slice coordinates
   Vector3d xClick = m_Parent->MapWindowToSlice(x);
@@ -60,7 +61,7 @@ void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x)
   */
 
   // Update the crosshairs position in the global state
-  m_Parent->GetDriver()->SetCursorPosition(xCrossClamped);
+  m_Parent->GetDriver()->SetCursorPosition(xCrossClamped, false, kind);
 }
 
 void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)

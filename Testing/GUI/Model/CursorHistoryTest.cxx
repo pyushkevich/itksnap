@@ -103,25 +103,29 @@ int main(int argc, char *argv[])
     check(!hist->CheckState(CHM::UIF_CAN_GO_BACK) && !hist->CheckState(CHM::UIF_CAN_GO_FORWARD),
           "there is nowhere to go back or forward to");
 
+    // The drag kinds, as passed by the crosshairs interaction mode
+    const auto START = IRISApplication::CURSOR_DRAG_START;
+    const auto DRAG = IRISApplication::CURSOR_DRAG;
+    const auto END = IRISApplication::CURSOR_DRAG_END;
+
     std::cout << "A drag" << std::endl;
     now += 5;
-    hist->SetPointerDown(true);
+    driver->SetCursorPosition(Vector3i(5, 10, 10), false, START);
     for (int i = 1; i <= 10; i++)
     {
       now += 0.02;
-      driver->SetCursorPosition(Vector3i(5 + i, 10, 10));
+      driver->SetCursorPosition(Vector3i(5 + i, 10, 10), false, DRAG);
     }
     now += 3;   // holding the button still, then moving on, is the same drag
-    driver->SetCursorPosition(Vector3i(16, 10, 10));
-    hist->SetPointerDown(false);
+    driver->SetCursorPosition(Vector3i(16, 10, 10), false, DRAG);
+    driver->SetCursorPosition(Vector3i(16, 10, 10), false, END);
     check(hist->GetNumberOfEntries() == 2, "a drag makes one place (" +
                                              std::to_string(hist->GetNumberOfEntries()) + " in all)");
 
     std::cout << "Clicks and scrolling" << std::endl;
     now += 0.2;   // a click right after the drag is a new place
-    hist->SetPointerDown(true);
-    driver->SetCursorPosition(Vector3i(20, 20, 20));
-    hist->SetPointerDown(false);
+    driver->SetCursorPosition(Vector3i(20, 20, 20), false, START);
+    driver->SetCursorPosition(Vector3i(20, 20, 20), false, END);
     check(hist->GetNumberOfEntries() == 3, "a new click is a new place, even right away");
 
     now += 2;
@@ -180,6 +184,26 @@ int main(int argc, char *argv[])
     check(hist->GetNumberOfEntries() == 6, "Reset is a new place");
     hist->GoBack();
     check(driver->GetCursorPosition() == Vector3i(1, 2, 3), "Back returns from Reset");
+
+    std::cout << "Clicks, scrolling and jumps" << std::endl;
+    now += 2;
+    driver->SetCursorPosition(Vector3i(25, 25, 25), false, START);
+    driver->SetCursorPosition(Vector3i(25, 25, 25), false, END);
+    unsigned int n = hist->GetNumberOfEntries();
+    now += 0.1;   // scrolling right after a click is not part of the click
+    driver->SetCursorPosition(Vector3i(25, 25, 26));
+    now += 0.1;
+    driver->SetCursorPosition(Vector3i(25, 25, 27));
+    check(hist->GetNumberOfEntries() == n + 1, "scrolling right after a click is one new place");
+    now += 0.1;   // a jump, like a click in the 3D view, is a new place right away
+    driver->SetCursorPosition(Vector3i(3, 3, 3), false, IRISApplication::CURSOR_JUMP);
+    check(hist->GetNumberOfEntries() == n + 2, "a jump is a new place, even right after a move");
+    now += 0.1;   // and a move right after a jump is a new place too
+    driver->SetCursorPosition(Vector3i(3, 3, 4));
+    check(hist->GetNumberOfEntries() == n + 3, "a move right after a jump is a new place");
+    hist->GoBack();
+    hist->GoBack();
+    check(driver->GetCursorPosition() == Vector3i(25, 25, 27), "Back twice returns to the end of the scroll");
 
     std::cout << "Size limit" << std::endl;
     for (int i = 0; i < 80; i++)

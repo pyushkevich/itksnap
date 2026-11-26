@@ -15,13 +15,13 @@ class GlobalUIModel;
   the cursor coordinates.
 
   We don't want every intermediate position recorded when the user drags the
-  cursor or scrolls through slices. So the last entry keeps getting updated
-  while the cursor is moving, and a new entry is only created after the mouse
-  button is released, or after the cursor has been still for a second. We also
-  don't record anything while 4D replay is running.
+  cursor or scrolls through slices. When the cursor is dragged, the code that
+  moves it tells IRISApplication::SetCursorPosition where the drag starts and
+  ends, and the whole drag becomes one entry. Other moves, like scrolling or
+  using the arrow keys, keep updating the last entry until the cursor has been
+  still for a second. We also don't record anything while 4D replay is running.
 
-  The history is cleared when a new main image is loaded. The UI should call
-  SetPointerDown when the mouse button is pressed and released in the views.
+  The history is cleared when a new main image is loaded.
   */
 class CursorHistoryModel : public AbstractModel
 {
@@ -53,15 +53,6 @@ public:
 
   /** Move the cursor to the center of the main image */
   void Reset();
-
-  /** The UI calls this when the mouse button is pressed or released in a view */
-  void SetPointerDown(bool down);
-
-  /**
-    Make the next cursor change start a new entry, even if it comes right
-    after the last one. Use this before jumping to a new position.
-    */
-  void CloseCurrentEntry() { m_EntryOpen = false; }
 
   /** How long the cursor has to be still before a move starts a new entry */
   static constexpr double PAUSE_SECONDS = 1.0;
@@ -116,9 +107,8 @@ protected:
   // Whether cursor changes may still update the newest entry
   bool m_EntryOpen = false;
 
-  // Whether the mouse button is down, whether we are moving the cursor
-  // ourselves, and whether 4D replay is running
-  bool m_PointerDown = false, m_Navigating = false, m_Suspended = false;
+  // Whether we are moving the cursor ourselves, and whether 4D replay is running
+  bool m_Navigating = false, m_Suspended = false;
 
   // Time of the last cursor change
   double m_LastChangeTime = 0.0;
