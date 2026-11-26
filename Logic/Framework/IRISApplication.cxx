@@ -829,16 +829,42 @@ IRISApplication ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 }
 
 void
-IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force)
+IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force, CursorChangeKind kind)
 {
-  // Cursor position is handled through ImageData
-  this->GetCurrentImageData()->SetCursorPosition(cursor, force);
+  // The kind of change is available to listeners while the cursor update event
+  // is fired. The end of a drag is usually at the same position as its last
+  // step, so the event is forced, or else the end of the drag would go unseen
+  m_CursorChangeKind = kind;
+  this->GetCurrentImageData()->SetCursorPosition(cursor, force || kind == CURSOR_DRAG_END);
+  m_CursorChangeKind = CURSOR_MOVE;
 }
 
 Vector3i
 IRISApplication ::GetCursorPosition() const
 {
   return this->GetCurrentImageData()->GetCursorPosition();
+}
+
+void
+IRISApplication ::ResetCursorPosition()
+{
+  // The center voxel of the main image. The cursor is in the voxel grid of the
+  // reference space (the active segmentation), which may differ from that of
+  // the main image, so the center is mapped to that grid
+  GenericImageData *gid = this->GetCurrentImageData();
+  ImageWrapperBase *main = gid->GetMain();
+  itk::ContinuousIndex<double, 3> center_main, center_ref;
+  for(unsigned int d = 0; d < 3; d++)
+    center_main[d] = main->GetSize()[d] / 2;
+  main->TransformWrappedImageCIndexToReferenceCIndex(center_main, center_ref);
+
+  // Round to the nearest voxel, keeping it within the extent of all layers
+  auto fe_region = gid->GetFullExtentImageRegion();
+  Vector3i cursor;
+  for(unsigned int d = 0; d < 3; d++)
+    cursor[d] = (int) std::floor(center_ref[d] + 0.5);
+  cursor = cursor.clamp(Vector3i(fe_region.GetIndex()), Vector3i(fe_region.GetUpperIndex()));
+  gid->SetCursorPosition(cursor);
 }
 
 void
@@ -1632,6 +1658,11 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(m_IRISImageData->GetReferenceSpace()->GetBufferedRegion());
 
+  // Put the crosshairs at the center of the image. This comes before the
+  // project-level settings are read, which may move them to where the user
+  // left the image (#157)
+  this->ResetCursorPosition();
+
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
 
@@ -1639,9 +1670,6 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // allowed, so we force override
   if (layer->IsSticky())
     layer->SetSticky(false);
-
-  // Update the crosshairs position to the center of the image
-  this->SetCursorPosition(to_int(layer->GetSize()) / 2);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
@@ -2513,6 +2541,13 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   if (!active_seg_id)
     active_seg_id = m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId();
   m_GlobalState->SetSelectedSegmentationLayerId(active_seg_id);
+
+  // The cursor was restored when the main image was loaded, but in the voxel
+  // grid of the main image. The active segmentation may have a finer grid,
+  // so we restore the cursor again now that it defines the grid
+  m_CursorChangeKind = CURSOR_LOAD;
+  SNAPRegistryIO().ReadCursorPosition(preg.Folder("Layers.Layer[000].ProjectMetaData"), this);
+  m_CursorChangeKind = CURSOR_MOVE;
 
   // Save the project filename (proj_file_full is the remote URL for remote
   // workspaces, or the collapsed local path for local ones)

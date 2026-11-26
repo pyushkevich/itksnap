@@ -63,6 +63,14 @@ public:
     bool restoreLabels, bool restorePreprocessing,
     bool restoreParameters, bool restoreDisplayOptions);
 
+  /** Restore the cursor position and time point saved with the settings of
+   * the greyscale image (#157). This is done by ReadImageAssociatedSettings,
+   * but a workspace calls it again once all of its layers are loaded, since
+   * the active segmentation may have a finer grid than the main image. Does
+   * nothing if the settings belong to another image or restoring the cursor
+   * is turned off in the preferences */
+  void ReadCursorPosition(Registry &registry, IRISApplication *app);
+
   /** Read snake parameters from a registry */
   SnakeParameters ReadSnakeParameters(
     Registry &registry,const SnakeParameters &defaultSet);

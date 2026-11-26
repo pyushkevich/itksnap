@@ -64,6 +64,9 @@ private slots:
 private slots:
   void on_btnZoomToFit_clicked();
 
+  // Update the menu of the zoom to fit button before it is shown
+  void UpdateZoomMenu();
+
   void onModelUpdate(const EventBucket &eb);
 
   void OnToolbarModeChange();
@@ -99,6 +102,11 @@ private:
 
   // Popup menus used for polygon operations
   QMenu *m_MenuPolyInactive, *m_MenuPolyEditing, *m_MenuPolyDrawing;
+
+  // Items of the zoom to fit menu: one for each fit target (indexed by
+  // ZoomFitTarget), and the one that centers this view on the cursor
+  QList<QAction *> m_FitTargetActions;
+  QAction *m_CenterViewAction = nullptr;
 
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;

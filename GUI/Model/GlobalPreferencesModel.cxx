@@ -233,9 +233,9 @@ void GlobalPreferencesModel::ResetTabToDefaults(PreferencesTab tab)
     {
     case TAB_DEFAULT_BEHAVIOR:
       m_DefaultBehaviorSettings->DeepCopyProperties(
-            dbs, { "UILanguage", "AutoContrast", "HideFileExtensions", "LinkedZoom",
+            dbs, { "UILanguage", "AutoContrast", "RestoreCursor", "HideFileExtensions", "LinkedZoom",
                    "ContinuousMeshUpdate", "Synchronization", "SyncCursor", "SyncZoom",
-                   "SyncPan" });
+                   "SyncPan", "FollowSyncOnOpen" });
       break;
     case TAB_SLICE_VIEWS_DISPLAY:
       m_GlobalDisplaySettings->DeepCopyProperties(

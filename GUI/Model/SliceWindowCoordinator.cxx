@@ -356,8 +356,18 @@ SliceWindowCoordinator
   assert(m_WindowsRegistered);
 
   // Fit the next target in this window
+  this->ResetViewToFitInOneWindow(window, m_SliceModel[window]->GetNextFitTarget());
+}
+
+void
+SliceWindowCoordinator
+::ResetViewToFitInOneWindow(unsigned int window, ZoomFitTarget target)
+{
+  // Only if initialized
+  assert(m_WindowsRegistered);
+
+  // Fit the target in this window
   GenericSliceModel *sm = m_SliceModel[window];
-  ZoomFitTarget target = sm->GetNextFitTarget();
   sm->ResetViewToFit(target);
 
   // Reset zoom to fit in the current window

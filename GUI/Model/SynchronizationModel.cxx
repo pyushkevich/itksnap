@@ -10,6 +10,8 @@
 #include "Generic3DModel.h"
 #include "Generic3DRenderer.h"
 #include "IPCHandler.h"
+#include "GlobalState.h"
+#include "DefaultBehaviorSettings.h"
 #include <chrono>
 #include <itksys/SystemTools.hxx>
 
@@ -209,8 +211,10 @@ SynchronizationModel::OnUpdate()
         : "ITK-SNAP";
       m_IPCHandler->ClaimSlot(title.c_str());
 
-      // If we joined an existing sync session, read its state immediately.
-      if (status == IPCHandler::IPC_ATTACHED && have_main && do_sync)
+      // If we joined an existing sync session with an image already loaded,
+      // read its state immediately. An image loaded in this update joins below
+      if (status == IPCHandler::IPC_ATTACHED && have_main && do_sync && !bc_main_update &&
+          app->GetGlobalState()->GetDefaultBehaviorSettings()->GetFollowSyncOnOpen())
         ReadIPCState(false);
     }
   }
@@ -229,6 +233,18 @@ SynchronizationModel::OnUpdate()
   // sync messages — but stay attached for directory purposes.
   if (!do_sync || !have_main)
     return;
+
+  // A newly loaded main image joins the position shared by the other windows,
+  // if any (and if it is inside the image), rather than moving them to its own:
+  // loading an image is not a navigation, so nothing is broadcast for the
+  // update in which it was loaded (#157)
+  if (bc_main_update)
+  {
+    if (m_IPCHandler->IsAttached() &&
+        app->GetGlobalState()->GetDefaultBehaviorSettings()->GetFollowSyncOnOpen())
+      ReadIPCState(false);
+    return;
+  }
 
   // If we reached this point, either there has not been a change in main image and
   // not a change in sync state; or a main image has been loaded, but shared memory
@@ -405,6 +421,17 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
   IPCMessage message;
   bool       rc = only_read_new ? m_IPCHandler->ReadIfNew(static_cast<void *>(&message))
                                 : m_IPCHandler->Read(static_cast<void *>(&message));
+
+  // The full shared state is only applied when another running ITK-SNAP
+  // shared it. Otherwise it may be this window's own state from before it
+  // loaded another image, or that of a window that has been closed
+  if (rc && !only_read_new && !m_IPCHandler->IsLastMessageFromOtherInstance())
+  {
+    if (m_DebugSync)
+      cout << "  Not joining the shared state: it was not shared by another running ITK-SNAP"
+           << endl;
+    return;
+  }
 
   if (m_DebugSync && rc)
   {

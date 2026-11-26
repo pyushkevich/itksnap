@@ -542,6 +542,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/AnnotationModel.cxx
   GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorMapModel.cxx
+  GUI/Model/CursorHistoryModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DeepLearningSegmentationModel.cxx
   GUI/Model/DeformationGridModel.cxx
@@ -623,6 +624,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/AnnotationModel.h
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelQuickListModel.h
+  GUI/Model/CursorHistoryModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DeepLearningSegmentationModel.h
   GUI/Model/DeformationGridModel.h
@@ -757,6 +759,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQtCommonTranslations.cxx
   GUI/Qt/Components/SegmentationAutosave.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/SplitToolButton.cxx
   GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
   GUI/Qt/Components/TagListWidget.cxx
@@ -866,6 +869,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SegmentationAutosave.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/SplitToolButton.h
   GUI/Qt/Components/SNAPQtCommonTranslations.h
   GUI/Qt/Components/SSHTunnelWorkerThread.h
   GUI/Qt/Components/SynchronizationInspector.h
@@ -1425,6 +1429,7 @@ SET(GUI_TESTS
   MCTo4D
   DeformationGrid
   ZoomToFitCycle
+  CursorNavigation
   SnakeROIPanel
   ReloadSegmentation
   AdaptiveBrush
@@ -2229,6 +2234,22 @@ TARGET_LINK_LIBRARIES(FreeRotationOverlayTest ${SNAP_EXTERNAL_LIBS} itksnapui_mo
 TARGET_INCLUDE_DIRECTORIES(FreeRotationOverlayTest PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME FreeRotationOverlay COMMAND FreeRotationOverlayTest ${TEMP})
+
+# Test: images and workspaces reopen at the saved cursor and time point (#157)
+ADD_EXECUTABLE(CursorRestoreTest
+    Testing/GUI/Model/CursorRestoreTest.cxx)
+TARGET_LINK_LIBRARIES(CursorRestoreTest ${SNAP_EXTERNAL_LIBS} itksnapui_model itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(CursorRestoreTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME CursorRestore COMMAND CursorRestoreTest ${TESTDATA_DIR} ${TEMP})
+
+# Test: the history of cursor places for Back, Forward and Reset (#157)
+ADD_EXECUTABLE(CursorHistoryTest
+    Testing/GUI/Model/CursorHistoryTest.cxx)
+TARGET_LINK_LIBRARIES(CursorHistoryTest ${SNAP_EXTERNAL_LIBS} itksnapui_model itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(CursorHistoryTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME CursorHistory COMMAND CursorHistoryTest ${TESTDATA_DIR} ${TEMP})
 
 # SSH tunnel test
 SET(SSH_TUNNEL_TEST_CXX

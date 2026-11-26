@@ -60,6 +60,7 @@
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
+#include "CursorHistoryModel.h"
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "LabelEditorModel.h"
@@ -638,6 +639,27 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionCenter_on_Cursor, m_Model, UIF_BASEIMG_LOADED);
+
+  // Going back and forward through the cursor history uses the standard
+  // shortcuts of the platform (Cmd-[ and Cmd-] on the Mac, Alt+Left and
+  // Alt+Right elsewhere). On Windows, Qt also includes Backspace and
+  // Shift+Backspace, but Backspace is used to delete the last point of a
+  // polygon, so we leave those out
+  auto without_backspace = [](QKeySequence::StandardKey key) {
+    QList<QKeySequence> keys;
+    for(const QKeySequence &ks : QKeySequence::keyBindings(key))
+      if(ks.count() > 0 && ks[0].key() != Qt::Key_Backspace)
+        keys << ks;
+    return keys;
+  };
+  CursorHistoryModel *chm = m_Model->GetCursorHistoryModel();
+  ui->actionCursorBack->setShortcuts(without_backspace(QKeySequence::Back));
+  ui->actionCursorForward->setShortcuts(without_backspace(QKeySequence::Forward));
+  UpdateIconsForColorScheme();
+  activateOnFlag(ui->actionCursorBack, chm, CursorHistoryModel::UIF_CAN_GO_BACK);
+  activateOnFlag(ui->actionCursorForward, chm, CursorHistoryModel::UIF_CAN_GO_FORWARD);
+  activateOnFlag(ui->actionCursorReset, chm, CursorHistoryModel::UIF_CAN_RESET);
+  activateOnFlag(ui->actionResetView, chm, CursorHistoryModel::UIF_CAN_RESET);
   activateOnFlag(ui->actionZoom_to_100, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionZoom_to_200, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionZoom_to_400, m_Model, UIF_BASEIMG_LOADED);
@@ -1872,6 +1894,31 @@ void MainImageWindow::on_actionCenter_on_Cursor_triggered()
   m_Model->GetSliceCoordinator()->CenterViewOnCursorInAllWindows();
 }
 
+void MainImageWindow::on_actionCursorBack_triggered()
+{
+  m_Model->GetCursorHistoryModel()->GoBack();
+}
+
+void MainImageWindow::on_actionCursorForward_triggered()
+{
+  m_Model->GetCursorHistoryModel()->GoForward();
+}
+
+void MainImageWindow::on_actionCursorReset_triggered()
+{
+  m_Model->GetCursorHistoryModel()->Reset();
+}
+
+void MainImageWindow::on_actionResetView_triggered()
+{
+  // Go back to the view we get when the image is first loaded: the cursor in
+  // the center of the image, and all of the views zoomed to fit the whole
+  // scene. The time point and the 3D view are left as they are
+  m_Model->GetCursorHistoryModel()->Reset();
+  m_Model->GetSliceCoordinator()->ResetFitTargets();
+  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
+}
+
 void MainImageWindow::on_actionZoom_to_100_triggered()
 {
   m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(1);
@@ -2701,10 +2748,25 @@ void MainImageWindow::on_actionUnload_All_Overlays_triggered()
     }
 }
 
-void MainImageWindow::changeEvent(QEvent *)
+void MainImageWindow::changeEvent(QEvent *event)
 {
   if(m_Model)
     m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
+
+  if(event->type() == QEvent::PaletteChange)
+    UpdateIconsForColorScheme();
+}
+
+void MainImageWindow::UpdateIconsForColorScheme()
+{
+  // Some icons are dark grey and can hardly be seen in dark mode, so there are
+  // light versions of them too, which have "_dark" in the name
+  bool dark = this->palette().color(QPalette::Window).valueF() < 0.5;
+  QString suffix = dark ? "_dark" : "";
+
+  // Cursor Back and Forward chevrons
+  ui->actionCursorBack->setIcon(QIcon(QString(":/root/cursor_back%1_16.png").arg(suffix)));
+  ui->actionCursorForward->setIcon(QIcon(QString(":/root/cursor_forward%1_16.png").arg(suffix)));
 }
 
 void MainImageWindow::on_actionClose_Window_triggered()

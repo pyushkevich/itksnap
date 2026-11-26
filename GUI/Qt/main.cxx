@@ -17,6 +17,7 @@
 #include "SNAPQtCommon.h"
 #include "FileExistenceCache.h"
 #include "QtFrameBufferOpenGLWidget.h"
+#include "DefaultBehaviorSettings.h"
 #include "SNAPTestQt.h"
 #include "SegmentationAutosave.h"
 
@@ -40,6 +41,7 @@
 #include <QAction>
 #include <QShortcutEvent>
 #include <QStyleFactory>
+#include <QStyleHints>
 #include <QUrl>
 #include <QDir>
 #include <QFileSystemWatcher>
@@ -274,6 +276,7 @@ usage(const char *progname)
   cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
   cout << "   --geometry WxH+X+Y   : Initial geometry of the main window." << endl;
   cout << "   --lang <code>        : Set the language for the GUI to ISO 639-1 language code like 'es' or 'cn'" << endl;
+  cout << "   --color-scheme MODE  : Use the 'dark' or 'light' color scheme instead of the system's" << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -350,6 +353,9 @@ public:
 
   // GUI related
   std::string style = "fusion", cssfile;
+
+  // Color scheme (dark or light), if not the one of the system
+  std::string colorScheme;
 
   // OpenGL version preferred
   int  opengl_major = 1, opengl_minor = 3;
@@ -567,6 +573,8 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   parser.AddOption("--css", 1);
 
+  parser.AddOption("--color-scheme", 1);
+
   parser.AddOption("--scale", 1);
 
   parser.AddOption("--opengl", 2);
@@ -783,6 +791,16 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--css"))
     argdata.cssfile = parseResult.GetOptionParameter("--css");
+
+  if (parseResult.IsOptionPresent("--color-scheme"))
+  {
+    argdata.colorScheme = parseResult.GetOptionParameter("--color-scheme");
+    if (argdata.colorScheme != "dark" && argdata.colorScheme != "light")
+    {
+      cerr << "Unknown color scheme '" << argdata.colorScheme << "', use 'dark' or 'light'" << endl;
+      argdata.colorScheme.clear();
+    }
+  }
 
   if (parseResult.IsOptionPresent("--opengl"))
   {
@@ -1226,6 +1244,13 @@ main(int argc, char *argv[])
   // app.setAttribute(Qt::AA_UseDesktopOpenGL);
 
 
+  // Use a dark or light color scheme if asked, rather than the one of the
+  // system. This is handy for checking how things look in dark mode
+  if (argdata.colorScheme == "dark")
+    app.styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+  else if (argdata.colorScheme == "light")
+    app.styleHints()->setColorScheme(Qt::ColorScheme::Light);
+
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
   if (argdata.style != "fusion")
@@ -1466,6 +1491,12 @@ main(int argc, char *argv[])
 
     // Load the user preferences
     gui->LoadUserPreferences();
+
+    // Tests open images at their center: the cursor saved with an image comes
+    // from whatever last closed it, e.g., another test. A test may turn this
+    // back on; preferences are not saved in tests
+    if (!argdata.xTestId.empty())
+      gui->GetGlobalState()->GetDefaultBehaviorSettings()->SetRestoreCursor(false);
 
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();

@@ -199,6 +199,14 @@ private slots:
 
   void on_actionCenter_on_Cursor_triggered();
 
+  void on_actionCursorBack_triggered();
+
+  void on_actionCursorForward_triggered();
+
+  void on_actionCursorReset_triggered();
+
+  void on_actionResetView_triggered();
+
   void on_actionUndo_triggered();
 
   void on_actionRedo_triggered();
@@ -384,8 +392,12 @@ protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
 
-  // Change event (for tracking active / non-active window)
+  // Change event (for tracking active / non-active window, and dark mode)
   virtual void changeEvent(QEvent *);
+
+  // Pick the light or dark versions of icons that need them, depending on
+  // whether the palette is light or dark. Called when the palette changes
+  void UpdateIconsForColorScheme();
 
 private:
 

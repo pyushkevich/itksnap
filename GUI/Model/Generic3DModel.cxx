@@ -631,7 +631,8 @@ bool Generic3DModel::PickSegmentationVoxelAlongRay(const Vector3d &x_world, cons
     itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
     if(region.IsInside(to_itkIndex(cursor)))
       {
-      m_Driver->SetCursorPosition(cursor);
+      // A click in the 3D view is a jump to a new place in the cursor history
+      m_Driver->SetCursorPosition(cursor, false, IRISApplication::CURSOR_JUMP);
       return true;
       }
     }

@@ -87,6 +87,13 @@ public:
   /** Get the PID of last sender */
   long GetLastMessageSenderProcessID() { return m_LastSender; }
 
+  /**
+   * Whether the message read last was sent by another ITK-SNAP that is still
+   * running (and not, e.g., by this one before it loaded another image)
+   */
+  bool IsLastMessageFromOtherInstance()
+    { return m_LastSender != m_ProcessID && IsProcessRunning((int) m_LastSender); }
+
   /** Claim a slot in the instance directory, writing our PID and title. */
   void ClaimSlot(const char *title);
 

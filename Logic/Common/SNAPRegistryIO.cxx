@@ -39,6 +39,7 @@
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
 #include "HistoryManager.h"
+#include "DefaultBehaviorSettings.h"
 #include <algorithm>
 #include <vector>
 #include <string>
@@ -280,8 +281,12 @@ SNAPRegistryIO
 
   // Write file related information
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
-  registry["Files.Grey.Dimensions"] << 
-    to_int(app->GetIRISImageData()->GetReferenceSpaceSize());
+  // The dimensions are those of the main image, not of the reference space,
+  // since the settings are read back when the main image is loaded, before
+  // the segmentation that defines the reference space
+  if (app->GetIRISImageData()->IsMainLoaded())
+    registry["Files.Grey.Dimensions"] <<
+      to_int(app->GetIRISImageData()->GetMain()->GetSize());
 
   // Write information about the current label state
   registry["IRIS.LabelState.DrawingLabel"] << 
@@ -307,6 +312,15 @@ SNAPRegistryIO
   // Write the tiling state
   registry["IRIS.SliceViewLayerLayout"].PutEnum(
         GetEnumMapLayerLayout(), gs->GetSliceViewLayerLayout());
+
+  // Write where the user is in the image: the cursor position, in RAS
+  // coordinates so that it does not depend on the voxel grid of the reference
+  // space, and the time point (#157)
+  if(app->GetIRISImageData()->IsMainLoaded())
+    {
+    registry["IRIS.Cursor.PositionRAS"] << app->GetIRISImageData()->GetCursorPositionRAS();
+    registry["IRIS.Cursor.TimePoint"] << (int) app->GetIRISImageData()->GetCursorTimePoint();
+    }
 }
 
 bool 
@@ -325,7 +339,7 @@ SNAPRegistryIO
   if(registry.HasEntry("Files.Grey.Dimensions"))
     {
     Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
-    if(dims != to_int(app->GetIRISImageData()->GetReferenceSpaceSize()))
+    if(dims != to_int(app->GetIRISImageData()->GetMain()->GetSize()))
       return false;
     }
 
@@ -409,8 +423,35 @@ SNAPRegistryIO
   app->GetSystemInterface()->GetHistoryManager()->LoadLocalHistory(
         registry.Folder("IOHistory"));
 
+  // Return to where the user was in the image
+  ReadCursorPosition(registry, app);
+
   // Done!
   return true;
+}
+
+void SNAPRegistryIO
+::ReadCursorPosition(Registry &registry, IRISApplication *app)
+{
+  // The settings must be for the image that is loaded, as above
+  GenericImageData *gid = app->GetIRISImageData();
+  if(registry.HasEntry("Files.Grey.Dimensions"))
+    {
+    Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
+    if(dims != to_int(gid->GetMain()->GetSize()))
+      return;
+    }
+
+  // Return to where the user was in the image, unless turned off in the
+  // preferences. A position outside of the image goes to its center
+  if(app->GetGlobalState()->GetDefaultBehaviorSettings()->GetRestoreCursor() &&
+     registry.HasEntry("IRIS.Cursor.PositionRAS"))
+    {
+    gid->SetCursorPositionRAS(registry["IRIS.Cursor.PositionRAS"][Vector3d(0.0)]);
+    int tp = registry["IRIS.Cursor.TimePoint"][0];
+    if(tp >= 0 && tp < (int) gid->GetNumberOfTimePoints())
+      gid->SetCursorTimePoint((unsigned int) tp);
+    }
 }
 
 void SNAPRegistryIO::BuildEnums()

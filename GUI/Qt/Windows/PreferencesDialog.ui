@@ -113,6 +113,16 @@ font-weight:bold;</string>
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="chkRestoreCursor">
+             <property name="toolTip">
+              <string>When this option is checked, an image or workspace that is opened again will show the cursor position and time point where it was last closed or saved.</string>
+             </property>
+             <property name="text">
+              <string>Restore the cursor position and time point when reopening images</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QCheckBox" name="chkHideFileExtensions">
              <property name="toolTip">
               <string>When this option is checked, extensions will be stripped from image and mesh filenames in most inspectors</string>
@@ -179,6 +189,16 @@ font-weight:bold;</string>
                <widget class="QCheckBox" name="chkSyncPan">
                 <property name="text">
                  <string>Pan</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="chkFollowSyncOnOpen">
+                <property name="toolTip">
+                 <string>When this option is checked, an image opened while other ITK-SNAP sessions are synchronized will open at their cursor position (if it falls inside the image). Otherwise it opens where it was last closed, or at its center.</string>
+                </property>
+                <property name="text">
+                 <string>Open images at the cursor position of the other sessions</string>
                 </property>
                </widget>
               </item>

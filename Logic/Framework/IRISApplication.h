@@ -477,15 +477,48 @@ public:
   irisGetMacro(HistoryManager, HistoryManager *)
 
   /**
-   * Set the current cursor position in the voxel grid of the active segmentation
-   * layer. The cursor position is propagated to all layers.
+   * The kind of cursor change, which is used by the cursor history to tell a
+   * drag (which should be recorded as one place) from separate moves. Most
+   * changes are just moves (scrolling, keys, typed coordinates). A jump is a
+   * single complete change, like a click in the 3D view. A drag is started
+   * when the mouse is pressed and ended when it is released. A load is when
+   * the cursor is put back where it was while a workspace is being opened,
+   * which is not something the user did, so it is not a new place.
    */
-  void SetCursorPosition(const Vector3i cursor, bool force = false);
+  enum CursorChangeKind
+  {
+    CURSOR_MOVE = 0,
+    CURSOR_JUMP,
+    CURSOR_DRAG_START,
+    CURSOR_DRAG,
+    CURSOR_DRAG_END,
+    CURSOR_LOAD
+  };
+
+  /**
+   * Set the current cursor position in the voxel grid of the active segmentation
+   * layer. The cursor position is propagated to all layers. The kind of change
+   * can be passed in for the cursor history (see GetCursorChangeKind).
+   */
+  void SetCursorPosition(const Vector3i cursor, bool force = false,
+                         CursorChangeKind kind = CURSOR_MOVE);
+
+  /**
+   * The kind of the cursor change being made. This is only meaningful while
+   * the cursor update event is being handled, and is CURSOR_MOVE otherwise.
+   */
+  irisGetMacro(CursorChangeKind, CursorChangeKind)
 
   /**
    * Get the cursor position
    */
   Vector3i GetCursorPosition() const;
+
+  /**
+   * Put the cursor at the center of the main image, as when an image is opened
+   * without a saved position. The time point is not changed.
+   */
+  void ResetCursorPosition();
 
   /**
    * Set the current cursor time point. Like setting the cursor position, but
@@ -782,6 +815,9 @@ protected:
   // Global state object
   // TODO: Incorporate GlobalState into IRISApplication more nicely
   SmartPtr<GlobalState> m_GlobalState;
+
+  // The kind of the cursor change being made (see GetCursorChangeKind)
+  CursorChangeKind m_CursorChangeKind = CURSOR_MOVE;
 
   // SystemInterface used to get things from the system
   SystemInterface *m_SystemInterface;

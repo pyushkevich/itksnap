@@ -125,8 +125,10 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkSyncCursor, dbs->GetSyncCursorModel());
   makeCoupling(ui->chkSyncZoom, dbs->GetSyncZoomModel());
   makeCoupling(ui->chkSyncPan, dbs->GetSyncPanModel());
+  makeCoupling(ui->chkFollowSyncOnOpen, dbs->GetFollowSyncOnOpenModel());
   makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
   makeCoupling(ui->chkAutoContrast, dbs->GetAutoContrastModel());
+  makeCoupling(ui->chkRestoreCursor, dbs->GetRestoreCursorModel());
   makeCoupling(ui->chkHideFileExtensions, dbs->GetHideFileExtensionsModel());
   makeCoupling(ui->inLanguage, dbs->GetUILanguageModel());
   activateOnFlag(ui->lblLanguageRestart, m_Model, GlobalPreferencesModel::UIF_UI_LANGUAGE_CHANGED,
