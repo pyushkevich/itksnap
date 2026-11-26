@@ -20,6 +20,7 @@
 #include <QUrl>
 #include "SNAPQtCommonTranslations.h"
 #include "ImageIORemote.h"
+#include "FileExistenceCache.h"
 
 #include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
@@ -421,6 +422,8 @@ void PopulateHistoryMenu(
     {
     QString entry = itLocal.previous();
     QAction *action = menu->addAction(entry);
+    action->setData(entry);
+    UpdateRecentFileAction(action);
     QObject::connect(action, SIGNAL(triggered()), receiver, slot);
     }
 
@@ -434,6 +437,8 @@ void PopulateHistoryMenu(
     if(local_history.indexOf(entry) == -1)
       {
       QAction *action = menu->addAction(entry);
+      action->setData(entry);
+      UpdateRecentFileAction(action);
       QObject::connect(action, SIGNAL(triggered()), receiver, slot);
       }
     }
@@ -459,6 +464,24 @@ void PopulateHistoryMenu(
 
 
 
+
+void UpdateRecentFileAction(QAction *action)
+{
+  // The file name is kept in the action's data; in the text, '&' (common in
+  // URLs) is escaped so it is not shown as a shortcut marker
+  QString file = action->data().toString();
+  QString text = QString(file).replace("&", "&&");
+  bool missing = FileExistenceCache::instance()->isMissing(file);
+  action->setText(missing ? QObject::tr("%1 (not found)").arg(text) : text);
+  action->setEnabled(!missing);
+}
+
+void UpdateRecentFileActions(QMenu *menu)
+{
+  for(QAction *action : menu->actions())
+    if(!action->isSeparator() && action->data().typeId() == QMetaType::QString)
+      UpdateRecentFileAction(action);
+}
 
 /** Show a generic file save dialog with a history dropdown */
 QString ShowSimpleSaveDialogWithHistory(

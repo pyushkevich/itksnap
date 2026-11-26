@@ -95,6 +95,7 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
+#include "FileExistenceCache.h"
 #include <QMimeData>
 #include <QShortcut>
 #include <QScreen>
@@ -559,6 +560,14 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   LatentITKEventNotifier::connect(
         model->GetHistoryModel("Project"), ValueChangedEvent(),
         this, SLOT(onModelUpdate(EventBucket)));
+
+  // Mark recent files that are found missing (a Qt signal, not an ITK event)
+  connect(FileExistenceCache::instance(), &FileExistenceCache::statusChanged, this, [this]() {
+    for(QMenu *menu : { ui->menuRecent_Images, ui->menuRecent_Overlays,
+                        ui->menuRecent_Segmentations, ui->menuAddSegmentation_Recent,
+                        ui->menuRecentLabelDefs, ui->menuRecentWorkspaces })
+      UpdateRecentFileActions(menu);
+    });
 
   // Also listen to changes to the project filename
   LatentITKEventNotifier::connect(
@@ -1082,11 +1091,11 @@ void MainImageWindow::CreateRecentMenu(
   for(int i = 0; i < recent.size(); i++)
     {
     // Create an action for this file. The file name is kept in the action's
-    // data; in the text, '&' (common in URLs) is escaped so it is not shown
-    // as a shortcut marker
+    // data, and the action is marked if the file is missing
     QString file = from_utf8(recent[i]);
-    QAction *action = submenu->addAction(QString(file).replace("&", "&&"));
+    QAction *action = submenu->addAction(file);
     action->setData(file);
+    UpdateRecentFileAction(action);
     if(use_shortcut && i < 10)
       action->setShortcut(QKeySequence(shortcut_modifier + Qt::Key_1 + i));
     connect(action, SIGNAL(triggered(bool)), this, slot);

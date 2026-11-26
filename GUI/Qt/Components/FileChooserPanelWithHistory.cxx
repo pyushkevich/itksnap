@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <GlobalUIModel.h>
 #include <HistoryManager.h>
+#include "FileExistenceCache.h"
 #include <IRISApplication.h>
 #include <QFileInfo>
 #include <QKeyEvent>
@@ -30,6 +31,11 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
   // History menu
   QMenu *history = new QMenu(tr("History"), ui->btnHistory);
   ui->btnHistory->setMenu(history);
+
+  // Mark history entries whose files are found missing, even while the menu
+  // is open
+  connect(FileExistenceCache::instance(), &FileExistenceCache::statusChanged,
+          history, [history]() { UpdateRecentFileActions(history); });
 
   // Set up an event filter
   ui->inFilename->installEventFilter(this);
@@ -340,7 +346,7 @@ void FileChooserPanelWithHistory::onHistorySelection()
 {
   // Get the absolute filename
   QAction *action = static_cast<QAction *>(this->sender());
-  this->updateFilename(action->text());
+  this->updateFilename(action->data().toString());
 }
 
 void FileChooserPanelWithHistory::updateFilename(QString filename)

@@ -120,6 +120,20 @@ public slots:
   // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
 
+  // Return the data of an item in a list or table for a role (Qt::ItemDataRole)
+  QVariant itemData(QObject *view, int row, int col, int role);
+
+  // Number of rows in a list or table
+  int itemCount(QObject *view);
+
+  // The actions of a menu, or of a button's menu, as a list of objects with
+  // fields text, data and enabled
+  QVariantList menuActions(QObject *menuOrButton);
+
+  // Emit the clicked() signal of a list or table for an item. This does not
+  // wait, since the click may open a modal dialog.
+  void clickItem(QObject *view, int row, int col = 0);
+
   // Find the index of an item in a widget (combo, list)
   QVariant findItemRow(QObject *container, QVariant text);
 
@@ -143,6 +157,10 @@ public slots:
   // Last modification time of a file in ms since the epoch, or -1 if the file
   // does not exist (e.g. to check that a test server received an upload)
   double fileModifiedTime(QString filename);
+
+  // Copy a file (replacing the target) or remove one; false on failure
+  bool copyFile(QString source, QString target);
+  bool removeFile(QString filename);
 
   void printChildren(QObject *parent);
 
