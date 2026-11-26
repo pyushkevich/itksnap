@@ -76,16 +76,16 @@ protected:
   struct Entry
   {
     Vector3d ras;
-    Vector3i voxel;
     unsigned int tp;
   };
 
   // Get the place where the cursor is now
   Entry GetCurrentPlace() const;
 
-  // Two entries are the same place if they have the same voxel and time point
-  static bool IsSamePlace(const Entry &a, const Entry &b)
-    { return a.voxel == b.voxel && a.tp == b.tp; }
+  // Two entries are the same place if they have the same time point and fall
+  // in the same voxel. The voxels are found in the grid of the active
+  // segmentation, since selecting another segmentation changes the grid
+  bool IsSamePlace(const Entry &a, const Entry &b) const;
 
   // Event handlers
   void OnCursorChange();

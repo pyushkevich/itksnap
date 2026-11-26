@@ -481,7 +481,9 @@ public:
    * drag (which should be recorded as one place) from separate moves. Most
    * changes are just moves (scrolling, keys, typed coordinates). A jump is a
    * single complete change, like a click in the 3D view. A drag is started
-   * when the mouse is pressed and ended when it is released.
+   * when the mouse is pressed and ended when it is released. A load is when
+   * the cursor is put back where it was while a workspace is being opened,
+   * which is not something the user did, so it is not a new place.
    */
   enum CursorChangeKind
   {
@@ -489,7 +491,8 @@ public:
     CURSOR_JUMP,
     CURSOR_DRAG_START,
     CURSOR_DRAG,
-    CURSOR_DRAG_END
+    CURSOR_DRAG_END,
+    CURSOR_LOAD
   };
 
   /**

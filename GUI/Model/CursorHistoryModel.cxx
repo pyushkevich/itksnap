@@ -2,6 +2,7 @@
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "LabelImageWrapper.h"
 #include "GlobalState.h"
 #include "SNAPEvents.h"
 #include "SNAPEventListenerCallbacks.h"
@@ -35,9 +36,23 @@ CursorHistoryModel::Entry CursorHistoryModel::GetCurrentPlace() const
   GenericImageData *gid = m_Parent->GetDriver()->GetCurrentImageData();
   Entry e;
   e.ras = gid->GetCursorPositionRAS();
-  e.voxel = gid->GetCursorPosition();
   e.tp = gid->GetCursorTimePoint();
   return e;
+}
+
+bool CursorHistoryModel::IsSamePlace(const Entry &a, const Entry &b) const
+{
+  // The places are compared in the voxel grid of the active segmentation
+  LabelImageWrapper *seg = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+  if(a.tp != b.tp || !seg)
+    return a.tp == b.tp && a.ras == b.ras;
+
+  Vector3d va = seg->TransformNIFTICoordinatesToVoxelCIndex(a.ras);
+  Vector3d vb = seg->TransformNIFTICoordinatesToVoxelCIndex(b.ras);
+  for(unsigned int d = 0; d < 3; d++)
+    if(std::round(va[d]) != std::round(vb[d]))
+      return false;
+  return true;
 }
 
 bool CursorHistoryModel::CheckState(UIState state)
@@ -92,12 +107,16 @@ void CursorHistoryModel::OnCursorChange()
 
   // The newest entry is updated while a drag goes on, and while the cursor
   // keeps being moved in quick succession (scrolling, arrow keys). A drag that
-  // starts, or a jump, is always a new place
+  // starts, or a jump, is always a new place. When the cursor is put back
+  // during loading, it is still the place where the image opened
   bool at_newest = m_Index == (int) m_Entries.size() - 1;
   bool can_update = m_Index >= 0 && at_newest && m_EntryOpen;
   bool update = false;
   switch(kind)
     {
+    case IRISApplication::CURSOR_LOAD:
+      update = m_Index >= 0 && at_newest;
+      break;
     case IRISApplication::CURSOR_DRAG:
     case IRISApplication::CURSOR_DRAG_END:
       update = can_update;
@@ -115,7 +134,8 @@ void CursorHistoryModel::OnCursorChange()
     AddCurrentPlace();
 
   // The entry stays open for more changes, unless the drag or jump is over
-  m_EntryOpen = (kind != IRISApplication::CURSOR_DRAG_END && kind != IRISApplication::CURSOR_JUMP);
+  m_EntryOpen = (kind != IRISApplication::CURSOR_DRAG_END && kind != IRISApplication::CURSOR_JUMP &&
+                 kind != IRISApplication::CURSOR_LOAD);
   m_LastChangeTime = now;
   this->InvokeEvent(StateMachineChangeEvent());
 }

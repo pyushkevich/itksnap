@@ -9,6 +9,10 @@
 //     at the first time point
 //   - a workspace restores them too, and its 4D segmentation is shown at the
 //     same time point as the main image
+//   - resetting the cursor puts it at the center of the main image, also when
+//     the active segmentation (the reference space) has a different grid
+//   - a workspace whose active segmentation has a different grid restores
+//     the cursor too
 
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
@@ -17,6 +21,8 @@
 #include "DefaultBehaviorSettings.h"
 #include "ImageWrapperBase.h"
 #include "LabelImageWrapper.h"
+#include "LayerIterator.h"
+#include "CursorHistoryModel.h"
 #include "ImageIODelegates.h"
 #include "IRISException.h"
 #include "SystemInterface.h"
@@ -151,6 +157,66 @@ int main(int argc, char *argv[])
     check(seg && seg->GetNumberOfTimePoints() == nt && seg->GetTimePointIndex() == 5,
           "its 4D segmentation is shown at the same time point (" +
             std::to_string(seg ? seg->GetTimePointIndex() : -1) + ")");
+
+    std::cout << "Resetting the cursor" << std::endl;
+    driver->UnloadMainImage();
+    driver->OpenImage((datadir + "/MRIcrop-orig.gipl.gz").c_str(), MAIN_ROLE, wl);
+    driver->OpenImage((datadir + "/MRIcrop-seg.gipl.gz").c_str(), LABEL_ROLE, wl);
+    driver->OpenImage((datadir + "/MRIcrop-seg-hippoR-04mm.nii.gz").c_str(), LABEL_ROLE, wl,
+                      nullptr, nullptr, true);
+    ImageWrapperBase *main = driver->GetCurrentImageData()->GetMain();
+    auto ref_region = driver->GetCurrentImageData()->GetReferenceSpace()->GetBufferedRegion();
+    Vector3i ref_size(ref_region.GetSize()[0], ref_region.GetSize()[1], ref_region.GetSize()[2]);
+    check(ref_size != to_int(main->GetSize()),
+          "the active segmentation has a grid other than the main image's (" + str(ref_size) + ")");
+    driver->SetCursorPosition(Vector3i(1, 2, 3));
+    driver->ResetCursorPosition();
+
+    // Map the cursor back to the main image's voxels: it should be at its center
+    itk::ContinuousIndex<double, 3> c_ref, c_main;
+    for (unsigned int d = 0; d < 3; d++)
+      c_ref[d] = driver->GetCursorPosition()[d];
+    main->TransformReferenceCIndexToWrappedImageCIndex(c_ref, c_main);
+    Vector3i main_center = to_int(main->GetSize()) / 2;
+    double dist = 0;
+    for (unsigned int d = 0; d < 3; d++)
+      dist = std::max(dist, std::abs(c_main[d] - main_center[d]));
+    check(dist < 1.0, "the cursor is at the center of the main image (" + std::to_string(dist) +
+                        " voxels from it)");
+
+    // The settings of the main image used to be saved with the size of the
+    // reference space, so they were not read back when the active segmentation
+    // had a different grid
+    std::cout << "Workspace with a segmentation on a different grid" << std::endl;
+    Vector3i grid_pos = ref_size / 3;
+    driver->SetCursorPosition(grid_pos);
+    Vector3d grid_ras = driver->GetCurrentImageData()->GetCursorPositionRAS();
+    std::string fn_ws2 = tmpdir + "/grid.itksnap";
+    driver->SaveProject(fn_ws2);
+    driver->ResetCursorPosition();
+    driver->UnloadMainImage();
+
+    driver->OpenWorkspace(fn_ws2, wl);
+    Vector3d ras = driver->GetCurrentImageData()->GetCursorPositionRAS();
+    check(driver->GetCursorPosition() == grid_pos && (ras - grid_ras).inf_norm() < 1e-3,
+          "the workspace's cursor is restored (" + str(driver->GetCursorPosition()) +
+            ", expected " + str(grid_pos) + ")");
+    CursorHistoryModel *chm = gui->GetCursorHistoryModel();
+    check(chm->GetNumberOfEntries() == 1 && !chm->CheckState(CursorHistoryModel::UIF_CAN_GO_BACK),
+          "the cursor history starts with the restored position (" +
+            std::to_string(chm->GetNumberOfEntries()) + " entries)");
+
+    // Selecting a segmentation with a different grid keeps the cursor where it
+    // is, so it should not be recorded as a new place either
+    unsigned long other_seg = 0;
+    for (LayerIterator it = driver->GetCurrentImageData()->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
+      if (it.GetLayer() != driver->GetSelectedSegmentationLayer())
+        other_seg = it.GetLayer()->GetUniqueId();
+    check(other_seg != 0, "the workspace has another segmentation");
+    driver->GetGlobalState()->SetSelectedSegmentationLayerId(other_seg);
+    check(chm->GetNumberOfEntries() == 1,
+          "selecting it does not add to the cursor history (" +
+            std::to_string(chm->GetNumberOfEntries()) + " entries)");
   }
   catch (std::exception &exc)
   {

@@ -848,12 +848,23 @@ IRISApplication ::GetCursorPosition() const
 void
 IRISApplication ::ResetCursorPosition()
 {
-  // The center voxel of the main image, through RAS coordinates, since the
-  // cursor is in the voxel grid of the reference space (the active
-  // segmentation), which may differ from that of the main image
-  ImageWrapperBase *main = this->GetCurrentImageData()->GetMain();
-  Vector3d center_ras = main->TransformVoxelCIndexToNIFTICoordinates(to_double(main->GetSize() / 2u));
-  this->GetCurrentImageData()->SetCursorPositionRAS(center_ras);
+  // The center voxel of the main image. The cursor is in the voxel grid of the
+  // reference space (the active segmentation), which may differ from that of
+  // the main image, so the center is mapped to that grid
+  GenericImageData *gid = this->GetCurrentImageData();
+  ImageWrapperBase *main = gid->GetMain();
+  itk::ContinuousIndex<double, 3> center_main, center_ref;
+  for(unsigned int d = 0; d < 3; d++)
+    center_main[d] = main->GetSize()[d] / 2;
+  main->TransformWrappedImageCIndexToReferenceCIndex(center_main, center_ref);
+
+  // Round to the nearest voxel, keeping it within the extent of all layers
+  auto fe_region = gid->GetFullExtentImageRegion();
+  Vector3i cursor;
+  for(unsigned int d = 0; d < 3; d++)
+    cursor[d] = (int) std::floor(center_ref[d] + 0.5);
+  cursor = cursor.clamp(Vector3i(fe_region.GetIndex()), Vector3i(fe_region.GetUpperIndex()));
+  gid->SetCursorPosition(cursor);
 }
 
 void
@@ -2530,6 +2541,13 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   if (!active_seg_id)
     active_seg_id = m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId();
   m_GlobalState->SetSelectedSegmentationLayerId(active_seg_id);
+
+  // The cursor was restored when the main image was loaded, but in the voxel
+  // grid of the main image. The active segmentation may have a finer grid,
+  // so we restore the cursor again now that it defines the grid
+  m_CursorChangeKind = CURSOR_LOAD;
+  SNAPRegistryIO().ReadCursorPosition(preg.Folder("Layers.Layer[000].ProjectMetaData"), this);
+  m_CursorChangeKind = CURSOR_MOVE;
 
   // Save the project filename (proj_file_full is the remote URL for remote
   // workspaces, or the collapsed local path for local ones)
