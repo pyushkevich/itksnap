@@ -55,6 +55,28 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::AdaptiveSlici
 
   // Initially use the ortho
   m_UseOrthogonalSlicing = true;
+
+  // The second output is the mask
+  this->SetNumberOfRequiredOutputs(2);
+  this->SetNthOutput(1, this->MakeOutput(1));
+  m_FullMask = MaskImageType::New();
+}
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+itk::DataObject::Pointer
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::MakeOutput(
+  itk::ProcessObject::DataObjectPointerArraySizeType idx)
+{
+  if (idx == 1)
+    return MaskImageType::New().GetPointer();
+  return Superclass::MakeOutput(idx);
+}
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+typename AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::MaskImageType *
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GetMaskOutput()
+{
+  return static_cast<MaskImageType *>(this->itk::ProcessObject::GetOutput(1));
 }
 
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
@@ -63,6 +85,8 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::~AdaptiveSlic
   // Prevent crash from grafting child filter outputs
   if (this->GetOutput())
     this->GetOutput()->SetPixelContainer(NULL);
+  if (this->GetMaskOutput())
+    this->GetMaskOutput()->SetPixelContainer(NULL);
 }
 
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
@@ -157,6 +181,11 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateOutpu
   // Copy information does not update the requested region, so we must update
   // it by hand here
   output->SetRequestedRegionToLargestPossibleRegion();
+
+  // The mask has the same geometry as the slice
+  MaskImageType *mask = this->GetMaskOutput();
+  mask->CopyInformation(output);
+  mask->SetRequestedRegionToLargestPossibleRegion();
 }
 
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
@@ -192,16 +221,31 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateData(
   // Get the outer filter's output
   OutputImageType *output = this->GetOutput();
 
+  // Get the outer filter's mask
+  MaskImageType *mask = this->GetMaskOutput();
+
   // Use appropriate sub-pipeline
   if (m_UseOrthogonalSlicing)
   {
     m_OrthogonalSlicer->Update();
     output->Graft(m_OrthogonalSlicer->GetOutput());
+
+    // An orthogonal slice is inside the image everywhere. Fill the full mask
+    // only when its size changes
+    if (m_FullMask->GetBufferedRegion() != output->GetBufferedRegion())
+    {
+      m_FullMask->CopyInformation(output);
+      m_FullMask->SetRegions(output->GetBufferedRegion());
+      m_FullMask->Allocate();
+      m_FullMask->FillBuffer(255);
+    }
+    mask->Graft(m_FullMask);
   }
   else
   {
     m_ObliqueSlicer->Update();
     output->Graft(m_ObliqueSlicer->GetOutput());
+    mask->Graft(m_ObliqueSlicer->GetMaskOutput());
   }
 }
 

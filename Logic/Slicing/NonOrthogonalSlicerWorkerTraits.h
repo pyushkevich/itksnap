@@ -39,6 +39,13 @@ template <typename TPixelType, unsigned int Dimension> class VectorImageToImageA
  * image at arbitrary (continuous index) positions, either to fill a slice
  * (ProcessVoxel, SkipVoxels) or to accumulate intensity statistics
  * (CollectStatistics).
+ *
+ * When filling a slice, it also writes one value per pixel to the slicer's
+ * mask: 255 where the sample has an intensity from the image (inside it, or on
+ * its border with some weight inside), 0 outside of the image. This tells the
+ * pixels outside of the image apart from pixels with intensity zero (#193).
+ * The mask is binary on purpose: a 2D image whose plane is not exactly on the
+ * slice is sampled on its border everywhere, and must still be shown opaque.
  */
 template <typename TInputImage, typename TOutputImage>
 class DefaultNonOrthogonalSlicerWorkerTraits
@@ -49,9 +56,9 @@ public:
   DefaultNonOrthogonalSlicerWorkerTraits(TInputImage *image);
   ~DefaultNonOrthogonalSlicerWorkerTraits();
 
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr);
   inline void CollectStatistics(double *cix, bool use_nn, double &out_nvalid, double &out_sum, double &out_sumsq);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr);
 
 protected:
 
@@ -83,9 +90,9 @@ public:
   DefaultNonOrthogonalSlicerWorkerTraits(AdaptorType *adaptor);
   ~DefaultNonOrthogonalSlicerWorkerTraits();
 
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr);
   inline void CollectStatistics(double *cix, bool use_nn, double &out_nvalid, double &out_sum, double &out_sumsq);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr);
 
 protected:
 
@@ -122,9 +129,9 @@ public:
   DefaultNonOrthogonalSlicerWorkerTraits(AdaptorType *adaptor);
   ~DefaultNonOrthogonalSlicerWorkerTraits();
 
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr);
   inline void CollectStatistics(double *cix, bool use_nn, double &out_nvalid, double &out_sum, double &out_sumsq);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr);
 
 protected:
 
@@ -164,9 +171,9 @@ public:
   DefaultNonOrthogonalSlicerWorkerTraits(InputImageType *adaptor);
   ~DefaultNonOrthogonalSlicerWorkerTraits();
 
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr, unsigned char **mask_ptr);
   inline void CollectStatistics(double *cix, bool use_nn, double &out_nvalid, double &out_sum, double &out_sumsq);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr, unsigned char **mask_ptr);
 
 protected:
   typename InputImageType::Pointer m_Image;

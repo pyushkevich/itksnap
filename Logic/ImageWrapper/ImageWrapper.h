@@ -132,6 +132,7 @@ public:
   // Display slice type - inherited
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::SliceMaskType                     SliceMaskType;
   typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
   // Slicer type
@@ -376,7 +377,7 @@ public:
    * The flag map_to_native specifies whether the output intensities are raw or transformed
    * into the native intensity space.
    */
-  virtual void SampleIntensityAtReferenceIndex(
+  virtual bool SampleIntensityAtReferenceIndex(
       const itk::Index<3> &index, int time_point,
       bool map_to_native, vnl_vector<double> &out) const override;
 
@@ -491,6 +492,9 @@ public:
    * Get a slice of the image in a given direction
    */
   virtual SliceType *GetSlice(DisplaySliceIndex index);
+
+  /** Get the mask of the slice in a given direction (see ImageWrapperBase) */
+  virtual SliceMaskType *GetSliceMask(DisplaySliceIndex index) override;
 
   /**
    * This method exposes the scalar pointer in the image
@@ -968,8 +972,11 @@ protected:
   /** Common code invoked when voxels in the image are changed */
   void OnVoxelsUpdated(unsigned int n_replaced);
 
-  /** Sample voxels at a reference index and place sampled values in m_IntensitySamplingArray */
-  void SampleIntensityAtReferenceIndexInternal(
+  /**
+   * Sample voxels at a reference index and place sampled values in
+   * m_IntensitySamplingArray. Returns false if the index is outside of the image
+   */
+  bool SampleIntensityAtReferenceIndexInternal(
       const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const;
 
   /** Get the zero value for a pixel (may be a vector) */

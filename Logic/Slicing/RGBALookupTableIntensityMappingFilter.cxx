@@ -36,22 +36,12 @@ void
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::MapPixelXYZtoRGB(
     InputPixelType xin0, InputPixelType xin1, InputPixelType xin2,
-    const LookupTableType *lut, bool zero_out_of_range, OutputPixelType &xout)
+    const LookupTableType *lut, OutputPixelType &xout)
 {
-    // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
-    // better than this, i.e., via a special value reserved for such voxels.
-    // Right now, defaulting to zero is a DISASTER!
-    if(zero_out_of_range && xin0 == 0 && xin1 == 0 && xin2 == 0)
-    {
-        xout.Fill(0);
-    }
-    else
-    {
-        xout[0] = lut->MapIntensityToDisplay(xin0);
-        xout[1] = lut->MapIntensityToDisplay(xin1);
-        xout[2] = lut->MapIntensityToDisplay(xin2);
-        xout[3] = 255; // alpha = 1
-    }
+    xout[0] = lut->MapIntensityToDisplay(xin0);
+    xout[1] = lut->MapIntensityToDisplay(xin1);
+    xout[2] = lut->MapIntensityToDisplay(xin2);
+    xout[3] = 255; // alpha = 1
 }
 
 template<class TInputImage>
@@ -59,31 +49,21 @@ void
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::MapPixelXYtoHSV(
     InputPixelType xin0, InputPixelType xin1,
-    const LookupTableType *lut, bool zero_out_of_range, OutputPixelType &xout)
+    const LookupTableType *lut, OutputPixelType &xout)
 {
-    // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
-    // better than this, i.e., via a special value reserved for such voxels.
-    // Right now, defaulting to zero is a DISASTER!
-    if(zero_out_of_range && xin0 == 0 && xin1 == 0)
-    {
-        xout.Fill(0);
-    }
-    else
-    {
-        // Get normalized vectors
-        float x_norm = lut->MapIntensityToDisplay(xin0) / 255. - 0.5;
-        float y_norm = lut->MapIntensityToDisplay(xin1) / 255. - 0.5;
+    // Get normalized vectors
+    float x_norm = lut->MapIntensityToDisplay(xin0) / 255. - 0.5;
+    float y_norm = lut->MapIntensityToDisplay(xin1) / 255. - 0.5;
 
-        // Compute the phase
-        float phase = ::atan2(y_norm, x_norm), mag = ::sqrt(x_norm*x_norm + y_norm*y_norm);
-        float r,g,b;
-        vtkMath::HSVToRGB(0.5 + phase / 6.28318530718, 1.0, ::fminf(1.0f, mag), &r, &g, &b);
+    // Compute the phase
+    float phase = ::atan2(y_norm, x_norm), mag = ::sqrt(x_norm*x_norm + y_norm*y_norm);
+    float r,g,b;
+    vtkMath::HSVToRGB(0.5 + phase / 6.28318530718, 1.0, ::fminf(1.0f, mag), &r, &g, &b);
 
-        xout[0] = (unsigned char) (255 * r);
-        xout[1] = (unsigned char) (255 * g);
-        xout[2] = (unsigned char) (255 * b);
-        xout[3] = 255; // alpha = 1
-    }
+    xout[0] = (unsigned char) (255 * r);
+    xout[1] = (unsigned char) (255 * g);
+    xout[2] = (unsigned char) (255 * b);
+    xout[3] = 255; // alpha = 1
 }
 
 template<class TInputImage>
@@ -97,14 +77,14 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
   // Get the range of intensities mapped that the LUT handles
   const LookupTableType *lut = this->GetLookupTable();
 
-  // Does zero map out of the LUT's range? We may get inputs of zero from
-  // the non-orthogonal slicer (data outside of image range) that would fall
-  // outside of the colormap. This is really a poor way to handle this but
-  // there is not a good alternative solution right now.
-  // TODO: fix this.
-  bool zero_out_of_range = !lut->CheckRange(0);
-
   itk::ImageRegionIterator<OutputImageType> outputIt(output, region);
+
+  // The mask, if any, marks the pixels outside of the image, which are made
+  // fully transparent
+  const MaskImageType *mask = this->GetMaskInput();
+  itk::ImageRegionConstIterator<MaskImageType> maskIt;
+  if(mask)
+    maskIt = itk::ImageRegionConstIterator<MaskImageType>(mask, region);
 
   if(this->m_TwoChannelHueValueMode)
   {
@@ -125,12 +105,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
       {
           OutputPixelType xout;
 
-          InputPixelType xin0 = it0.Get();
-          InputPixelType xin1 = it1.Get();
-          this->MapPixelXYtoHSV(xin0, xin1, lut, zero_out_of_range, xout);
+          if(mask && !maskIt.Get())
+            xout.Fill(0);
+          else
+            this->MapPixelXYtoHSV(it0.Get(), it1.Get(), lut, xout);
           outputIt.Set(xout);
           ++it0; ++it1;
           ++outputIt;
+          if(mask)
+            ++maskIt;
       }
 
   }
@@ -153,13 +136,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
       while( !outputIt.IsAtEnd() )
       {
           OutputPixelType xout;
-          InputPixelType xin0 = it0.Get();
-          InputPixelType xin1 = it1.Get();
-          InputPixelType xin2 = it2.Get();
-          this->MapPixelXYZtoRGB(xin0, xin1, xin2, lut, zero_out_of_range, xout);
+          if(mask && !maskIt.Get())
+            xout.Fill(0);
+          else
+            this->MapPixelXYZtoRGB(it0.Get(), it1.Get(), it2.Get(), lut, xout);
           outputIt.Set(xout);
           ++it0; ++it1; ++it2;
           ++outputIt;
+          if(mask)
+            ++maskIt;
       }
   }
 }
@@ -172,13 +157,13 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
   // Update the lookup table
   LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
   lut->Update();
-  bool zero_out_of_range = !lut->CheckRange(0);
 
+  // This is used for single values (e.g., under the cursor), which have no mask
   OutputPixelType xout;
   if(this->m_TwoChannelHueValueMode)
-      this->MapPixelXYtoHSV(xin0, xin1, lut, zero_out_of_range, xout);
+      this->MapPixelXYtoHSV(xin0, xin1, lut, xout);
   else
-      this->MapPixelXYZtoRGB(xin0, xin1, xin2, lut, zero_out_of_range, xout);
+      this->MapPixelXYZtoRGB(xin0, xin1, xin2, lut, xout);
   return xout;
 }
 

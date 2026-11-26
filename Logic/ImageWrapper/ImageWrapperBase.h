@@ -140,6 +140,9 @@ public:
   typedef itk::Image<DisplayPixelType,2>                      DisplaySliceType;
   typedef SmartPtr<DisplaySliceType>                       DisplaySlicePointer;
 
+  // Mask of a slice: 255 where the slice is inside the image, 0 outside (#193)
+  typedef itk::Image<unsigned char, 2>                           SliceMaskType;
+
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
   typedef itk::ImageBase<4> Image4DBaseType;
@@ -379,6 +382,14 @@ public:
   /** Get a display slice correpsponding to the current index */
   virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) = 0;
 
+  /**
+   * Get the mask of the slice in a given direction: 255 where the slice is
+   * inside the image, 0 where it is outside of it, i.e., where an obliquely
+   * sliced image does not cover the slice. The intensity of the slice there
+   * is a placeholder, and should not be shown (#193).
+   */
+  virtual SliceMaskType *GetSliceMask(DisplaySliceIndex index) = 0;
+
   /** For each slicer, find out which image dimension does is slice along */
   virtual unsigned int GetDisplaySliceImageAxis(unsigned int slice) = 0;
 
@@ -404,8 +415,13 @@ public:
    *
    * The flag map_to_native specifies whether the output intensities are raw or transformed
    * into the native intensity space.
+   *
+   * Returns false if the position is outside of the image (e.g., an obliquely
+   * sliced image that does not cover the whole reference space). The output is
+   * then zero, which is not an intensity of the image and should not be shown
+   * to the user (#193).
    */
-  virtual void SampleIntensityAtReferenceIndex(
+  virtual bool SampleIntensityAtReferenceIndex(
       const itk::Index<3> &index, int time_point,
       bool map_to_native, vnl_vector<double> &out) const = 0;
 
@@ -464,9 +480,12 @@ public:
    * images, it's just the value of the voxel, but for multi-component images,
    * it's the value of the selected component (if there is one) or the value
    * of the multiple components when the mode is RGB. In the second parameter,
-   * the method returns the RGB appearance of the voxel under the cursor
+   * the method returns the RGB appearance of the voxel under the cursor.
+   *
+   * Returns false if the cursor is outside of the image (see
+   * SampleIntensityAtReferenceIndex), in which case there is no value to show.
    */
-  virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
+  virtual bool GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) = 0;
 
   /**

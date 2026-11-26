@@ -52,6 +52,27 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
 ::NonOrthogonalSlicer()
     : m_UseNearestNeighbor(true)
 {
+  // The second output is the mask
+  this->SetNumberOfRequiredOutputs(2);
+  this->SetNthOutput(1, this->MakeOutput(1));
+}
+
+template <typename TInputImage, typename TOutputImage, typename TWorkerTraits>
+itk::DataObject::Pointer
+NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
+::MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx)
+{
+  if(idx == 1)
+    return MaskImageType::New().GetPointer();
+  return Superclass::MakeOutput(idx);
+}
+
+template <typename TInputImage, typename TOutputImage, typename TWorkerTraits>
+typename NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>::MaskImageType *
+NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
+::GetMaskOutput()
+{
+  return static_cast<MaskImageType *>(this->itk::ProcessObject::GetOutput(1));
 }
 
 template <typename TInputImage, typename TOutputImage, typename TWorkerTraits>
@@ -89,6 +110,13 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
   output->SetDirection(out_direction);
   output->SetLargestPossibleRegion(out_region);
   output->SetNumberOfComponentsPerPixel(this->GetInput()->GetNumberOfComponentsPerPixel());
+
+  // The mask has the same geometry as the slice
+  MaskImageType *mask = this->GetMaskOutput();
+  mask->SetSpacing(out_spacing);
+  mask->SetOrigin(out_origin);
+  mask->SetDirection(out_direction);
+  mask->SetLargestPossibleRegion(out_region);
 }
 
 template <typename TInputImage, typename TOutputImage, typename TWorkerTraits>
@@ -146,6 +174,9 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
   // Whether to use nn
   bool use_nn = this->GetUseNearestNeighbor();
 
+  // The mask, filled along with the slice
+  MaskImageType *mask = this->GetMaskOutput();
+
   // Loop over the lines in the input image
   for(IterType it(this->GetOutput(), outputRegionForThread); !it.IsAtEnd(); it.NextLine())
     {
@@ -154,6 +185,9 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
 
     // Get the index of the first pixel - this is in 2D
     typename OutputImageType::IndexType outIndex = it.GetIndex();
+
+    // Get a pointer to the mask pixels for this line
+    unsigned char *maskPtr = mask->GetBufferPointer() + mask->ComputeOffset(outIndex);
 
     // Get the 3D index of the first pixel of the line
     typename ReferenceImageBaseType::IndexType idxStart;
@@ -225,7 +259,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
     // Deal with skipped lines
     if(skipLine)
       {
-      worker.SkipVoxels(line_len, &outPixelPtr);
+      worker.SkipVoxels(line_len, &outPixelPtr, &maskPtr);
       }
     else
       {
@@ -233,7 +267,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
       if(kStart > 0)
         {
         // Skip the voxels
-        worker.SkipVoxels(kStart, &outPixelPtr);
+        worker.SkipVoxels(kStart, &outPixelPtr, &maskPtr);
 
         // Update the sample location
         for(int d = 0; d < InputImageDimension; d++)
@@ -243,7 +277,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
       // Process the voxels that cross the image cube
       for(int i = kStart; i <= kEnd; i++)
         {
-        worker.ProcessVoxel(cixSample.GetDataPointer(), use_nn, &outPixelPtr);
+        worker.ProcessVoxel(cixSample.GetDataPointer(), use_nn, &outPixelPtr, &maskPtr);
 
         // Update the sample location
         for(int d = 0; d < InputImageDimension; d++)
@@ -253,7 +287,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
       // Process the rest
       if(kEnd < line_len - 1)
         {
-        worker.SkipVoxels((line_len - 1) - kEnd, &outPixelPtr);
+        worker.SkipVoxels((line_len - 1) - kEnd, &outPixelPtr, &maskPtr);
         }
       }
     }

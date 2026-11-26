@@ -58,6 +58,12 @@ using itk::ProcessObject;
  *
  * The filter takes a transform and a reference image from which the slice is
  * generated.
+ *
+ * Besides the slice (output 0), the filter produces a mask (output 1, see
+ * GetMaskOutput) of the same size: 255 where the slice has an intensity from
+ * the image and 0 where it lies outside of the image. Slice pixels outside of
+ * the image are set to 0, the same value as image voxels with intensity 0, so
+ * use the mask to tell which pixels are outside of the image (#193).
  */
 template <typename TInputImage, typename TOutputImage,
           typename TWorkerTraits = DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage> >
@@ -80,6 +86,9 @@ public:
   typedef typename OutputImageType::Pointer                OutputImagePointer;
   typedef typename OutputImageType::PixelType                 OutputPixelType;
   typedef typename OutputImageType::InternalPixelType     OutputComponentType;
+
+  /** The mask output: 255 inside the image, 0 outside */
+  typedef itk::Image<unsigned char, TOutputImage::ImageDimension>   MaskImageType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -110,6 +119,13 @@ public:
   /** Interpolation type */
   itkSetMacro(UseNearestNeighbor, bool)
   itkGetMacro(UseNearestNeighbor, bool)
+
+  /** The mask of the slice: 255 where the slice is inside the image, 0 outside */
+  MaskImageType *GetMaskOutput();
+
+  /** Create the slice (index 0) and the mask (index 1) outputs */
+  using Superclass::MakeOutput;
+  virtual itk::DataObject::Pointer MakeOutput(itk::ProcessObject::DataObjectPointerArraySizeType idx) override;
 
 protected:
 

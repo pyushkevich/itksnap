@@ -57,7 +57,7 @@ VectorImageWrapper<TTraits>
 }
 
 template<class TTraits>
-void
+bool
 VectorImageWrapper<TTraits>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
@@ -67,7 +67,7 @@ VectorImageWrapper<TTraits>
   if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Sample the intensity under the cursor for the current time point
-    this->SampleIntensityAtReferenceIndex(
+    bool inside = this->SampleIntensityAtReferenceIndex(
           this->m_SliceIndex, this->GetTimePointIndex(), true, out_value);
 
     // The call above updates the variable m_IntensitySamplingArray, which
@@ -75,13 +75,14 @@ VectorImageWrapper<TTraits>
     out_appearance = this->m_DisplayMapping->MapPixel(
                        this->m_IntensitySamplingArray.data_block() +
                        this->GetTimePointIndex() * this->GetNumberOfComponents());
+    return inside;
     }
   else
     {
     // Just delegate to the scalar wrapper
     ScalarImageWrapperBase *siw =
         this->GetScalarRepresentation(mode.SelectedScalarRep, mode.SelectedComponent);
-    siw->GetVoxelUnderCursorDisplayedValueAndAppearance(out_value, out_appearance);
+    return siw->GetVoxelUnderCursorDisplayedValueAndAppearance(out_value, out_appearance);
     }
 }
 

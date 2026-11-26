@@ -49,18 +49,20 @@ public:
   static QIcon GetIcon(ValueType value,
                        const LayerCurrentVoxelInfo &desc, int col)
   {
-    return (col == 0)
-        ? QIcon(":/root/icons8_pin_16.png")
-        : CreateColorBoxIcon(12, 12, desc.Color);
+    if(col == 0)
+      return QIcon(":/root/icons8_pin_16.png");
+
+    // No color when the cursor is outside of the layer
+    return desc.isInsideImage ? CreateColorBoxIcon(12, 12, desc.Color) : QIcon();
   }
 
   static QVariant GetIconSignature(ValueType value,
                                    const LayerCurrentVoxelInfo &desc, int col)
   {
     // Get the RGB color
-    return (col == 0)
-        ? QVariant(0)
-        : QVariant(QColor(desc.Color[0], desc.Color[1], desc.Color[2]));
+    if(col == 0 || !desc.isInsideImage)
+      return QVariant(0);
+    return QVariant(QColor(desc.Color[0], desc.Color[1], desc.Color[2]));
   }
 };
 
@@ -165,7 +167,9 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
 
   item_layer->setText(from_utf8(vi.LayerName));
   item_intensity->setText(from_utf8(vi.IntensityValue));
-  item_intensity->setToolTip(from_utf8(vi.IntensityValue));
+  item_intensity->setToolTip(vi.isInsideImage
+                             ? from_utf8(vi.IntensityValue)
+                             : tr("The cursor is outside of this image"));
 
   // item_layer->setForeground(QBrush(QColor(Qt::darkGray)));
   // item_intensity->setForeground(QBrush(QColor(Qt::darkGray)));
@@ -204,13 +208,22 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
   item_layer->setToolTip(
         QString("<p>%1</p><p>%2</p>").arg(from_utf8(vi.LayerName)).arg(tooltip_annot));
 
-  // Set the color icon
-  QColor stored_color = qvariant_cast<QColor>(item_intensity->data(Qt::UserRole));
-  QColor new_color = QColor(vi.Color[0], vi.Color[1], vi.Color[2]);
-  if(new_color != stored_color)
+  // Set the color icon. Outside of the image there is no color; the stored
+  // color is cleared so that the icon comes back when the cursor returns
+  if(!vi.isInsideImage)
     {
-    item_intensity->setIcon(CreateColorBoxIcon(12, 12, vi.Color));
-    item_intensity->setData(new_color, Qt::UserRole);
+    item_intensity->setIcon(QIcon());
+    item_intensity->setData(QVariant(), Qt::UserRole);
+    }
+  else
+    {
+    QColor stored_color = qvariant_cast<QColor>(item_intensity->data(Qt::UserRole));
+    QColor new_color = QColor(vi.Color[0], vi.Color[1], vi.Color[2]);
+    if(new_color != stored_color)
+      {
+      item_intensity->setIcon(CreateColorBoxIcon(12, 12, vi.Color));
+      item_intensity->setData(new_color, Qt::UserRole);
+      }
     }
 }
 
