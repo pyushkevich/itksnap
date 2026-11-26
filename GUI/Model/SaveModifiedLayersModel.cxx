@@ -57,9 +57,22 @@ bool ImageLayerSaveableItem::Save(AbstractSaveModifiedLayersInteractionDelegate 
   return cb_delegate->SaveImageLayer(m_Model->GetParentModel(), m_Wrapper, m_Role);
 }
 
+// Whether a file opened from @p fn can be saved back to it without asking
+// for a file name: a local file, or a URL that can be uploaded to and is not
+// read-only on the server (e.g. a file in a Flywheel analysis)
+static bool CanSaveBackTo(GlobalUIModel *model, const std::string &fn)
+{
+  if (fn.empty())
+    return false;
+  if (!IsRemoteImageURL(fn))
+    return true;
+  return CanSaveToURL(fn) &&
+         GetDefaultSaveURL(fn, model->GetDriver()->GetRemoteIOContext()) == fn;
+}
+
 bool ImageLayerSaveableItem::RequiresInteraction()
 {
-  return GetFilename().size() == 0;
+  return !CanSaveBackTo(m_Model->GetParentModel(), GetFilename());
 }
 
 
@@ -95,10 +108,9 @@ bool WorkspaceSaveableItem::Save(AbstractSaveModifiedLayersInteractionDelegate *
 
 bool WorkspaceSaveableItem::RequiresInteraction()
 {
-  // A workspace opened from a URL cannot be saved back to it, so the user
-  // must choose a local file
-  std::string fn = this->GetFilename();
-  return fn.size() == 0 || IsRemoteImageURL(fn);
+  // A workspace opened from an http(s) URL, or from a Flywheel analysis,
+  // cannot be saved back to it, so the user must choose a file
+  return !CanSaveBackTo(m_Model->GetParentModel(), this->GetFilename());
 }
 
 

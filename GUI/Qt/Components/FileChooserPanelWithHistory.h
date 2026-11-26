@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QMap>
+#include <SNAPCommon.h>
+#include <PropertyModel.h>
 
 namespace Ui {
   class FileChooserPanelWithHistory;
@@ -143,6 +145,13 @@ private:
 
   QObject *m_oracleTarget;
   const char *m_oracleSlot;
+  // The filename text, coupled to the text box. The browse button is
+  // disabled while it holds a URL.
+  SmartPtr<ConcreteSimpleStringProperty> m_FilenameModel;
+
+  // Whether the text is a remote URL rather than a local filename
+  static bool isURL(const QString &text);
+
   QString guessFormat(const QString &text);
   void setCurrentFormatText(const QString &format);
   bool isFilenameNonAscii(const QString &text);

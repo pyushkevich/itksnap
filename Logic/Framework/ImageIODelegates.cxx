@@ -440,31 +440,33 @@ void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,
             Registry &reg, IRISWarningList &wl)
 {
-  // Images can be loaded from remote URLs, but not saved to them
+  m_SaveSuccessful = false;
   if (IsRemoteImageURL(fname))
-    throw IRISException("Images cannot be saved to a remote location (%s). "
-                        "Please save the image to a local file instead.",
-                        fname.c_str());
-
-  try
     {
-    m_SaveSuccessful = false;
+    // Write a local copy and upload it. The image only counts as saved
+    // once the upload has succeeded.
+    SaveRemoteFile(fname, m_Driver->GetRemoteIOContext(),
+                   [this, &reg](const std::string &local_file) {
+                     m_Wrapper->WriteImageFile(local_file.c_str(), reg);
+                   });
+    m_Wrapper->MarkAsSaved();
+    m_Wrapper->SetRemoteURL(fname);
+    }
+  else
+    {
     m_Wrapper->WriteToFile(fname.c_str(), reg);
-    m_SaveSuccessful = true;
 
     // The layer now comes from a local file, not from its original URL
-    m_Wrapper->SetFileName(fname);
     m_Wrapper->SetRemoteURL(std::string());
-    for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
-        it != m_HistoryNames.end(); ++it)
-      {
-      m_Driver->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
-      }
     }
-  catch(std::exception &exc)
+  m_SaveSuccessful = true;
+
+  m_Wrapper->SetFileName(fname);
+  for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
+      it != m_HistoryNames.end(); ++it)
     {
-    throw exc;
-   }
+    m_Driver->GetHistoryManager()->UpdateHistory(*it, fname, m_Track);
+    }
 }
 
 const char *DefaultSaveImageDelegate::GetCurrentFilename()

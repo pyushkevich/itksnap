@@ -36,8 +36,12 @@
         <file>Scripts/test_4DToMC.js</file>
         <file>Scripts/test_MCTo4D.js</file>
         <file>Scripts/test_DeformationGrid.js</file>
+        <file>Scripts/test_RemoteSaveFlywheelAnalysis.js</file>
         <file>Scripts/test_RemoteSaveLayer.js</file>
+        <file>Scripts/test_RemoteSaveSFTP.js</file>
+        <file>Scripts/test_RemoteSaveSFTPNewSeg.js</file>
         <file>Scripts/test_RemoteSaveWorkspace.js</file>
+        <file>Scripts/test_RemoteSaveWorkspaceSFTP.js</file>
         <file>Scripts/test_RemoteWorkspaceUnsaved.js</file>
         <file>Scripts/test_SnakeROIPanel.js</file>
         <file>Scripts/test_ReloadSegmentation.js</file>

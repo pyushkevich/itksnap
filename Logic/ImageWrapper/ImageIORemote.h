@@ -151,6 +151,24 @@ public:
    */
   virtual std::string Download(const std::string &url) = 0;
 
+  /** Whether Upload() is supported for this scheme. */
+  virtual bool CanUpload() const { return false; }
+
+  /**
+   * Upload the local file @p local_path to @p url, replacing the remote file
+   * if there is one. Progress is reported, and the upload can be cancelled,
+   * through the progress callback. Throws IRISException on failure; the
+   * default implementation throws because the scheme is read-only.
+   */
+  virtual void Upload(const std::string &local_path, const std::string &url);
+
+  /**
+   * The URL that a file opened from @p url is saved to by default. This is
+   * @p url itself, unless the server keeps that file read-only. Only called
+   * when CanUpload() is true. May contact the server, and throws on failure.
+   */
+  virtual std::string GetSaveURL(const std::string &url) { return url; }
+
   /**
    * After Download(): the temp directory holding the returned file, or ""
    * when the file is in the cache. The caller owns this directory.
@@ -219,6 +237,15 @@ public:
 
   std::string Download(const std::string &url) override;
 
+  bool CanUpload() const override { return true; }
+
+  /**
+   * The file is written under a temporary name in the target's directory and
+   * then renamed over the target, so that a failed or cancelled upload leaves
+   * the existing remote file as it was.
+   */
+  void Upload(const std::string &local_path, const std::string &url) override;
+
 protected:
   SCPRemoteImageSource() {}
   virtual ~SCPRemoteImageSource() {}
@@ -247,6 +274,33 @@ protected:
 
 /** Returns true when @p path contains "://" and is therefore a remote URL. */
 bool IsRemoteImageURL(const std::string &path);
+
+/**
+ * Whether files can be saved to @p url: true for the schemes that support
+ * uploads (scp://, sftp://, fw://), false for read-only ones (http://, https://),
+ * unknown schemes and local paths.
+ */
+bool CanSaveToURL(const std::string &url);
+
+/**
+ * The URL of the file @p filename in the same remote directory or container
+ * as @p url: the last path component of @p url (before any ?query or
+ * #fragment) is replaced by @p filename, percent-encoded.
+ */
+std::string SiblingURL(const std::string &url, const std::string &filename);
+
+/**
+ * The URL that a file opened from @p url is saved to by default. This is
+ * @p url itself, except for a file in a Flywheel analysis: Flywheel never
+ * replaces a file in an analysis, and an analysis made by a gear takes no
+ * uploads at all, so the same file name in the analysis's parent container
+ * (e.g. its session) is returned. Local paths and URLs that cannot be saved
+ * to (see CanSaveToURL) are returned unchanged.
+ *
+ * This may contact the server (once per Flywheel analysis). If that fails,
+ * @p url is returned, and saving to it reports the error.
+ */
+std::string GetDefaultSaveURL(const std::string &url, const RemoteIOContext &ctx);
 
 /**
  * Strip the "itksnap-" wrapper prefix from a URL if present, returning the
@@ -342,6 +396,27 @@ private:
 RemoteDownload DownloadRemoteFile(const std::string &url,
                                   const RemoteIOContext &ctx,
                                   const char *title = nullptr);
+
+/**
+ * Save a file to a remote URL. @p write is called with the name of a local
+ * file in a new temporary directory, with the same file name as the URL so
+ * that the file format is chosen from its extension. Every file that it
+ * writes to that directory is then uploaded to the URL's directory or
+ * container: this includes the second file of formats such as .mhd/.raw.
+ * The file named by the URL is uploaded last. The URL's entry in the download
+ * cache is removed, and the temporary directory is deleted.
+ *
+ * Uses the same fields of @p ctx as DownloadRemoteFile(). Throws
+ * IRISException if the URL's scheme does not support saving, if writing or
+ * uploading fails, and IRISUserCancelException if the user cancels.
+ *
+ * @p title  Label shown in the progress bar, as for DownloadRemoteFile().
+ *           Defaults to "Uploading %1".
+ */
+void SaveRemoteFile(const std::string &url,
+                    const RemoteIOContext &ctx,
+                    const std::function<void(const std::string &)> &write,
+                    const char *title = nullptr);
 
 
 

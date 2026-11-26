@@ -1,9 +1,10 @@
 # Remote URLs in ITK-SNAP
 
 ITK-SNAP can open images and workspaces directly from remote sources by
-passing a URL wherever a local file path is accepted. This document describes
-the supported URL schemes, how authentication works for each, and the several
-ways a URL can be handed to ITK-SNAP.
+passing a URL wherever a local file path is accepted, and can save image
+layers back to SSH and Flywheel URLs. This document describes the supported
+URL schemes, how authentication works for each, the several ways a URL can be
+handed to ITK-SNAP, and how to test the remote code locally.
 
 ---
 
@@ -53,6 +54,10 @@ sftp://[user@]host[:port]/absolute/path/to/file.nii.gz
 **Authentication**: ITK-SNAP attempts public-key authentication first (using
 keys in `~/.ssh`). If that fails it prompts for a password or key passphrase
 via a dialog. Credentials are not stored between sessions.
+
+The environment variable `ITKSNAP_SSH_DIR` replaces `~/.ssh` as the folder
+where keys, `known_hosts` and `config` are read. The tests use it so that they
+never touch the user's own SSH files.
 
 **Example**:
 ```
@@ -202,6 +207,89 @@ Any hyperlink using an `itksnap-*://` scheme will trigger the OS handler:
 The browser will show a confirmation dialog before launching ITK-SNAP. The
 `itksnap-*` schemes are registered during installation on both macOS
 (via `Info.plist`) and Windows (via NSIS registry entries under `HKCR`).
+
+---
+
+## Saving to URLs
+
+Image layers (main image, overlays and segmentations) and workspaces can be
+saved to `scp://`, `sftp://` and `fw://` URLs. `http(s)://` URLs are
+read-only. Meshes are always saved to local files.
+
+- **Save** (e.g. Ctrl-S for the segmentation) on a layer opened from an
+  `scp`, `sftp` or `fw` URL uploads it back to that URL, without a dialog.
+  A layer opened from an `http(s)` URL opens the Save As wizard instead, with
+  just the file name suggested.
+- A new layer (e.g. a new segmentation) has no file name, so Save opens the
+  wizard. If the main image came from an `scp`, `sftp` or `fw` URL, the
+  wizard suggests `Untitled.nii.gz` next to it on the server, as it suggests
+  the main image's folder for a local main image.
+- **Save As** shows the layer's URL in the filename box, with the file name
+  selected. Edit it to save under another name, or type a local path. The
+  Browse button is disabled while the box holds a URL, since remote folders
+  cannot be browsed. An `http(s)` URL is refused and Finish is disabled.
+- The image is written to a temporary local folder and then uploaded. Formats
+  that write two files (e.g. `.mhd` with `.raw`, `.hdr` with `.img`) upload
+  both, to the same remote folder or container; the file the URL names goes
+  last.
+- The layer only counts as saved once the upload has succeeded. A failed or
+  cancelled upload leaves it marked as modified.
+- Saving to a URL drops that URL from the download cache, so reopening it
+  downloads the new version.
+
+**Workspaces** work the same way: Save Workspace on a workspace opened from
+an `scp`, `sftp` or `fw` URL uploads it back, Save Workspace As shows the URL,
+and the unsaved changes prompt (e.g. on exit) uploads it without asking for a
+file. A new workspace whose main image came from such a URL is suggested as
+`Untitled.itksnap` next to it. The workspace's `SaveLocation` is the URL's
+folder, and layers on the same server are stored by their URLs, so it opens
+again from the server and keeps working if it is moved there. Before a
+workspace is saved to a URL, ITK-SNAP warns if any of its layers or meshes
+are local files (`IRISApplication::GetLocalFilesInProject`), since nobody else
+can open those.
+
+**SSH / SFTP**: the file is written to a temporary name
+(`.<name>.itksnap-upload`) in the target folder and then renamed over the
+target, so a failed or cancelled upload never leaves a partial file under the
+real name. If the server cannot rename over an existing file (SFTP version 3),
+the old file is deleted first; if the rename then still fails, the error names
+the temporary file that holds the upload.
+
+**Flywheel**: the file is uploaded to the container the URL names, with
+`POST /api/<type>/<id>/files`. Both the direct and the `find/` form work. An
+upload under an existing file name makes a new version of that file in
+Flywheel.
+
+Analyses are different: Flywheel never replaces a file in an analysis (HTTP
+409), and an analysis created by a gear accepts no files at all (HTTP 422).
+So Save on a file from an analysis, or on a new segmentation or workspace over
+one, opens Save As with the same file name in the analysis's parent container,
+e.g. `fw://server/sessions/<id>/files/<file>`; later saves go there directly.
+ITK-SNAP looks up the parent with `GET /api/analyses/<id>`, once per analysis
+(`GetDefaultSaveURL` in `ImageIORemote.h`). A `401` response clears the cached API key; a `403` means the key's
+user may not write to the container.
+
+---
+
+## Testing with local servers
+
+`Testing/RemoteServer/remote_test_server.py` runs a command while serving
+files over SFTP (with the `asyncssh` Python module), HTTP and a mock Flywheel
+API, all on `127.0.0.1`. The `RemoteSaveTest_*`, `RemoteImageLoadTest_SFTPServer`,
+`RemoteImageLoadTest_Flywheel*` and `RemoteSaveSFTP` (GUI) tests use it. They
+need no internet access; without `asyncssh` (`pip install asyncssh`) they are
+skipped. The script's docstring describes the folders it serves and the test
+user and API key.
+
+The server sets two environment variables for the command:
+
+| Variable | Effect |
+|----------|--------|
+| `ITKSNAP_SSH_DIR` | Read SSH keys, `known_hosts` and `config` from this folder instead of `~/.ssh` |
+| `ITKSNAP_FW_TEST_ALLOW_HTTP=1` | Use plain `http://` for `fw://` URLs, but only when the host is `localhost` or `127.0.0.1` |
+
+The server also sets `HOME` to a folder holding a Flywheel CLI `config.yml`
+with its API key.
 
 ---
 

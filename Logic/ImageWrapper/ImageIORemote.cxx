@@ -7,8 +7,10 @@
 #include "SSHConnectionPool.h"
 #include "SystemInterface.h"
 #include "UIReporterDelegates.h"
+#include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
 #include <libssh/sftp.h>
+#include <algorithm>
 #include <fcntl.h>
 #include <fstream>
 #include <memory>
@@ -221,6 +223,113 @@ SCPRemoteImageSource::Download(const std::string &url)
   return path;
 }
 
+void
+SCPRemoteImageSource::Upload(const std::string &local_path, const std::string &url)
+{
+  SCPURL parsed = ParseSCPURL(url);
+  const std::string &remotepath = parsed.path;
+
+  std::string basename = itksys::SystemTools::GetFilenameName(remotepath);
+  if (basename.empty() || basename == "." || basename == "..")
+    throw IRISException("SCPRemoteImageSource: URL path ends in a directory, not a file: %s", url.c_str());
+
+  std::ifstream infile(local_path, std::ios::binary | std::ios::ate);
+  if (!infile)
+    throw IRISException("SCPRemoteImageSource: Cannot read local file '%s'", local_path.c_str());
+  std::size_t file_size = static_cast<std::size_t>(infile.tellg());
+  infile.seekg(0);
+
+  // The session comes from the pool, as in Download()
+  SmartPtr<SSHConnectionPool> tmp_pool;
+  if (!m_ConnectionPool)
+    tmp_pool = SSHConnectionPool::New();
+  SSHConnectionPool *pool = m_ConnectionPool ? m_ConnectionPool : tmp_pool.GetPointer();
+  SSHConnectionPool::SessionPair pair =
+    pool->GetOrCreate(parsed.host, parsed.username, m_AuthDelegate, parsed.port);
+  ssh_session  session = pair.ssh;
+  sftp_session sftp    = pair.sftp;
+
+  // Write to a temporary name next to the target. It is removed if anything
+  // fails before the file has been renamed over the target.
+  std::string remote_dir = itksys::SystemTools::GetFilenamePath(remotepath);
+  std::string temp_path = remote_dir + "/." + basename + ".itksnap-upload";
+  struct TempFileGuard
+  {
+    sftp_session sftp;
+    std::string  path;
+    bool         keep = false;
+    ~TempFileGuard() { if (!keep) sftp_unlink(sftp, path.c_str()); }
+  };
+
+  sftp_file remote_file =
+    sftp_open(sftp, temp_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (!remote_file)
+    throw IRISException("SCPRemoteImageSource: Cannot create remote file '%s': %s",
+                        temp_path.c_str(), ssh_get_error(session));
+  TempFileGuard temp_guard{ sftp, temp_path };
+
+  {
+  SFTPFileGuard file_guard{remote_file};
+
+  constexpr std::size_t chunk = 65536;
+  std::vector<char>     buf(chunk);
+  std::size_t           bytes_sent = 0;
+  ReportProgress(0, file_size);
+  while (bytes_sent < file_size)
+    {
+    std::size_t n = std::min(chunk, file_size - bytes_sent);
+    if (!infile.read(buf.data(), n))
+      throw IRISException("SCPRemoteImageSource: Read error on '%s'", local_path.c_str());
+
+    // sftp_write may write less than asked, up to the server's limit
+    for (std::size_t done = 0; done < n;)
+      {
+      ssize_t w = sftp_write(remote_file, buf.data() + done, n - done);
+      if (w <= 0)
+        throw IRISException("SCPRemoteImageSource: SFTP write error on '%s': %s",
+                            temp_path.c_str(), ssh_get_error(session));
+      done += static_cast<std::size_t>(w);
+      }
+    bytes_sent += n;
+    ReportProgress(bytes_sent, file_size);
+    }
+  if (file_size == 0)
+    ReportProgress(0, 0);
+  }
+
+  // Rename over the target. SFTP version 3, which OpenSSH uses, cannot rename
+  // onto an existing file, so remove the target first if the rename fails.
+  if (sftp_rename(sftp, temp_path.c_str(), remotepath.c_str()) == 0)
+    {
+    temp_guard.keep = true;
+    return;
+    }
+
+  sftp_attributes target = sftp_stat(sftp, remotepath.c_str());
+  if (!target)
+    throw IRISException("SCPRemoteImageSource: Cannot rename '%s' to '%s': %s",
+                        temp_path.c_str(), remotepath.c_str(), ssh_get_error(session));
+  sftp_attributes_free(target);
+
+  if (sftp_unlink(sftp, remotepath.c_str()) != 0)
+    throw IRISException("SCPRemoteImageSource: Cannot replace remote file '%s': %s",
+                        remotepath.c_str(), ssh_get_error(session));
+
+  // The old file is gone now, so keep the uploaded copy whatever happens
+  temp_guard.keep = true;
+  if (sftp_rename(sftp, temp_path.c_str(), remotepath.c_str()) != 0)
+    throw IRISException("SCPRemoteImageSource: Cannot rename '%s' to '%s': %s. "
+                        "The uploaded file has been kept as '%s'.",
+                        temp_path.c_str(), remotepath.c_str(), ssh_get_error(session),
+                        temp_path.c_str());
+}
+
+void
+RemoteImageSource::Upload(const std::string &, const std::string &url)
+{
+  throw IRISException("Files cannot be saved to this kind of URL: %s", url.c_str());
+}
+
 
 // -----------------------------------------------------------------------
 //  HTTPRemoteImageSource
@@ -305,6 +414,42 @@ HTTPRemoteImageSource::Download(const std::string &url)
 bool IsRemoteImageURL(const std::string &path)
 {
   return path.find("://") != std::string::npos;
+}
+
+bool CanSaveToURL(const std::string &url)
+{
+  return url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://" ||
+         url.substr(0, 5) == "fw://";
+}
+
+std::string GetDefaultSaveURL(const std::string &url, const RemoteIOContext &ctx)
+{
+  if (!IsRemoteImageURL(url) || !CanSaveToURL(url))
+    return url;
+
+  try
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+    if (ctx.connectionPool)
+      src->SetConnectionPool(ctx.connectionPool);
+    if (ctx.authDelegate)
+      src->SetAuthDelegate(ctx.authDelegate);
+    return src->GetSaveURL(url);
+    }
+  catch (std::exception &)
+    {
+    return url;
+    }
+}
+
+std::string SiblingURL(const std::string &url, const std::string &filename)
+{
+  std::string url_path = url.substr(0, url.find_first_of("?#"));
+  std::string suffix = url.substr(url_path.size());
+  auto slash = url_path.rfind('/');
+  if (slash == std::string::npos)
+    throw IRISException("Cannot determine the directory of URL: %s", url.c_str());
+  return url_path.substr(0, slash + 1) + UrlEncodePathSegment(filename) + suffix;
 }
 
 std::string ResolveITKSnapURL(const std::string &url)
@@ -444,4 +589,65 @@ DownloadRemoteFile(const std::string &url,
 
   std::string path = src->Download(url);
   return RemoteDownload(path, src->GetTemporaryDirectory());
+}
+
+void
+SaveRemoteFile(const std::string &url,
+               const RemoteIOContext &ctx,
+               const std::function<void(const std::string &)> &write,
+               const char *title)
+{
+  SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+  if (!src->CanUpload())
+    throw IRISException("Files cannot be saved to this kind of URL: %s. "
+                        "Please save to a local file, or to an scp://, sftp:// or fw:// URL.",
+                        url.c_str());
+
+  if (ctx.connectionPool)
+    src->SetConnectionPool(ctx.connectionPool);
+  if (ctx.authDelegate)
+    src->SetAuthDelegate(ctx.authDelegate);
+
+  // Write into a temp directory, under the URL's file name so that the
+  // format is chosen from its extension. The directory is deleted on return.
+  std::string filename = RemoteFilenameFromURL(url);
+  DownloadTempDir tmpdir("itksnap_upload");
+  std::string local_file = tmpdir.GetPath() + "/" + filename;
+  write(local_file);
+
+  // Every file that was written: the main one last, so that a reader of the
+  // URL does not see it before the files it refers to
+  std::vector<std::string> files;
+  itksys::Directory dir;
+  if (dir.Load(tmpdir.GetPath()))
+    for (unsigned long i = 0; i < dir.GetNumberOfFiles(); i++)
+      {
+      std::string f = dir.GetFile(i);
+      if (f != "." && f != ".." && f != filename &&
+          !itksys::SystemTools::FileIsDirectory(tmpdir.GetPath() + "/" + f))
+        files.push_back(f);
+      }
+  if (!itksys::SystemTools::FileExists(local_file, true))
+    throw IRISException("No file was written for %s", url.c_str());
+  files.push_back(filename);
+
+  if (!title)
+    title = SNAP_TRANSLATE_NOOP("ProgressTask", "Uploading %1");
+
+  // The URL's cache entry is stale from the moment the upload starts
+  if (!ctx.appDataDir.empty() && ctx.remoteSettings)
+    {
+    RemoteFileCache file_cache;
+    file_cache.Initialize(ctx.appDataDir, ctx.remoteSettings);
+    file_cache.Invalidate(url);
+    }
+
+  for (const std::string &f : files)
+    {
+    ProgressTaskGuard guard(ctx.progressDelegate, title, true, f);
+    src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
+      return guard.UpdateProgress(done, total);
+    });
+    src->Upload(tmpdir.GetPath() + "/" + f, f == filename ? url : SiblingURL(url, f));
+    }
 }

@@ -16,6 +16,7 @@
 #include <QApplication>
 #include <QKeySequence>
 #include <QDir>
+#include <QDateTime>
 #include <SNAPQApplication.h>
 #include <QDeadlineTimer>
 #include <QMetaMethod>
@@ -442,6 +443,17 @@ QString SNAPTestQt::screenshotInternal(QString filename, QObject *target, bool e
 void SNAPTestQt::print(QString text)
 {
   qDebug() << text;
+}
+
+QString SNAPTestQt::getEnv(QString name)
+{
+  return qEnvironmentVariable(name.toUtf8().constData());
+}
+
+double SNAPTestQt::fileModifiedTime(QString filename)
+{
+  QFileInfo fi(filename);
+  return fi.exists() ? (double) fi.lastModified().toMSecsSinceEpoch() : -1.0;
 }
 
 void SNAPTestQt::printChildrenRecursive(QObject *parent, QString offset, const char *className)

@@ -122,7 +122,7 @@ jobs:
           dnf -y install dnf-plugins-core epel-release
           dnf config-manager --set-enabled powertools
           dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-          dnf -y install gcc-toolset-13 git cmake ninja-build python3.11 python3.11-pip \
+          dnf -y install gcc-toolset-13 git cmake ninja-build python3.11 python3.11-pip python3.12-pip \
             libcurl-devel libssh-devel openssl-devel zlib-devel \
             mesa-libGL-devel mesa-libEGL-devel mesa-dri-drivers libX11-devel libXt-devel \
             libXext-devel libxkbcommon-devel libxkbcommon-x11 fontconfig-devel freetype-devel \
@@ -167,6 +167,13 @@ jobs:
       # package versions. (v6 cached with pat-s/always-upload-cache@v3, which uses GitHub's
       # retired cache service and failed with "Cache service responded with 400", so every run
       # rebuilt curl, libssh, zlib and OpenSSL: 5 minutes on x64, 11 on arm64.)
+      #
+      # vcpkg is pinned to a commit with libssh 0.12.2. Without a revision the action uses the
+      # latest vcpkg release, and 2026.10.16 has libssh 0.12.0, which cannot connect on Windows
+      # to a server that offers the mlkem768x25519-sha256 key exchange (OpenSSH 9.9 and later,
+      # and the asyncssh test server): "Failed to construct client init buffer". It passes an
+      # int where ssh_buffer_pack reads a size_t; fixed in 0.12.1 (libssh commit 18133120).
+      # The pin can be removed once a vcpkg release has libssh 0.12.1 or later.
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v8
         id: vcpkg
@@ -174,6 +181,7 @@ jobs:
         with:
           pkgs: curl libssh zlib
           triplet: ${{ matrix.vcpkg_triplet }}
+          revision: aaf0e1dc2c524a987c2991ee894e84ba5c1b3665
           token: ${{ github.token }}
     
       # The SSH command is printed in the step log. Only the user who started the run can
@@ -429,6 +437,28 @@ jobs:
           7z e -y -bd mesa.7z x64/opengl32.dll x64/libgallium_wgl.dll > /dev/null
           rm mesa.7z
           echo "MESA_DIR=$(cygpath -w "$PWD")" >> $GITHUB_ENV
+
+      # The remote save and load tests serve SFTP with the asyncssh module, and CMake only
+      # adds them when it is installed. Install it for the Python that CMake found and runs
+      # the test server with (Python3_EXECUTABLE if it was set, else FindPython's internal
+      # _Python3_EXECUTABLE), then re-run CMake so that the tests are added. Where it cannot
+      # be installed, the tests are left out and every test that is added must pass.
+      - name: Install Python modules for the remote IO tests
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          PYTHON=$(sed -n 's/^_\{0,1\}Python3_EXECUTABLE:[A-Z]*=//p' CMakeCache.txt | head -n 1)
+          echo "Python used by the tests: ${PYTHON:-none}"
+          if [ -n "$PYTHON" ]; then
+            "$PYTHON" -m pip install asyncssh || echo "::warning::Could not install asyncssh; the remote server tests will not be added"
+          fi
+          cmake . > /dev/null
+          if ctest -N -R '^RemoteServerSelfTest$' | grep -q RemoteServerSelfTest; then
+            echo "The remote server tests are added"
+          else
+            echo "The remote server tests are not added"
+          fi
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test

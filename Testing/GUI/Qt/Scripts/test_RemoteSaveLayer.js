@@ -6,8 +6,9 @@ include("Library");
 waitForMainImage();
 engine.sleep(2000);
 
-//=== The segmentation was loaded from a URL, so plain 'Save' cannot save it
-//=== back there: it must open the Save As wizard, suggesting only the file name
+//=== The segmentation was loaded from an https URL, so plain 'Save' cannot
+//=== save it back there: it must open the Save As wizard, suggesting only the
+//=== file name (sftp:// URLs are saved back, see test_RemoteSaveSFTP.js)
 engine.trigger("actionSaveSegmentation");
 engine.sleep(2000);
 

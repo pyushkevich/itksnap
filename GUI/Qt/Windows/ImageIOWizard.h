@@ -86,7 +86,7 @@ public:
 
   void initializePage();
   bool validatePage();
-  // bool isComplete() const;
+  bool isComplete() const;
 
 public slots:
 

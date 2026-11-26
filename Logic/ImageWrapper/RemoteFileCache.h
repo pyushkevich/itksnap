@@ -95,6 +95,12 @@ public:
                         const std::string &etag,
                         const std::string &last_modified);
 
+  /**
+   * Remove the cached copy of @p url, if there is one. Used when the remote
+   * file is replaced, so that the old copy is never opened again.
+   */
+  void Invalidate(const std::string &url);
+
   /** Total size of the files listed in the metadata, in bytes. */
   uint64_t GetTotalSize();
 

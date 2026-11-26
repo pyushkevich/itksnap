@@ -121,6 +121,15 @@ public:
     mp.filename = filename;
     m_Parts[name] = mp;
   }
+  /** A part whose content is read from the local file @p path as it is sent */
+  void addFile(const char *name, const char *mime_type, const char *filename, const std::string &path)
+  {
+    MimePart mp;
+    mp.mime_type = mime_type;
+    mp.filename = filename;
+    mp.file_path = path;
+    m_Parts[name] = mp;
+  }
 
 protected:
 
@@ -128,6 +137,7 @@ protected:
   {
     std::string mime_type, filename;
     std::string value;
+    std::string file_path;
     const char *byte_array = nullptr;
     size_t byte_array_size = 0;
   };

@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 
@@ -54,11 +56,38 @@ LocalUsername()
   return user;
 }
 
-// Apply the SSH config file (empty = ~/.ssh/config plus the system one)
+// Apply the SSH config file (empty = ~/.ssh/config plus the system one).
+// ITKSNAP_SSH_DIR replaces ~/.ssh as the directory of the config file,
+// known_hosts and the default keys. The tests use it so that they never read
+// or write the user's ~/.ssh: libssh finds the home directory through the
+// password database, so changing HOME does not do that.
+//
+// SSH_OPTIONS_SSH_DIR is enough before libssh 0.12. From 0.12 on, the default
+// paths are "%d/.ssh/..." with %d the home directory, so known_hosts, the
+// config file and the keys in the directory are also set one by one. libssh
+// keeps its default keys in the list, but tries the keys added here first.
 void
 ParseConfig(ssh_session session, const std::string &config_file)
 {
-  ssh_options_parse_config(session, config_file.empty() ? nullptr : config_file.c_str());
+  const char *ssh_dir = getenv("ITKSNAP_SSH_DIR");
+  if (!ssh_dir || !*ssh_dir)
+  {
+    ssh_options_parse_config(session, config_file.empty() ? nullptr : config_file.c_str());
+    return;
+  }
+
+  std::string dir(ssh_dir);
+  auto exists = [](const std::string &fn) { return std::ifstream(fn).good(); };
+  ssh_options_set(session, SSH_OPTIONS_SSH_DIR, dir.c_str());
+  ssh_options_set(session, SSH_OPTIONS_KNOWNHOSTS, (dir + "/known_hosts").c_str());
+  for (const char *key : { "id_ed25519", "id_ecdsa", "id_rsa" })
+    if (exists(dir + "/" + key))
+      ssh_options_set(session, SSH_OPTIONS_ADD_IDENTITY, (dir + "/" + key).c_str());
+
+  // Never read the user's config: use the one in the directory, if any
+  std::string config = !config_file.empty() ? config_file : dir + "/config";
+  if (exists(config))
+    ssh_options_parse_config(session, config.c_str());
 }
 
 // The "User" that the SSH config assigns to host alias @p host, if any

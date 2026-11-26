@@ -30,6 +30,7 @@
 
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
+#include "ImageIORemote.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "MetaDataAccess.h"
@@ -328,10 +329,22 @@ bool SelectFilePage::validatePage()
   return this->PerformIO();
 }
 
+bool SelectFilePage::isComplete() const
+{
+  if(!AbstractPage::isComplete())
+    return false;
+
+  // Only some kinds of URLs can be saved to
+  std::string fn = to_utf8(m_FilePanel->absoluteFilename());
+  if(!IsRemoteImageURL(fn) || CanSaveToURL(fn))
+    return true;
+  return m_Model && m_Model->IsLoadMode();
+}
+
 void SelectFilePage::onFilenameChanged(QString absoluteFilename)
 {
   // Is it a directory?
-  if(QFileInfo(absoluteFilename).isDir())
+  if(!IsRemoteImageURL(to_utf8(absoluteFilename)) && QFileInfo(absoluteFilename).isDir())
     return;
 
   emit completeChanged();

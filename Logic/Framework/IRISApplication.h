@@ -655,8 +655,18 @@ public:
    * the file in the Registry format. The name of the project will be stored.
    *
    * A project is reset (set to empty string) when a new main image is loaded.
+   *
+   * The project can also be saved to an scp://, sftp:// or fw:// URL: it is
+   * written to a temporary file and uploaded.
    */
   void SaveProject(const std::string &proj_file);
+
+  /**
+   * The local files (not URLs) that the project refers to: image layers and
+   * meshes. A project saved to a URL that refers to local files cannot be
+   * opened on another computer, so the GUI warns about them.
+   */
+  std::vector<std::string> GetLocalFilesInProject();
 
   /**
    * Open an existing project.
